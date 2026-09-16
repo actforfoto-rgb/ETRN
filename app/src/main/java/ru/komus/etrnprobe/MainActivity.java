@@ -1,105 +1,430 @@
 package ru.komus.etrnprobe;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.text.InputType;
 import android.view.View;
-import android.widget.*;
-import org.json.*;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
 
-import java.io.*;
-import java.net.*;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
-    private EditText login, password, account, docA, attA, docB, attB, ogrnip, endpoint, output;
-    private Spinner signatureKind;
-    private String session;
-    private final String authEndpoint = "https://online.sbis.ru/auth/service/";
-    private String lastOperationId;
+    private static final String AUTH_URL = "https://online.sbis.ru/auth/service/";
+    private static final String SERVICE_URL = "https://online.sbis.ru/service/?srv=1";
+    private static final String USER_AGENT = "KOMUS-ETRN-GOSKEY-BATCH-PROBE-R1/1.0";
 
-    @Override public void onCreate(Bundle b) {
-        super.onCreate(b);
-        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitAll().build());
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
+    private EditText loginField;
+    private EditText passwordField;
+    private EditText accountField;
+    private EditText ogrnipField;
+    private EditText documentIdField;
+    private EditText attachmentAField;
+    private EditText attachmentBField;
+    private EditText operationIdField;
+    private Spinner signatureKindSpinner;
+    private TextView logView;
+    private Button authButton;
+    private Button esiaButton;
+    private Button createButton;
+    private Button statusButton;
+
+    private volatile String sessionId;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         setContentView(buildUi());
+        updateButtons();
+    }
+
+    @Override
+    protected void onDestroy() {
+        executor.shutdownNow();
+        sessionId = null;
+        super.onDestroy();
     }
 
     private View buildUi() {
         ScrollView scroll = new ScrollView(this);
-        LinearLayout root = new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setPadding(24,24,24,24);
-        TextView intro = new TextView(this);
-        intro.setText("ETRN_GOSKEY_BATCH_PROBE_R1\n\nПроверяет один Gate: DocumentID ЭТрН A + AttachmentID от A и B в одной официальной sabyCryptoOperation.Create. НЕ вызывает СБИС.ВыполнитьДействие.");
-        root.addView(intro);
-        login = field(root,"Логин Saby",false); password = field(root,"Пароль Saby",true); account = field(root,"Номер аккаунта (необязательно)",false);
-        docA = field(root,"DocumentID ЭТрН A",false); attA = field(root,"AttachmentID A",false);
-        docB = field(root,"DocumentID ЭТрН B (для журнала)",false); attB = field(root,"AttachmentID B",false);
-        ogrnip = field(root,"ОГРНИП (для КЭПЮЛ/ИП)",false);
-        endpoint = field(root,"API endpoint",false); endpoint.setText("https://online.sbis.ru/service/?srv=1");
-        signatureKind = new Spinner(this); String[] kinds={"КЭПЮЛ","КЭП","НЭП","КЭПДЛ"}; signatureKind.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, kinds)); root.addView(signatureKind);
-        Button loginBtn = new Button(this); loginBtn.setText("1. Войти в Saby"); loginBtn.setOnClickListener(v -> runSafe(this::authenticate)); root.addView(loginBtn);
-        Button createBtn = new Button(this); createBtn.setText("2. СОЗДАТЬ ОДНУ ОПЕРАЦИЮ НА 2 ФАЙЛА"); createBtn.setOnClickListener(v -> runSafe(this::createBatch)); root.addView(createBtn);
-        Button statusBtn = new Button(this); statusBtn.setText("3. Проверить статус последней операции"); statusBtn.setOnClickListener(v -> runSafe(this::getStatus)); root.addView(statusBtn);
-        output = new EditText(this); output.setMinLines(16); output.setGravity(48); output.setTextIsSelectable(true); root.addView(output);
-        scroll.addView(root); return scroll;
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        int p = dp(16);
+        root.setPadding(p, p, p, p);
+        scroll.addView(root);
+
+        TextView title = new TextView(this);
+        title.setText("ETRN_GOSKEY_BATCH_PROBE_R1");
+        title.setTextSize(22);
+        root.addView(title);
+
+        TextView subtitle = new TextView(this);
+        subtitle.setText("Gate: один DocumentID + два AttachmentID из двух разных ЭТрН → одна операция Госключа. Приложение НЕ вызывает СБИС.ВыполнитьДействие.");
+        subtitle.setPadding(0, dp(8), 0, dp(12));
+        root.addView(subtitle);
+
+        loginField = addField(root, "Логин Saby", false);
+        passwordField = addField(root, "Пароль Saby", true);
+        accountField = addField(root, "Номер аккаунта (если нужен)", false);
+
+        authButton = addButton(root, "1. Войти в Saby", v -> authenticate());
+        esiaButton = addButton(root, "2. Проверить привязку ЕСИА", v -> checkEsia());
+
+        TextView signHeader = new TextView(this);
+        signHeader.setText("Параметры Госключа");
+        signHeader.setTextSize(18);
+        signHeader.setPadding(0, dp(16), 0, dp(4));
+        root.addView(signHeader);
+
+        signatureKindSpinner = new Spinner(this);
+        String[] kinds = new String[]{"КЭПЮЛ", "КЭП", "НЭП", "КЭПДЛ"};
+        signatureKindSpinner.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, kinds));
+        root.addView(signatureKindSpinner, matchWrap());
+
+        ogrnipField = addField(root, "ОГРНИП водителя (для КЭПЮЛ)", false);
+        documentIdField = addField(root, "DocumentID ЭТрН A", false);
+        attachmentAField = addField(root, "AttachmentID A (из ЭТрН A)", false);
+        attachmentBField = addField(root, "AttachmentID B (из ДРУГОЙ ЭТрН B)", false);
+
+        createButton = addButton(root, "3. СОЗДАТЬ ОДНУ операцию на 2 вложения", v -> confirmCreate());
+
+        operationIdField = addField(root, "OperationID (заполнится из ответа; можно вставить вручную)", false);
+        statusButton = addButton(root, "4. Проверить статус операции", v -> getStatus());
+
+        Button clearButton = addButton(root, "Очистить локальный лог", v -> logView.setText(""));
+        clearButton.setEnabled(true);
+
+        TextView warning = new TextView(this);
+        warning.setText("ВАЖНО: Create создаёт реальный запрос в Госключ. По документации Saby такой запрос нельзя отозвать через API. Запускай только на двух реальных ЭТрН, которые действительно ждут подписи этого водителя.");
+        warning.setPadding(0, dp(16), 0, dp(8));
+        root.addView(warning);
+
+        logView = new TextView(this);
+        logView.setTextIsSelectable(true);
+        logView.setTextSize(12);
+        root.addView(logView, matchWrap());
+
+        return scroll;
     }
 
-    private EditText field(LinearLayout root, String hint, boolean secret){
-        EditText e=new EditText(this); e.setHint(hint); if(secret)e.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD); root.addView(e); return e;
+    private LinearLayout.LayoutParams matchWrap() {
+        return new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
     }
 
-    private void runSafe(RunnableEx r){ try{r.run();}catch(Exception e){log("ERROR: "+e.getClass().getSimpleName()+": "+e.getMessage());} }
-    private interface RunnableEx { void run() throws Exception; }
-
-    private void authenticate() throws Exception {
-        JSONObject p = new JSONObject(); p.put("Логин", login.getText().toString()); p.put("Пароль", password.getText().toString());
-        if(!account.getText().toString().trim().isEmpty()) p.put("НомерАккаунта", account.getText().toString().trim());
-        JSONObject params = new JSONObject().put("Параметр",p);
-        JSONObject response = rpc(authEndpoint,"СБИС.Аутентифицировать",params,null);
-        Object result=response.opt("result");
-        if(result instanceof String){session=(String)result; log("AUTH OK: session получена (в журнал не выводится)");}
-        else { log("AUTH RESPONSE: "+response.toString(2)); }
+    private EditText addField(LinearLayout root, String hint, boolean password) {
+        EditText e = new EditText(this);
+        e.setHint(hint);
+        e.setSingleLine(false);
+        if (password) {
+            e.setSingleLine(true);
+            e.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        }
+        root.addView(e, matchWrap());
+        return e;
     }
 
-    private void createBatch() throws Exception {
-        requireSession();
-        String a=docA.getText().toString().trim(), fa=attA.getText().toString().trim(), b=docB.getText().toString().trim(), fb=attB.getText().toString().trim();
-        if(a.isEmpty()||fa.isEmpty()||b.isEmpty()||fb.isEmpty()) throw new IllegalArgumentException("Нужны два DocumentID/AttachmentID");
-        JSONArray files = new JSONArray().put(new JSONObject().put("AttachmentID",fa)).put(new JSONObject().put("AttachmentID",fb));
-        JSONObject op = new JSONObject();
-        op.put("CertificateType","Госключ");
-        op.put("GoskeySignatureKind",signatureKind.getSelectedItem().toString());
-        if(!ogrnip.getText().toString().trim().isEmpty()) op.put("GoskeyOgrnip",ogrnip.getText().toString().trim());
-        op.put("DocumentID",a); op.put("Files",files);
-        JSONObject params = new JSONObject().put("Operation",op);
-        log("GATE REQUEST: DocumentID(A)="+mask(a)+"; Attachment A="+mask(fa)+"; Attachment B(from doc B="+mask(b)+")="+mask(fb));
-        JSONObject response = rpc(endpoint.getText().toString().trim(),"sabyCryptoOperation.Create",params,session);
-        log("CREATE RESPONSE:\n"+response.toString(2));
-        lastOperationId=findOperationId(response.opt("result"));
-        if(lastOperationId!=null) log("GATE-A CANDIDATE: сервер принял 2 AttachmentID в одной операции; OperationID="+mask(lastOperationId));
+    private Button addButton(LinearLayout root, String text, View.OnClickListener listener) {
+        Button b = new Button(this);
+        b.setText(text);
+        b.setOnClickListener(listener);
+        root.addView(b, matchWrap());
+        return b;
     }
 
-    private void getStatus() throws Exception {
-        requireSession(); if(lastOperationId==null) throw new IllegalStateException("Нет OperationID из Create");
-        JSONObject params=new JSONObject().put("OperationID",lastOperationId);
-        JSONObject response=rpc(endpoint.getText().toString().trim(),"sabyCryptoOperation.GetStatus",params,session);
-        log("STATUS RESPONSE:\n"+response.toString(2));
+    private void authenticate() {
+        String login = text(loginField);
+        String password = text(passwordField);
+        if (login.isEmpty() || password.isEmpty()) {
+            toast("Нужны логин и пароль Saby");
+            return;
+        }
+
+        JSONObject parameter = new JSONObject();
+        JSONObject params = new JSONObject();
+        try {
+            parameter.put("Логин", login);
+            parameter.put("Пароль", password);
+            String account = text(accountField);
+            if (!account.isEmpty()) parameter.put("НомерАккаунта", account);
+            params.put("Параметр", parameter);
+        } catch (Exception e) {
+            log("AUTH JSON ERROR: " + e);
+            return;
+        }
+
+        setBusy(true);
+        executor.execute(() -> {
+            try {
+                JSONObject response = rpc(AUTH_URL, "СБИС.Аутентифицировать", params, null);
+                if (response.has("error")) {
+                    logOnUi("AUTH ERROR\n" + pretty(response));
+                } else {
+                    Object result = response.opt("result");
+                    if (result instanceof String && !((String) result).isEmpty()) {
+                        sessionId = (String) result;
+                        logOnUi("AUTH OK. Session получена и хранится только в памяти процесса.");
+                    } else {
+                        logOnUi("AUTH: неожиданный ответ\n" + pretty(response));
+                    }
+                }
+            } catch (Exception e) {
+                logOnUi("AUTH EXCEPTION: " + e);
+            } finally {
+                runOnUiThread(() -> {
+                    passwordField.setText("");
+                    setBusy(false);
+                    updateButtons();
+                });
+            }
+        });
     }
 
-    private JSONObject rpc(String url,String method,JSONObject params,String sess) throws Exception {
-        JSONObject body=new JSONObject().put("jsonrpc","2.0").put("method",method).put("params",params).put("id",System.currentTimeMillis());
-        byte[] bytes=body.toString().getBytes(StandardCharsets.UTF_8);
-        HttpURLConnection c=(HttpURLConnection)new URL(url).openConnection(); c.setConnectTimeout(20000); c.setReadTimeout(30000); c.setDoOutput(true); c.setRequestMethod("POST");
-        c.setRequestProperty("Content-Type","application/json-rpc;charset=utf-8"); c.setRequestProperty("User-Agent","ETRN_GOSKEY_BATCH_PROBE_R1/1.0");
-        if(sess!=null)c.setRequestProperty("X-SBISSessionID",sess);
-        try(OutputStream os=c.getOutputStream()){os.write(bytes);} int code=c.getResponseCode(); InputStream is=code>=400?c.getErrorStream():c.getInputStream();
-        String text=readAll(is); if(text==null||text.isEmpty()) throw new IOException("HTTP "+code+" empty response");
-        JSONObject result=new JSONObject(text); if(code>=400) log("HTTP "+code); return result;
+    private void checkEsia() {
+        if (!hasSession()) return;
+        JSONObject params = new JSONObject();
+        JSONObject parameter = new JSONObject();
+        try {
+            parameter.put("ДопПоля", "СписокПривязанныхВнешнихПровайдеров");
+            params.put("Параметр", parameter);
+        } catch (Exception e) {
+            log("ESIA JSON ERROR: " + e);
+            return;
+        }
+        callService("СБИС.ИнформацияОТекущемПользователе", params, "ESIA CHECK");
     }
 
-    private static String readAll(InputStream in) throws Exception { if(in==null)return ""; ByteArrayOutputStream b=new ByteArrayOutputStream(); byte[] x=new byte[8192]; int n; while((n=in.read(x))>=0)b.write(x,0,n); return b.toString("UTF-8"); }
-    private void requireSession(){ if(session==null||session.isEmpty()) throw new IllegalStateException("Сначала войди в Saby"); }
-    private void log(String s){ output.append((output.length()>0?"\n\n":"")+s); }
-    private static String mask(String s){ if(s==null)return "null"; return s.length()<=10?s:s.substring(0,6)+"…"+s.substring(s.length()-4); }
-    private static String findOperationId(Object r){ if(r==null)return null; if(r instanceof String)return (String)r; if(r instanceof JSONObject){JSONObject o=(JSONObject)r; for(String k:new String[]{"OperationID","OperationId","ИдентификаторОперации","id","ID"}){String v=o.optString(k,null); if(v!=null&&!v.isEmpty())return v;}} return null; }
+    private void confirmCreate() {
+        if (!hasSession()) return;
+        if (text(documentIdField).isEmpty() || text(attachmentAField).isEmpty() || text(attachmentBField).isEmpty()) {
+            toast("Нужны DocumentID и оба AttachmentID");
+            return;
+        }
+        new AlertDialog.Builder(this)
+                .setTitle("Создать реальный запрос в Госключ?")
+                .setMessage("Будет отправлен ОДИН sabyCryptoOperation.Create: DocumentID ЭТрН A + AttachmentID A + AttachmentID B из другой ЭТрН. Saby предупреждает, что такой запрос через API отозвать нельзя. Сам документ дальше по этапу приложение не проведёт.")
+                .setNegativeButton("Отмена", null)
+                .setPositiveButton("Создать", (d, which) -> createOperation())
+                .show();
+    }
+
+    private void createOperation() {
+        JSONObject operation = new JSONObject();
+        JSONObject params = new JSONObject();
+        JSONArray files = new JSONArray();
+        try {
+            operation.put("CertificateType", "Госключ");
+            operation.put("GoskeySignatureKind", String.valueOf(signatureKindSpinner.getSelectedItem()));
+            if (!text(ogrnipField).isEmpty()) operation.put("GoskeyOgrnip", text(ogrnipField));
+            operation.put("DocumentID", text(documentIdField));
+            files.put(new JSONObject().put("AttachmentID", text(attachmentAField)));
+            files.put(new JSONObject().put("AttachmentID", text(attachmentBField)));
+            operation.put("Files", files);
+            params.put("Operation", operation);
+        } catch (Exception e) {
+            log("CREATE JSON ERROR: " + e);
+            return;
+        }
+
+        setBusy(true);
+        log("CREATE REQUEST (секреты/сессия не логируются):\n" + pretty(params));
+        executor.execute(() -> {
+            try {
+                JSONObject response = rpc(SERVICE_URL, "sabyCryptoOperation.Create", params, sessionId);
+                logOnUi("CREATE RESPONSE\n" + pretty(response));
+                String opId = extractOperationId(response.opt("result"));
+                if (opId != null && !opId.isEmpty()) {
+                    runOnUiThread(() -> operationIdField.setText(opId));
+                    logOnUi("GATE SERVER ACCEPT: OperationID=" + opId + "\nТеперь смотри Госключ на телефоне: пришёл ли один запрос и содержит ли он оба документа/файла.");
+                } else if (response.has("error")) {
+                    logOnUi("GATE SERVER REJECT: сервер вернул error. Это и есть диагностический результат; полный ответ выше.");
+                } else {
+                    logOnUi("GATE INDETERMINATE: нет явного OperationID. Нужен разбор полного ответа выше.");
+                }
+            } catch (Exception e) {
+                logOnUi("CREATE EXCEPTION: " + e);
+            } finally {
+                runOnUiThread(() -> {
+                    setBusy(false);
+                    updateButtons();
+                });
+            }
+        });
+    }
+
+    private void getStatus() {
+        if (!hasSession()) return;
+        String opId = text(operationIdField);
+        if (opId.isEmpty()) {
+            toast("Нужен OperationID");
+            return;
+        }
+        JSONObject params = new JSONObject();
+        try {
+            params.put("OperationID", opId);
+        } catch (Exception e) {
+            log("STATUS JSON ERROR: " + e);
+            return;
+        }
+        callService("sabyCryptoOperation.GetStatus", params, "STATUS");
+    }
+
+    private void callService(String method, JSONObject params, String label) {
+        setBusy(true);
+        executor.execute(() -> {
+            try {
+                JSONObject response = rpc(SERVICE_URL, method, params, sessionId);
+                logOnUi(label + " RESPONSE\n" + pretty(response));
+            } catch (Exception e) {
+                logOnUi(label + " EXCEPTION: " + e);
+            } finally {
+                runOnUiThread(() -> {
+                    setBusy(false);
+                    updateButtons();
+                });
+            }
+        });
+    }
+
+    private JSONObject rpc(String endpoint, String method, JSONObject params, String session) throws Exception {
+        JSONObject request = new JSONObject();
+        request.put("jsonrpc", "2.0");
+        request.put("method", method);
+        request.put("params", params);
+        request.put("id", System.currentTimeMillis());
+
+        byte[] body = request.toString().getBytes(StandardCharsets.UTF_8);
+        HttpURLConnection connection = (HttpURLConnection) new URL(endpoint).openConnection();
+        connection.setConnectTimeout(20000);
+        connection.setReadTimeout(60000);
+        connection.setRequestMethod("POST");
+        connection.setDoOutput(true);
+        connection.setRequestProperty("Content-Type", "application/json-rpc;charset=utf-8");
+        connection.setRequestProperty("User-Agent", USER_AGENT);
+        if (session != null && !session.isEmpty()) {
+            connection.setRequestProperty("X-SBISSessionID", session);
+        }
+        connection.setFixedLengthStreamingMode(body.length);
+        try (OutputStream out = connection.getOutputStream()) {
+            out.write(body);
+        }
+
+        int code = connection.getResponseCode();
+        InputStream stream = code >= 400 ? connection.getErrorStream() : connection.getInputStream();
+        String responseBody = readAll(stream);
+        connection.disconnect();
+
+        JSONObject envelope = new JSONObject();
+        envelope.put("httpCode", code);
+        if (responseBody == null || responseBody.trim().isEmpty()) {
+            envelope.put("raw", "");
+            return envelope;
+        }
+        try {
+            JSONObject parsed = new JSONObject(responseBody);
+            if (!parsed.has("_httpCode")) parsed.put("_httpCode", code);
+            return parsed;
+        } catch (Exception ignored) {
+            envelope.put("raw", responseBody);
+            return envelope;
+        }
+    }
+
+    private String readAll(InputStream in) throws Exception {
+        if (in == null) return "";
+        StringBuilder sb = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) sb.append(line).append('\n');
+        }
+        return sb.toString();
+    }
+
+    private String extractOperationId(Object result) {
+        if (result == null || result == JSONObject.NULL) return null;
+        if (result instanceof String) return (String) result;
+        if (result instanceof JSONObject) {
+            JSONObject o = (JSONObject) result;
+            String[] names = new String[]{"OperationID", "OperationId", "operationId", "ИдентификаторОперации"};
+            for (String name : names) {
+                String value = o.optString(name, "");
+                if (!value.isEmpty()) return value;
+            }
+        }
+        return null;
+    }
+
+    private boolean hasSession() {
+        if (sessionId == null || sessionId.isEmpty()) {
+            toast("Сначала войди в Saby");
+            return false;
+        }
+        return true;
+    }
+
+    private void updateButtons() {
+        boolean signedIn = sessionId != null && !sessionId.isEmpty();
+        if (esiaButton != null) esiaButton.setEnabled(signedIn);
+        if (createButton != null) createButton.setEnabled(signedIn);
+        if (statusButton != null) statusButton.setEnabled(signedIn);
+    }
+
+    private void setBusy(boolean busy) {
+        runOnUiThread(() -> {
+            if (authButton != null) authButton.setEnabled(!busy);
+            if (esiaButton != null) esiaButton.setEnabled(!busy && sessionId != null && !sessionId.isEmpty());
+            if (createButton != null) createButton.setEnabled(!busy && sessionId != null && !sessionId.isEmpty());
+            if (statusButton != null) statusButton.setEnabled(!busy && sessionId != null && !sessionId.isEmpty());
+        });
+    }
+
+    private void log(String text) {
+        if (logView == null) return;
+        logView.append(text + "\n\n");
+    }
+
+    private void logOnUi(String text) {
+        runOnUiThread(() -> log(text));
+    }
+
+    private String text(EditText field) {
+        return field.getText().toString().trim();
+    }
+
+    private String pretty(Object value) {
+        try {
+            if (value instanceof JSONObject) return ((JSONObject) value).toString(2);
+            if (value instanceof JSONArray) return ((JSONArray) value).toString(2);
+            return String.valueOf(value);
+        } catch (Exception e) {
+            return String.valueOf(value);
+        }
+    }
+
+    private void toast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+    }
+
+    private int dp(int value) {
+        return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
+    }
 }
