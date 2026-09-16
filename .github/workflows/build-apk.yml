@@ -35,12 +35,12 @@ jobs:
         run: gradle --no-daemon :app:assembleDebug
 
       - name: Rename APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk ETRN_GOSKEY_BATCH_PROBE_R1.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk ETRN_GOSKEY_BATCH_PROBE_R2.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ETRN_GOSKEY_BATCH_PROBE_R1
-          path: ETRN_GOSKEY_BATCH_PROBE_R1.apk
+          name: ETRN_GOSKEY_BATCH_PROBE_R2
+          path: ETRN_GOSKEY_BATCH_PROBE_R2.apk
           if-no-files-found: error
           retention-days: 14
