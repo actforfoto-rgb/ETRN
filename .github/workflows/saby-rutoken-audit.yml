@@ -1,0 +1,103 @@
+name: Audit Saby Rutoken integration
+
+on:
+  push:
+    branches: [dev/saby-rutoken-audit]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Download exact current Saby TMS from RuStore and fingerprint
+        run: |
+          rm -rf audit/saby_rutoken /tmp/saby_rutoken_audit
+          python3 tools/audit_saby_rutoken.py
+
+      - name: Verify Android manifest and signing metadata
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "build-tools;35.0.0"
+          APK=/tmp/saby_rutoken_audit/saby.apk
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" > audit/saby_rutoken/AAPT_BADGING.txt
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump permissions "$APK" > audit/saby_rutoken/AAPT_PERMISSIONS.txt
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump xmltree "$APK" AndroidManifest.xml > audit/saby_rutoken/MANIFEST_XMLTREE.txt
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs "$APK" > audit/saby_rutoken/APK_SIGNING_CERT.txt
+
+      - name: Inspect ELF dependencies and exported strings
+        run: |
+          ROOT=/tmp/saby_rutoken_audit/unzipped
+          : > audit/saby_rutoken/READELF_NEEDED.txt
+          find "$ROOT" -type f -name '*.so' -print0 | while IFS= read -r -d '' so; do
+            echo "===== ${so#$ROOT/} =====" >> audit/saby_rutoken/READELF_NEEDED.txt
+            readelf -d "$so" 2>/dev/null | grep -E 'NEEDED|SONAME' >> audit/saby_rutoken/READELF_NEEDED.txt || true
+          done
+          grep -Eai 'rutoken|rtpcsc|rttransport|rtpkcs11|pkcs11|cryptopro|cprocsp|jcp|jcsp|cades'             audit/saby_rutoken/READELF_NEEDED.txt > audit/saby_rutoken/READELF_RELEVANT.txt || true
+
+      - name: Download verified JADX and decompile only for local audit
+        run: |
+          curl --fail --location --retry 3             https://github.com/skylot/jadx/releases/download/v1.5.6/jadx-1.5.6.zip             -o /tmp/jadx.zip
+          echo '545ea2be9c242511bc145755cf4bda2485ade42966e096f8b4d3da2a230e8974  /tmp/jadx.zip' | sha256sum -c -
+          unzip -q /tmp/jadx.zip -d /tmp/jadx
+          timeout 720 /tmp/jadx/bin/jadx --no-res --deobf --threads-count 2             -d /tmp/saby_jadx /tmp/saby_rutoken_audit/saby.apk             > audit/saby_rutoken/JADX_RUN.log 2>&1 || true
+          python3 tools/summarize_saby_jadx.py /tmp/saby_jadx audit/saby_rutoken
+
+      - name: Make decision matrix
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('audit/saby_rutoken')
+          s=json.loads((p/'SUMMARY.json').read_text())
+          j=json.loads((p/'JADX_KEYWORD_HITS.json').read_text())
+          lines=[
+            '# Saby TMS 26.3246.5 — Rutoken/CryptoPro audit',
+            '',
+            f"- package: {s['metadata']['packageName']}",
+            f"- version: {s['metadata']['versionName']}",
+            f"- versionCode: {s['metadata']['versionCode']}",
+            f"- APK SHA-256: {s['apk_sha256']}",
+            f"- DEX count: {s['dex_count']}",
+            f"- native .so count: {s['so_count']}",
+            '',
+            '## Presence',
+          ]
+          for k,v in s['presence_in_binary_strings'].items():
+              lines.append(f"- {k}: {v}")
+          lines += ['', '## Decompiled-code file counts']
+          for k,v in j.items():
+              lines.append(f"- {k}: {v['file_count']}")
+          lines += ['', '## Native entries matching crypto/rutoken names']
+          for x in s['relevant_native_entries']:
+              lines.append(f"- {x}")
+          (p/'DECISION_MATRIX.md').write_text('\n'.join(lines)+'\n', encoding='utf-8')
+          PY
+
+      - name: Remove proprietary APK and decompiled source
+        if: always()
+        run: |
+          rm -f /tmp/saby_rutoken_audit/saby.apk
+          rm -rf /tmp/saby_jadx /tmp/jadx /tmp/jadx.zip
+          if find audit -type f | grep -E '\.apk$|\.dex$|\.so$'; then
+            echo "Proprietary binaries must not be uploaded"; exit 1
+          fi
+
+      - name: Upload text-only audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SABY_2632465_RUTOKEN_AUDIT
+          path: audit/saby_rutoken/
+          if-no-files-found: error
+          retention-days: 14
