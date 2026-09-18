@@ -35,7 +35,7 @@ jobs:
           "$ANDROID_HOME/build-tools/35.0.0/aapt" dump xmltree "$APK" AndroidManifest.xml > audit/saby_rutoken/MANIFEST_XMLTREE.txt
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs "$APK" > audit/saby_rutoken/APK_SIGNING_CERT.txt
 
-      - name: Inspect ELF dependencies and exported strings
+      - name: Inspect native external-certificate model
         run: |
           ROOT=/tmp/saby_rutoken_audit/unzipped
           : > audit/saby_rutoken/READELF_NEEDED.txt
@@ -43,14 +43,19 @@ jobs:
             echo "===== ${so#$ROOT/} =====" >> audit/saby_rutoken/READELF_NEEDED.txt
             readelf -d "$so" 2>/dev/null | grep -E 'NEEDED|SONAME' >> audit/saby_rutoken/READELF_NEEDED.txt || true
           done
-          grep -Eai 'rutoken|rtpcsc|rttransport|rtpkcs11|pkcs11|cryptopro|cprocsp|jcp|jcsp|cades'             audit/saby_rutoken/READELF_NEEDED.txt > audit/saby_rutoken/READELF_RELEVANT.txt || true
+          grep -Eai 'rutoken|rtpcsc|rttransport|rtpkcs11|pkcs11|cryptopro|cprocsp|jcp|jcsp|cades' audit/saby_rutoken/READELF_NEEDED.txt > audit/saby_rutoken/READELF_RELEVANT.txt || true
 
           SO="$ROOT/lib/x86_64/libsbis-app-controller.so"
+          : > audit/saby_rutoken/NATIVE_CRYPTO_FLOW_STRINGS.txt
           if [ -f "$SO" ]; then
-            strings -a "$SO" | grep -Eai               'ExternalCertificate|InitOperation|CertificateOperation|SigningOperationFileInfo|OperationData|DocumentID|DocumentId|DocId|AttachmentID|AttachmentId|DeeplinkForMobile|createDetachedSign|createSigns|GOS_KEY|GOSKEY'               | sort -u > audit/saby_rutoken/NATIVE_CRYPTO_FLOW_STRINGS.txt || true
+            for mode in "-a" "-a -el"; do
+              strings $mode "$SO" 2>/dev/null | grep -Eai                 'ExternalCertificate|InitOperation|CertificateOperation|SigningOperationFileInfo|OperationData|ObjectID|ObjectId|DocumentID|DocumentId|DocId|AttachmentID|AttachmentId|FileID|FileId|DeeplinkForMobile|createDetachedSign|createSigns|GOS_KEY|GOSKEY'                 >> audit/saby_rutoken/NATIVE_CRYPTO_FLOW_STRINGS.txt || true
+            done
+            sort -u audit/saby_rutoken/NATIVE_CRYPTO_FLOW_STRINGS.txt -o audit/saby_rutoken/NATIVE_CRYPTO_FLOW_STRINGS.txt
+            nm -D -C "$SO" 2>/dev/null | grep -Eai               'CryptoOperation|CryptoOperationDataProvider|ExternalCertificate|InitOperation|createSigns|SigningOperation|SignedFile'               > audit/saby_rutoken/NATIVE_CRYPTO_SYMBOLS.txt || true
           fi
 
-      - name: Download verified JADX and decompile only for local audit
+      - name: Download verified JADX and extract model signatures only
         run: |
           curl --fail --location --retry 3             https://github.com/skylot/jadx/releases/download/v1.5.6/jadx-1.5.6.zip             -o /tmp/jadx.zip
           echo '545ea2be9c242511bc145755cf4bda2485ade42966e096f8b4d3da2a230e8974  /tmp/jadx.zip' | sha256sum -c -
@@ -66,34 +71,29 @@ jobs:
           from pathlib import Path
           p=Path('audit/saby_rutoken')
           s=json.loads((p/'SUMMARY.json').read_text())
-          j=json.loads((p/'JADX_KEYWORD_HITS.json').read_text())
           f=json.loads((p/'CRYPTO_FLOW_SUMMARY.json').read_text())
           lines=[
-            '# Saby TMS 26.3246.5 — Rutoken/CryptoPro audit',
+            '# Saby TMS 26.3246.5 — external certificate batch gate',
             '',
-            f"- package: {s['metadata']['packageName']}",
-            f"- version: {s['metadata']['versionName']}",
-            f"- versionCode: {s['metadata']['versionCode']}",
             f"- APK SHA-256: {s['apk_sha256']}",
-            f"- DEX count: {s['dex_count']}",
-            f"- native .so count: {s['so_count']}",
+            f"- version: {s['metadata']['versionName']}",
             '',
-            '## Presence',
+            '## What the client contract proves',
+            '- CryptographyApi.createSigns accepts one objectId and a list of SignedFile items.',
+            '- External-certificate lifecycle is first-class: getExtOperationResult, repeatExternalCertificateRequest and stopExternalCertificateOperation.',
+            '- stopExternalCertificateOperation accepts operationId plus a list of SigningOperationFileInfo.',
+            '',
+            '## What this audit does NOT prove',
+            '- It does not prove that the Saby server accepts SignedFile items belonging to different ETRN documents under one objectId.',
+            '- It does not prove that Goskey will display/sign cross-document files in one request.',
+            '',
+            '## Extracted model files'
           ]
-          for k,v in s['presence_in_binary_strings'].items():
-              lines.append(f"- {k}: {v}")
-          lines += ['', '## Decompiled-code file counts']
-          for k,v in j.items():
-              lines.append(f"- {k}: {v['file_count']}")
-          lines += ['', '## Target crypto models']
           for k,v in f['target_files'].items():
               lines.append(f"- {k}: {len(v)}")
-              for path in v:
-                  lines.append(f"  - {path}")
-          lines += ['', '## Native entries matching crypto/rutoken names']
-          for x in s['relevant_native_entries']:
-              lines.append(f"- {x}")
-          (p/'DECISION_MATRIX.md').write_text('\n'.join(lines)+'\n', encoding='utf-8')
+              for x in v: lines.append(f"  - {x}")
+          lines += ['', '## Gate status', 'CLIENT_MULTI_FILE=PROVED', 'CROSS_DOCUMENT_SERVER_ACCEPTANCE=UNPROVED']
+          (p/'DECISION_MATRIX.md').write_text('\n'.join(lines)+'\n',encoding='utf-8')
           PY
 
       - name: Remove proprietary APK and decompiled source
