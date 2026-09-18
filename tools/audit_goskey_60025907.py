@@ -100,6 +100,12 @@ report={
     "paragraph_count":len(paragraphs),
     "table_count":len(tables),
     "archive_entries":len(names),
+    "key_windows": {
+        "archive_rules_p135_150": [{"index": i+1, "text": paragraphs[i]} for i in range(134, min(150, len(paragraphs)))],
+        "ogrn_xsd_p414_455": [{"index": i+1, "text": paragraphs[i]} for i in range(413, min(455, len(paragraphs)))],
+        "result_xsd_p277_332": [{"index": i+1, "text": paragraphs[i]} for i in range(276, min(332, len(paragraphs)))],
+        "test_scenarios_p560_566": [{"index": i+1, "text": paragraphs[i]} for i in range(559, min(566, len(paragraphs)))],
+    },
     "evidence":compact,
     "embedded_schema_or_contract_hits":embedded,
 }
@@ -119,6 +125,11 @@ lines=[
 for m in compact:
     loc=(f"p{m['index']}" if m["kind"]=="paragraph" else f"table {m['table']} row {m['row']}")
     lines.append(f"- [{loc}] {m['text']}")
+lines += ["","## Ключевые окна первичного текста"]
+for title, window in report["key_windows"].items():
+    lines.append("### " + title)
+    for item in window:
+        lines.append("- [p{0}] {1}".format(item["index"], item["text"]))
 lines += ["","## Встроенная схема/контракт — найденные фрагменты"]
 for e in embedded:
     lines.append(f"- {e['entry']} ({e['encoding']})")
