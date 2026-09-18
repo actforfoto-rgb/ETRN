@@ -62,7 +62,7 @@ jobs:
           unzip -q /tmp/jadx.zip -d /tmp/jadx
           timeout 720 /tmp/jadx/bin/jadx --no-res --deobf --threads-count 2             -d /tmp/saby_jadx /tmp/saby_rutoken_audit/saby.apk             > audit/saby_rutoken/JADX_RUN.log 2>&1 || true
           python3 tools/summarize_saby_jadx.py /tmp/saby_jadx audit/saby_rutoken
-          python3 tools/extract_saby_crypto_flow.py /tmp/saby_jadx audit/saby_rutoken
+          python3 tools/extract_saby_crypto_flow.py /tmp/saby_jadx audit/saby_rutoken\n          python3 tools/extract_saby_signedfile_callsites.py /tmp/saby_jadx audit/saby_rutoken
 
       - name: Make decision matrix
         run: |
