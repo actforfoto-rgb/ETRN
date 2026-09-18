@@ -27,8 +27,7 @@ public final class Goskey60025907Contract {
 
     private static final Set<String> EXT=Collections.unmodifiableSet(new HashSet<>(
             Arrays.asList(".pdf",".tif",".tiff",".jpg",".jpeg",".xml",".txt")));
-    private static final Pattern SAFE_NAME=Pattern.compile("^[A-Za-zА-Яа-яЁё0-9_ .,’]+$");
-    private static final Pattern IP_INN=Pattern.compile("^[0-9]{12}$");
+    private static final Pattern SAFE_NAME=Pattern.compile("^[A-Za-zА-Яа-яЁё0-9_ .,’\']+$");
 
     private Goskey60025907Contract(){}
 
@@ -51,7 +50,7 @@ public final class Goskey60025907Contract {
             this.backlink=clean(backlink);
             if(this.description.length()>250)throw new IllegalArgumentException("DESCRIPTION_TOO_LONG");
             if(this.orgName.length()>250)throw new IllegalArgumentException("ORG_NAME_TOO_LONG");
-            if(!IP_INN.matcher(this.orgInn).matches())throw new IllegalArgumentException("IP_INN_12_DIGITS_REQUIRED");
+            if(this.orgInn.length()>250)throw new IllegalArgumentException("ORG_INN_TOO_LONG");
             if(this.backlink.length()>250)throw new IllegalArgumentException("BACKLINK_TOO_LONG");
         }
     }
