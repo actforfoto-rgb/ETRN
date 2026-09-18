@@ -1,28 +1,23 @@
-plugins {
-    id 'com.android.application'
-}
-
+plugins { id 'com.android.application' }
 android {
     namespace 'ru.komus.etrnprobe'
     compileSdk 35
-
     defaultConfig {
         applicationId 'ru.komus.etrnprobe'
         minSdk 26
         targetSdk 35
-        versionCode 2
-        versionName '2.0-r2'
+        versionCode 3
+        versionName '2.1-r2-fix1'
     }
-
     buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
+        release { minifyEnabled false }
     }
-
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
+}
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.json:json:20240303'
 }

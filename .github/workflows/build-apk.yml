@@ -1,8 +1,8 @@
-name: Build ETRN Goskey Batch Probe APK
+name: Build ETRN R2 FIX1
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -11,36 +11,65 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-
       - name: Set up Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-
       - name: Ensure Android SDK 35
         run: |
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0"
-
-      - name: Build debug APK
-        run: gradle --no-daemon :app:assembleDebug
-
-      - name: Rename APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk ETRN_GOSKEY_BATCH_PROBE_R2.apk
-
-      - name: Upload APK artifact
+      - name: Apply guarded patch and check idempotence
+        run: |
+          python3 tools/apply_r2_fix1.py
+          sha256sum app/src/main/java/ru/komus/etrnprobe/MainActivity.java > /tmp/main.sha256
+          python3 tools/apply_r2_fix1.py
+          sha256sum --check /tmp/main.sha256
+      - name: Run unit tests and build APK
+        run: gradle --no-daemon :app:testDebugUnitTest :app:assembleDebug
+      - name: Persist tested readable Java source
+        run: |
+          if ! git diff --quiet -- app/src/main/java/ru/komus/etrnprobe/MainActivity.java; then
+            REMOTE_SHA=$(git ls-remote origin refs/heads/main | cut -f1)
+            test "$REMOTE_SHA" = "$GITHUB_SHA"
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add app/src/main/java/ru/komus/etrnprobe/MainActivity.java
+            git commit -m "Apply tested R2 FIX1 certificate preflight [skip ci]"
+            git push origin HEAD:main
+          fi
+      - name: Verify and package
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/debug/app-debug.apk dist/ETRN_GOSKEY_BATCH_PROBE_R2_FIX1.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs dist/ETRN_GOSKEY_BATCH_PROBE_R2_FIX1.apk > dist/APK_VERIFY.txt
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging dist/ETRN_GOSKEY_BATCH_PROBE_R2_FIX1.apk > dist/APK_MANIFEST.txt
+          python3 tools/build_proof.py
+          git archive --format=zip -o dist/ETRN_R2_FIX1_SOURCE.zip HEAD
+          cp README.md dist/README.md
+          cp app/build/test-results/testDebugUnitTest/TEST-*.xml dist/
+      - name: Upload verified APK and evidence
         uses: actions/upload-artifact@v4
         with:
-          name: ETRN_GOSKEY_BATCH_PROBE_R2
-          path: ETRN_GOSKEY_BATCH_PROBE_R2.apk
+          name: ETRN_GOSKEY_BATCH_PROBE_R2_FIX1
+          path: dist/*
           if-no-files-found: error
+          retention-days: 14
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ETRN_R2_FIX1_TEST_REPORTS
+          path: app/build/reports/tests/
+          if-no-files-found: ignore
           retention-days: 14
