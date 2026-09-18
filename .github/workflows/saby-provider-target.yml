@@ -1,0 +1,67 @@
+name: Target Saby Crypto providers
+on:
+  push:
+    branches: [dev/saby-rutoken-fast]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  target:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Download exact Saby TMS 26.3246.5
+        run: |
+          rm -rf audit/saby_provider /tmp/saby_rutoken_audit /tmp/provider_src
+          python3 tools/audit_saby_rutoken.py
+          mkdir -p audit/saby_provider /tmp/provider_src
+      - name: Download verified JADX
+        run: |
+          curl --fail --location --retry 3 https://github.com/skylot/jadx/releases/download/v1.5.6/jadx-1.5.6.zip -o /tmp/jadx.zip
+          echo '545ea2be9c242511bc145755cf4bda2485ade42966e096f8b4d3da2a230e8974  /tmp/jadx.zip' | sha256sum -c -
+          unzip -q /tmp/jadx.zip -d /tmp/jadx
+      - name: Decompile exact provider classes only
+        run: |
+          APK=/tmp/saby_rutoken_audit/saby.apk
+          for C in             ru.tensor.sbis.cryptopro_config.CryptoProvider             ru.tensor.sbis.cryptopro_config.CryptoProProvider             ru.tensor.sbis.cryptopro_config.CryptoProPlugin             ru.tensor.sbis.cryptopro_config.RutokenProvider
+          do
+            N=${C##*.}
+            timeout 180 /tmp/jadx/bin/jadx --single-class "$C" --single-class-output "/tmp/provider_src/$N.java" "$APK"               > "audit/saby_provider/jadx_$N.log" 2>&1 || true
+          done
+          python3 tools/targeted_provider_audit.py /tmp/provider_src audit/saby_provider
+      - name: Extract package-independent proof from native controller
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('audit/saby_rutoken/BINARY_STRING_HITS.json').read_text())
+          keep=[]
+          terms=('GetCryptoProReaders','GetCryptoProContainerPrefix','GetCryptoProProviderType','IsRealCryptoProInstalled','createSignOnHashMass','ProviderPKCS11GOSTRutoken')
+          for r in d:
+            h=r.get('hits',{})
+            vals=[]
+            for arr in h.values():
+              vals.extend(arr)
+            found=sorted(set(x for x in vals if any(t.lower() in x.lower() for t in terms)))
+            if found: keep.append({'file':r.get('file'),'evidence':found})
+          Path('audit/saby_provider/NATIVE_EVIDENCE.json').write_text(json.dumps(keep,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          PY
+      - name: Remove APK and proprietary decompiled classes
+        if: always()
+        run: |
+          cp audit/saby_rutoken/APK_IDENTITY.txt audit/saby_provider/APK_IDENTITY.txt
+          rm -rf /tmp/provider_src /tmp/jadx /tmp/jadx.zip /tmp/saby_rutoken_audit
+          rm -rf audit/saby_rutoken
+          if find audit/saby_provider -type f | grep -E '\.(apk|dex|so|java)$'; then exit 1; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SABY_2632465_PROVIDER_TARGET
+          path: audit/saby_provider/
+          if-no-files-found: error
+          retention-days: 14
