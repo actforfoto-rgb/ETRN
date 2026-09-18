@@ -1,0 +1,32 @@
+name: Audit Goskey 60025907 primary contract
+
+on:
+  push:
+    branches: [dev/goskey-60025907-audit]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download and verify primary Goskey specification
+        run: python3 tools/audit_goskey_60025907.py
+
+      - name: Remove source DOCX
+        if: always()
+        run: rm -f /tmp/goskey_60025907.docx
+
+      - name: Upload narrow text-only evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: GOSKEY_60025907_PRIMARY_CONTRACT_AUDIT
+          path: audit/goskey_60025907/
+          if-no-files-found: error
+          retention-days: 14
