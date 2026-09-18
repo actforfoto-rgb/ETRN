@@ -82,8 +82,8 @@ public final class EpguV114ResponseContract {
 
     private static JSONObject decodeOrder(JSONObject response){
         Object nested=response.opt("order");
-        if(nested==null||nested==JSONObject.NULL)return new JSONObject(response.toString());
-        if(nested instanceof JSONObject)return new JSONObject(nested.toString());
+        if(nested==null||nested==JSONObject.NULL)return response;
+        if(nested instanceof JSONObject)return (JSONObject)nested;
         if(nested instanceof String){
             String s=((String)nested).trim();
             if(s.isEmpty())throw new IllegalArgumentException("EMPTY_ORDER");
