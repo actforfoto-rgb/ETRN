@@ -39,6 +39,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
+    // R2_FIX2_RPC_PARAMS
     // R2_FIX1_CERTIFICATE_PREFLIGHT
     private JSONObject currentUser = new JSONObject();
     private JSONObject approvedSigner;
@@ -50,7 +51,7 @@ public class MainActivity extends Activity {
     private static final String AUTH_URL = "https://online.sbis.ru/auth/service/";
     private static final String ONLINE_SERVICE_URL = "https://online.sbis.ru/service/?srv=1";
     private static final String TMS_SERVICE_URL = "https://tms.saby.ru/service/";
-    private static final String USER_AGENT = "KOMUS-ETRN-GOSKEY-BATCH-PROBE-R2-FIX1/2.1";
+    private static final String USER_AGENT = "KOMUS-ETRN-GOSKEY-BATCH-PROBE-R2-FIX2/2.2";
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final List<Candidate> candidates = new ArrayList<>();
@@ -110,7 +111,7 @@ public class MainActivity extends Activity {
         setDefaultDate();
         createAttempted = getPreferences(MODE_PRIVATE).getBoolean("createAttempted", false);
         operationId = getPreferences(MODE_PRIVATE).getString("operationId", "");
-        log("R2_FIX1 START. Проверка реквизитов подписанта включена. Отправка в Госключ — отдельное подтверждение.");
+        log("R2_FIX2 START. RPC Params включён для Create и GetStatus. Проверка реквизитов подписанта включена. Отправка в Госключ — отдельное подтверждение.");
         if (createAttempted) log("CREATE LOCK: запрос уже запускался на этом телефоне. Повторная отправка запрещена; проверь Госключ и статус.");
         updateButtons();
     }
@@ -136,7 +137,7 @@ public class MainActivity extends Activity {
         scroll.addView(root);
 
         TextView title = new TextView(this);
-        title.setText("ЭТрН — Госключ · R2 FIX1");
+        title.setText("ЭТрН — Госключ · R2 FIX2");
         title.setTextSize(22);
         root.addView(title);
 
@@ -772,7 +773,7 @@ public class MainActivity extends Activity {
                 String ogrnip = chooseOgrnip(selected);
                 String extra = ogrnip.isEmpty() ? "\nВНИМАНИЕ: ОГРНИП не найден в данных сертификата. Create будет заблокирован, чтобы не отправлять неверный тип подписи." : "\nОГРНИП указан в подтверждённых реквизитах подписанта.";
                 runOnUiThread(() -> preparedState.setText("Готово: 2 ЭТрН, подписываемых файлов: " + files + extra));
-                logOnUi("PACKAGE READY. 2 docs, files=" + files + ", OGRNIP=" + (ogrnip.isEmpty() ? "MISSING" : "AUTO"));
+                logOnUi("PACKAGE READY. 2 docs, files=" + files + ", OGRNIP=" + (ogrnip.isEmpty() ? "MISSING" : "CONFIRMED"));
             } catch (Exception e) {
                 logOnUi("PREPARE EXCEPTION: " + e);
                 runOnUiThread(() -> preparedState.setText("Ошибка подготовки: " + e.getClass().getSimpleName()));
@@ -881,7 +882,7 @@ public class MainActivity extends Activity {
                         .put("Files", files);
 
                 JSONObject params = new JSONObject().put("Operation", operation);
-                logOnUi("CREATE: отправляю ОДНУ crypto operation; docs=2, files=" + files.length() + ". IDs/сессия в лог не выводятся.");
+                logOnUi("CREATE: RPC=params.Params.Operation; одна crypto operation; docs=2, files=" + files.length() + ". IDs/сессия в лог не выводятся.");
 
                 JSONObject response = rpc(ONLINE_SERVICE_URL, "sabyCryptoOperation.Create", params, sessionId);
                 logOnUi("CREATE RESPONSE\n" + pretty(response));
@@ -931,6 +932,7 @@ public class MainActivity extends Activity {
         setBusy(true);
         executor.execute(() -> {
             try {
+                logOnUi("STATUS: RPC=params.Params.OperationID; запрос результата существующей операции.");
                 JSONObject response = rpc(ONLINE_SERVICE_URL, "sabyCryptoOperation.GetStatus", params, sessionId);
                 logOnUi("STATUS RESPONSE\n" + pretty(response));
             } catch (Exception e) {
@@ -943,11 +945,7 @@ public class MainActivity extends Activity {
     }
 
     private JSONObject rpc(String endpoint, String method, JSONObject params, String session) throws Exception {
-        JSONObject request = new JSONObject();
-        request.put("jsonrpc", "2.0");
-        request.put("method", method);
-        request.put("params", params);
-        request.put("id", System.currentTimeMillis());
+        JSONObject request = SabyRpcContract.envelope(method, params, System.currentTimeMillis());
 
         byte[] body = request.toString().getBytes(StandardCharsets.UTF_8);
         HttpURLConnection connection = (HttpURLConnection) new URL(endpoint).openConnection();
