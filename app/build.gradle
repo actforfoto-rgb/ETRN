@@ -3,19 +3,24 @@ android {
     namespace 'ru.komus.etrnprobe'
     compileSdk 35
     defaultConfig {
-        applicationId 'ru.komus.etrnprobe'
+        applicationId 'ru.komus.etrnprobe.lab'
         minSdk 26
         targetSdk 35
-        versionCode 4
-        versionName '2.2-r2-fix2'
+        versionCode 100
+        versionName '0.1-internal-lab'
+        buildConfigField 'boolean', 'LAB_ONLY', 'true'
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+        testInstrumentationRunnerArguments disableAnalytics: 'true'
     }
+    buildFeatures { buildConfig true }
     buildTypes { release { minifyEnabled false } }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
 }
 dependencies {
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.json:json:20240303'
+    androidTestImplementation 'androidx.test:runner:1.6.1'
+    androidTestImplementation 'androidx.test:core:1.6.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
 }
