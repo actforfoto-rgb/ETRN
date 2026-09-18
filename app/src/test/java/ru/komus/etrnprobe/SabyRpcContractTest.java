@@ -6,6 +6,26 @@ import org.json.JSONObject;
 
 /** Synthetic wire-format tests, NOT a claim that Saby accepted a live request. */
 public class SabyRpcContractTest {
+    private static void assertSameJson(Object expected, Object actual) throws Exception {
+        if (expected instanceof JSONObject) {
+            assertTrue(actual instanceof JSONObject);
+            JSONObject a = (JSONObject) expected, b = (JSONObject) actual;
+            assertEquals(a.length(), b.length());
+            java.util.Iterator<String> keys = a.keys();
+            while (keys.hasNext()) {
+                String key = keys.next();
+                assertTrue(b.has(key));
+                assertSameJson(a.get(key), b.get(key));
+            }
+        } else if (expected instanceof JSONArray) {
+            assertTrue(actual instanceof JSONArray);
+            JSONArray a = (JSONArray) expected, b = (JSONArray) actual;
+            assertEquals(a.length(), b.length());
+            for (int i = 0; i < a.length(); i++) assertSameJson(a.get(i), b.get(i));
+        } else {
+            assertEquals(expected, actual);
+        }
+    }
     private JSONObject createArgs() throws Exception {
         return new JSONObject().put("Operation", new JSONObject()
                 .put("CertificateType", "Госключ").put("GoskeySignatureKind", "КЭПЮЛ")
@@ -50,17 +70,17 @@ public class SabyRpcContractTest {
     }
     @Test public void loginWireIsUnchanged() throws Exception {
         JSONObject args = new JSONObject().put("Параметр", new JSONObject().put("Логин", "synthetic").put("Пароль", "synthetic-only"));
-        assertTrue(args.similar(SabyRpcContract.envelope("СБИС.Аутентифицировать", args, 106).getJSONObject("params")));
+        assertSameJson(args, SabyRpcContract.envelope("СБИС.Аутентифицировать", args, 106).getJSONObject("params"));
     }
     @Test public void workingPrepareWireIsUnchanged() throws Exception {
         JSONObject args = new JSONObject().put("Документ", new JSONObject().put("Идентификатор", "document-A")
                 .put("Этап", new JSONObject().put("Действие", new JSONObject().put("Название", "Принят"))));
-        assertTrue(args.similar(SabyRpcContract.envelope("СБИС.ПодготовитьДействие", args, 107).getJSONObject("params")));
+        assertSameJson(args, SabyRpcContract.envelope("СБИС.ПодготовитьДействие", args, 107).getJSONObject("params"));
     }
     @Test public void listReadAndProfileWireAreUnchanged() throws Exception {
         for (String method : new String[]{"СБИС.СписокИзменений", "СБИС.ПрочитатьДокумент", "СБИС.ИнформацияОТекущемПользователе"}) {
             JSONObject args = new JSONObject().put("existing", new JSONObject().put("value", 1));
-            assertTrue(args.similar(SabyRpcContract.envelope(method, args, 108).getJSONObject("params")));
+            assertSameJson(args, SabyRpcContract.envelope(method, args, 108).getJSONObject("params"));
         }
     }
     @Test public void sourceArgumentsAreNotMutated() throws Exception {
