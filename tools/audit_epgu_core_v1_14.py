@@ -62,6 +62,8 @@ report={"url":URL,"sha256":sha,"bytes":len(data),"paragraph_count":len(paragraph
 "key_windows":{
     "chunked_rules_p232_307":[{"index":i+1,"text":paragraphs[i]} for i in range(231,min(307,len(paragraphs)))],
     "push_rules_p308_358":[{"index":i+1,"text":paragraphs[i]} for i in range(307,min(358,len(paragraphs)))],
+    "chunked_examples_p1205_1245":[{"index":i+1,"text":paragraphs[i]} for i in range(1204,min(1245,len(paragraphs)))],
+    "changelog_chunk_rules_p1635_1665":[{"index":i+1,"text":paragraphs[i]} for i in range(1634,min(1665,len(paragraphs)))],
     "order_details_p520_860":[{"index":i+1,"text":paragraphs[i]} for i in range(519,min(860,len(paragraphs))) if any(k.lower() in paragraphs[i].lower() for k in ("currentstatushistoryid","orderresponsefiles","filename","mnemonic","id","type","mimetype"))],
 },
 "selected":selected,"anchors":anchors}
