@@ -58,7 +58,13 @@ for term in ["api/gusmev/order","/api/gusmev/push","/api/gusmev/push/chunked","A
             if len(found)>=4:break
     anchors[term]=found
 
-report={"url":URL,"sha256":sha,"bytes":len(data),"paragraph_count":len(paragraphs),"selected":selected,"anchors":anchors}
+report={"url":URL,"sha256":sha,"bytes":len(data),"paragraph_count":len(paragraphs),
+"key_windows":{
+    "chunked_rules_p232_307":[{"index":i+1,"text":paragraphs[i]} for i in range(231,min(307,len(paragraphs)))],
+    "push_rules_p308_358":[{"index":i+1,"text":paragraphs[i]} for i in range(307,min(358,len(paragraphs)))],
+    "order_details_p520_860":[{"index":i+1,"text":paragraphs[i]} for i in range(519,min(860,len(paragraphs))) if any(k.lower() in paragraphs[i].lower() for k in ("currentstatushistoryid","orderresponsefiles","filename","mnemonic","id","type","mimetype"))],
+},
+"selected":selected,"anchors":anchors}
 (OUT/"CORE_SPEC_EVIDENCE.json").write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
 lines=["# API ЕПГУ v1.14 — первичный контракт","",f"URL: {URL}",f"SHA-256: {sha}",f"Размер: {len(data)} байт","","## Выбранные строки и таблицы"]
 for m in selected:
