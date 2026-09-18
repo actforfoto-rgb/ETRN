@@ -103,6 +103,7 @@ report={
     "key_windows": {
         "archive_rules_p135_150": [{"index": i+1, "text": paragraphs[i]} for i in range(134, min(150, len(paragraphs)))],
         "ogrn_xsd_p414_455": [{"index": i+1, "text": paragraphs[i]} for i in range(413, min(455, len(paragraphs)))],
+        "response_root_p248_332": [{"index": i+1, "text": paragraphs[i]} for i in range(247, min(332, len(paragraphs)))],
         "result_xsd_p277_332": [{"index": i+1, "text": paragraphs[i]} for i in range(276, min(332, len(paragraphs)))],
         "request_xsd_p333_405": [{"index": i+1, "text": paragraphs[i]} for i in range(332, min(405, len(paragraphs)))],
         "snils_xsd_p406_421": [{"index": i+1, "text": paragraphs[i]} for i in range(405, min(421, len(paragraphs)))],
