@@ -89,9 +89,13 @@ public class Goskey60025907ContractTest {
             ()->new Goskey60025907Contract.BusinessFile("../x.xml",new byte[]{1},"c"));
     }
 
-    @Test public void ipSenderInnIsTwelveDigits(){
+    @Test public void senderInnIsNotConfusedWithRecipientOgrnip(){
+        new Goskey60025907Contract.Request(
+            recipient(),NOW.plusHours(1),"d","ООО Интегратор","7700000000","");
+        new Goskey60025907Contract.Request(
+            recipient(),NOW.plusHours(1),"d","ИП Интегратор","123456789012","");
         assertThrows(IllegalArgumentException.class,()->new Goskey60025907Contract.Request(
-            recipient(),NOW.plusHours(1),"d","ИП Тест","7700000000",""));
+            recipient(),NOW.plusHours(1),"d","Интегратор","",""));
     }
 
     @Test public void emptyCadesSignatureFailsBeforeArchiveIsAccepted(){
