@@ -45,6 +45,11 @@ jobs:
           done
           grep -Eai 'rutoken|rtpcsc|rttransport|rtpkcs11|pkcs11|cryptopro|cprocsp|jcp|jcsp|cades'             audit/saby_rutoken/READELF_NEEDED.txt > audit/saby_rutoken/READELF_RELEVANT.txt || true
 
+          SO="$ROOT/lib/x86_64/libsbis-app-controller.so"
+          if [ -f "$SO" ]; then
+            strings -a "$SO" | grep -Eai               'ExternalCertificate|InitOperation|CertificateOperation|SigningOperationFileInfo|OperationData|DocumentID|DocumentId|DocId|AttachmentID|AttachmentId|DeeplinkForMobile|createDetachedSign|createSigns|GOS_KEY|GOSKEY'               | sort -u > audit/saby_rutoken/NATIVE_CRYPTO_FLOW_STRINGS.txt || true
+          fi
+
       - name: Download verified JADX and decompile only for local audit
         run: |
           curl --fail --location --retry 3             https://github.com/skylot/jadx/releases/download/v1.5.6/jadx-1.5.6.zip             -o /tmp/jadx.zip
@@ -52,6 +57,7 @@ jobs:
           unzip -q /tmp/jadx.zip -d /tmp/jadx
           timeout 720 /tmp/jadx/bin/jadx --no-res --deobf --threads-count 2             -d /tmp/saby_jadx /tmp/saby_rutoken_audit/saby.apk             > audit/saby_rutoken/JADX_RUN.log 2>&1 || true
           python3 tools/summarize_saby_jadx.py /tmp/saby_jadx audit/saby_rutoken
+          python3 tools/extract_saby_crypto_flow.py /tmp/saby_jadx audit/saby_rutoken
 
       - name: Make decision matrix
         run: |
@@ -61,6 +67,7 @@ jobs:
           p=Path('audit/saby_rutoken')
           s=json.loads((p/'SUMMARY.json').read_text())
           j=json.loads((p/'JADX_KEYWORD_HITS.json').read_text())
+          f=json.loads((p/'CRYPTO_FLOW_SUMMARY.json').read_text())
           lines=[
             '# Saby TMS 26.3246.5 — Rutoken/CryptoPro audit',
             '',
@@ -78,6 +85,11 @@ jobs:
           lines += ['', '## Decompiled-code file counts']
           for k,v in j.items():
               lines.append(f"- {k}: {v['file_count']}")
+          lines += ['', '## Target crypto models']
+          for k,v in f['target_files'].items():
+              lines.append(f"- {k}: {len(v)}")
+              for path in v:
+                  lines.append(f"  - {path}")
           lines += ['', '## Native entries matching crypto/rutoken names']
           for x in s['relevant_native_entries']:
               lines.append(f"- {x}")
