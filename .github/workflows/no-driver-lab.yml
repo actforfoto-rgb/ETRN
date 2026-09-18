@@ -32,12 +32,30 @@ jobs:
           if grep -q android.permission.INTERNET evidence/permissions.txt; then exit 1; fi
       - name: Provision Android emulator
         run: |
+          export ANDROID_AVD_HOME="$RUNNER_TEMP/etrn-avd"
+          export ANDROID_USER_HOME="$RUNNER_TEMP/etrn-android"
+          export ANDROID_EMULATOR_HOME="$ANDROID_USER_HOME"
+          mkdir -p "$ANDROID_AVD_HOME" "$ANDROID_USER_HOME"
+          echo "ANDROID_AVD_HOME=$ANDROID_AVD_HOME" >> "$GITHUB_ENV"
+          echo "ANDROID_USER_HOME=$ANDROID_USER_HOME" >> "$GITHUB_ENV"
+          echo "ANDROID_EMULATOR_HOME=$ANDROID_EMULATOR_HOME" >> "$GITHUB_ENV"
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "emulator" "system-images;android-30;google_apis;x86_64"
-          echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd -n etrn_lab -k "system-images;android-30;google_apis;x86_64" --force
+          echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd -n etrn_lab -k "system-images;android-30;google_apis;x86_64" -p "$ANDROID_AVD_HOME/etrn_lab.avd" --force
+          "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" list avd > evidence/avd-manager.txt
+          "$ANDROID_HOME/emulator/emulator" -list-avds > evidence/avd-emulator.txt
+          test -f "$ANDROID_AVD_HOME/etrn_lab.ini"
+          grep -qx etrn_lab evidence/avd-emulator.txt
           sudo chmod a+rw /dev/kvm
           "$ANDROID_HOME/emulator/emulator" -avd etrn_lab -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -accel on -memory 2048 > evidence/emulator.log 2>&1 &
-          timeout 240 bash -c 'until adb shell getprop sys.boot_completed 2>/dev/null | grep -q 1; do sleep 2; done'
+          EMULATOR_PID=$!
+          BOOTED=no
+          for attempt in $(seq 1 120); do
+            if ! kill -0 "$EMULATOR_PID" 2>/dev/null; then cat evidence/emulator.log; exit 1; fi
+            if adb shell getprop sys.boot_completed 2>/dev/null | grep -q 1; then BOOTED=yes; break; fi
+            sleep 2
+          done
+          test "$BOOTED" = yes || { cat evidence/emulator.log; exit 1; }
           adb shell input keyevent 82
           adb shell settings put global window_animation_scale 0
           adb shell settings put global transition_animation_scale 0
@@ -64,6 +82,8 @@ jobs:
           sleep 1
           adb exec-out screencap -p > evidence/emulator-screen.png 2>/dev/null || true
           python3 tools/lab_proof.py
+          git diff -- app/src/main/java/ru/komus/etrnprobe/MainActivity.java > evidence/uncommitted-built-source.patch
+          sha256sum app/src/main/java/ru/komus/etrnprobe/*.java > evidence/built-source-sha256.txt
           git archive --format=zip -o evidence/ETRN_LAB_SOURCE.zip HEAD
       - name: Upload reports, not a driver APK
         if: always()
