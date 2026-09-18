@@ -1,0 +1,44 @@
+name: Fast Saby Rutoken fingerprint
+on:
+  push:
+    branches: [dev/saby-rutoken-fast]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download exact Saby TMS 26.3246.5 and fingerprint
+        run: |
+          rm -rf audit/saby_rutoken /tmp/saby_rutoken_audit
+          python3 tools/audit_saby_rutoken.py
+      - name: Manifest and ELF audit
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "build-tools;35.0.0"
+          APK=/tmp/saby_rutoken_audit/saby.apk
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" > audit/saby_rutoken/AAPT_BADGING.txt
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump permissions "$APK" > audit/saby_rutoken/AAPT_PERMISSIONS.txt
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump xmltree "$APK" AndroidManifest.xml > audit/saby_rutoken/MANIFEST_XMLTREE.txt
+          ROOT=/tmp/saby_rutoken_audit/unzipped
+          : > audit/saby_rutoken/READELF_NEEDED.txt
+          find "$ROOT" -type f -name '*.so' -print0 | while IFS= read -r -d '' so; do
+            echo "===== ${so#$ROOT/} =====" >> audit/saby_rutoken/READELF_NEEDED.txt
+            readelf -d "$so" 2>/dev/null | grep -E 'NEEDED|SONAME' >> audit/saby_rutoken/READELF_NEEDED.txt || true
+          done
+          grep -Eai 'rutoken|rtpcsc|rttransport|rtpkcs11|pkcs11|cryptopro|cprocsp|jcp|jcsp|cades'             audit/saby_rutoken/READELF_NEEDED.txt > audit/saby_rutoken/READELF_RELEVANT.txt || true
+      - name: Delete APK and upload text evidence only
+        if: always()
+        run: |
+          rm -f /tmp/saby_rutoken_audit/saby.apk
+          if find audit -type f | grep -E '\.(apk|dex|so)$'; then exit 1; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SABY_2632465_RUTOKEN_FAST
+          path: audit/saby_rutoken/
+          if-no-files-found: error
+          retention-days: 14
