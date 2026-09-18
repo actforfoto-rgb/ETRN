@@ -1,4 +1,4 @@
-name: Build ETRN R2 FIX1
+name: Build ETRN R2 FIX2
 
 on:
   push:
@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Read public protocol examples
+        run: python3 tools/read_public_contract.py
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -31,9 +33,9 @@ jobs:
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0"
       - name: Apply guarded patch and check idempotence
         run: |
-          python3 tools/apply_r2_fix1.py
+          python3 tools/apply_r2_fix2.py
           sha256sum app/src/main/java/ru/komus/etrnprobe/MainActivity.java > /tmp/main.sha256
-          python3 tools/apply_r2_fix1.py
+          python3 tools/apply_r2_fix2.py
           sha256sum --check /tmp/main.sha256
       - name: Run unit tests and build APK
         run: gradle --no-daemon :app:testDebugUnitTest :app:assembleDebug
@@ -45,31 +47,33 @@ jobs:
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
             git add app/src/main/java/ru/komus/etrnprobe/MainActivity.java
-            git commit -m "Apply tested R2 FIX1 certificate preflight [skip ci]"
+            git commit -m "Apply tested R2 FIX2 RPC envelope [skip ci]"
             git push origin HEAD:main
           fi
       - name: Verify and package
         run: |
           mkdir -p dist
-          cp app/build/outputs/apk/debug/app-debug.apk dist/ETRN_GOSKEY_BATCH_PROBE_R2_FIX1.apk
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs dist/ETRN_GOSKEY_BATCH_PROBE_R2_FIX1.apk > dist/APK_VERIFY.txt
-          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging dist/ETRN_GOSKEY_BATCH_PROBE_R2_FIX1.apk > dist/APK_MANIFEST.txt
+          cp app/build/outputs/apk/debug/app-debug.apk dist/ETRN_GOSKEY_BATCH_PROBE_R2_FIX2.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs dist/ETRN_GOSKEY_BATCH_PROBE_R2_FIX2.apk > dist/APK_VERIFY.txt
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging dist/ETRN_GOSKEY_BATCH_PROBE_R2_FIX2.apk > dist/APK_MANIFEST.txt
           python3 tools/build_proof.py
-          git archive --format=zip -o dist/ETRN_R2_FIX1_SOURCE.zip HEAD
+          git archive --format=zip -o dist/ETRN_R2_FIX2_SOURCE.zip HEAD
           cp README.md dist/README.md
           cp app/build/test-results/testDebugUnitTest/TEST-*.xml dist/
       - name: Upload verified APK and evidence
         uses: actions/upload-artifact@v4
         with:
-          name: ETRN_GOSKEY_BATCH_PROBE_R2_FIX1
+          name: ETRN_GOSKEY_BATCH_PROBE_R2_FIX2
           path: dist/*
           if-no-files-found: error
           retention-days: 14
-      - name: Upload test reports
+      - name: Upload audit and test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ETRN_R2_FIX1_TEST_REPORTS
-          path: app/build/reports/tests/
+          name: ETRN_R2_FIX2_AUDIT
+          path: |
+            audit/
+            app/build/reports/tests/
           if-no-files-found: ignore
           retention-days: 14
