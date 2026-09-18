@@ -1,0 +1,50 @@
+name: Trace Saby mass-sign CryptoPro route
+on:
+  push:
+    branches: [dev/saby-rutoken-fast]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  trace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Download exact Saby 26.3246.5
+        run: |
+          rm -rf audit/signing_route /tmp/saby_rutoken_audit /tmp/route_src
+          python3 tools/audit_saby_rutoken.py
+          mkdir -p audit/signing_route /tmp/route_src
+      - name: Install verified JADX
+        run: |
+          curl --fail --location --retry 3 https://github.com/skylot/jadx/releases/download/v1.5.6/jadx-1.5.6.zip -o /tmp/jadx.zip
+          echo '545ea2be9c242511bc145755cf4bda2485ade42966e096f8b4d3da2a230e8974  /tmp/jadx.zip' | sha256sum -c -
+          unzip -q /tmp/jadx.zip -d /tmp/jadx
+      - name: Decompile route classes
+        run: |
+          APK=/tmp/saby_rutoken_audit/saby.apk
+          for C in             ru.tensor.sbis.cryptopro_config.CryptoProInitializer             ru.tensor.sbis.crypto_operation.legacy.signing.ui.DocumentSignActivity             ru.tensor.sbis.crypto_operation.legacy.routers.mobile_signature_approval.mvi.MobileSignatureApprovalController             ru.tensor.sbis.crypto.generated.CryptoMobileApi
+          do
+            N=${C##*.}
+            timeout 210 /tmp/jadx/bin/jadx --single-class "$C" --single-class-output "/tmp/route_src/$N.java" "$APK"               > "audit/signing_route/jadx_$N.log" 2>&1 || true
+          done
+          python3 tools/signing_route_audit.py /tmp/route_src audit/signing_route
+          cp audit/saby_rutoken/APK_IDENTITY.txt audit/signing_route/APK_IDENTITY.txt
+      - name: Destroy proprietary bytes
+        if: always()
+        run: |
+          rm -rf /tmp/route_src /tmp/jadx /tmp/jadx.zip /tmp/saby_rutoken_audit
+          rm -rf audit/saby_rutoken
+          if find audit/signing_route -type f | grep -E '\.(apk|dex|so|java)$'; then exit 1; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SABY_2632465_SIGNING_ROUTE
+          path: audit/signing_route/
+          if-no-files-found: error
+          retention-days: 14
