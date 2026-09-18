@@ -39,6 +39,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
+    // NO_DRIVER_LAB_R1
     // R2_FIX2_RPC_PARAMS
     // R2_FIX1_CERTIFICATE_PREFLIGHT
     private JSONObject currentUser = new JSONObject();
@@ -109,6 +110,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(buildUi());
         setDefaultDate();
+        log("LAB ONLY. Реальная сеть заблокирована. Синтетические ответы доступны только автоматическим тестам.");
         createAttempted = getPreferences(MODE_PRIVATE).getBoolean("createAttempted", false);
         operationId = getPreferences(MODE_PRIVATE).getString("operationId", "");
         log("R2_FIX2 START. RPC Params включён для Create и GetStatus. Проверка реквизитов подписанта включена. Отправка в Госключ — отдельное подтверждение.");
@@ -137,7 +139,7 @@ public class MainActivity extends Activity {
         scroll.addView(root);
 
         TextView title = new TextView(this);
-        title.setText("ЭТрН — Госключ · R2 FIX2");
+        title.setText("ЭТрН · СТЕНД РАЗРАБОТКИ · без сети");
         title.setTextSize(22);
         root.addView(title);
 
@@ -249,7 +251,12 @@ public class MainActivity extends Activity {
         }
         DatePickerDialog dialog = new DatePickerDialog(
                 this,
-                (view, year, month, day) -> dateField.setText(String.format(Locale.ROOT, "%02d.%02d.%04d", day, month + 1, year)),
+                (view, year, month, day) -> {
+                    dateField.setText(String.format(Locale.ROOT, "%02d.%02d.%04d", day, month + 1, year));
+                    prepared=false;approvedSigner=null;approvedPair="";
+                    candidates.clear();candidateChecks.clear();docsContainer.removeAllViews();
+                    preparedState.setText("Дата изменена — загрузи документы заново");updateButtons();
+                },
                 c.get(Calendar.YEAR),
                 c.get(Calendar.MONTH),
                 c.get(Calendar.DAY_OF_MONTH)
@@ -322,14 +329,14 @@ public class MainActivity extends Activity {
     }
 
     private boolean captureTwoFactor(JSONObject response) {
-        String temp = deepString(response, new String[]{"ИдентификаторСессии", "SessionID", "ИдентификаторСессииАутентификации"});
-        String challenge = deepString(response, new String[]{"Идентификатор", "AuthID", "ИдентификаторПодтверждения"});
-        if (temp == null || temp.isEmpty()) return false;
-        tempSessionId = temp;
-        rememberSecret(temp);
-        rememberSecret(challenge);
-        authChallengeId = challenge;
-        return true;
+        try {
+            JSONObject challenge=ProtocolChecks.twoFactor(response);
+            if(challenge.length()==0) return false;
+            tempSessionId=challenge.getString("session");
+            authChallengeId=challenge.getString("challenge");
+            rememberSecret(tempSessionId);rememberSecret(authChallengeId);
+            return true;
+        } catch(Exception e) { return false; }
     }
 
     private void sendTwoFactorCode() {
@@ -442,22 +449,10 @@ public class MainActivity extends Activity {
                 }
                 approvedSigner = null;
                 approvedPair = "";
-                JSONObject filter = new JSONObject();
-                filter.put("ДатаВремяС", date + " 00.00.00");
-                filter.put("ДатаВремяПо", date + " 23.59.59");
-                filter.put("Тип", "ConsignmentNote");
-                filter.put("ПолныйСертификатЭП", "Нет");
-                filter.put("Навигация", new JSONObject().put("РазмерСтраницы", "50"));
-
-                JSONObject params = new JSONObject().put("Фильтр", filter);
-                JSONObject response = rpc(TMS_SERVICE_URL, "СБИС.СписокИзменений", params, sessionId);
-                if (response.has("error")) {
-                    logOnUi("LIST ERROR\n" + pretty(response));
-                    runOnUiThread(() -> docsState.setText("Ошибка загрузки списка"));
-                    return;
-                }
-
-                JSONArray docs = findDocumentsArray(response.opt("result"));
+                List<JSONObject> pages=ProtocolChecks.listByDocumentDate(date, parameters ->
+                        rpc(TMS_SERVICE_URL,"СБИС.СписокДокументов",parameters,sessionId));
+                JSONArray docs=new JSONArray();
+                for(JSONObject pageDoc:pages) docs.put(pageDoc);
                 if (docs == null || docs.length() == 0) {
                     logOnUi("LIST OK: документов за дату не найдено.");
                     runOnUiThread(() -> docsState.setText("Документы за дату не найдены"));
@@ -467,7 +462,7 @@ public class MainActivity extends Activity {
                 Set<String> seen = new HashSet<>();
                 int scanned = 0;
                 int eligible = 0;
-                boolean hasMore = "Да".equalsIgnoreCase(deepString(response, new String[]{"ЕстьЕще"}));
+                boolean hasMore = false; // every declared page was read, otherwise an exception is raised
 
                 for (int i = 0; i < docs.length(); i++) {
                     JSONObject summary = docs.optJSONObject(i);
@@ -516,38 +511,15 @@ public class MainActivity extends Activity {
             return null;
         }
 
-        JSONObject doc = findDocumentObject(response.opt("result"));
+        JSONObject doc = ProtocolChecks.exactDocument(response.opt("result"),docId);
         if (doc == null) return null;
 
-        JSONArray stages = doc.optJSONArray("Этап");
-        if (stages == null) stages = findArrayByKey(doc, "Этап");
-        if (stages == null) return null;
-
-        JSONObject bestStage = null;
-        JSONObject bestAction = null;
-        int bestScore = Integer.MIN_VALUE;
-
-        for (int i = 0; i < stages.length(); i++) {
-            JSONObject stage = stages.optJSONObject(i);
-            if (stage == null) continue;
-            JSONArray actions = stage.optJSONArray("Действие");
-            if (actions == null) continue;
-
-            for (int j = 0; j < actions.length(); j++) {
-                JSONObject action = actions.optJSONObject(j);
-                if (action == null) continue;
-                if (!isYes(action.optString("ТребуетПодписания", action.optString("ТребуетПодписание", "")))) continue;
-                String actionName = action.optString("Название", "");
-                int score = scoreAction(actionName);
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestStage = stage;
-                    bestAction = action;
-                }
-            }
+        final ProtocolChecks.Choice choice;
+        try { choice=ProtocolChecks.onlySigningChoice(doc); }
+        catch(IllegalArgumentException e) {
+            logOnUi("ACTION STOP doc="+shortId(docId)+": "+e.getMessage());return null;
         }
-
-        if (bestStage == null || bestAction == null) return null;
+        JSONObject bestStage=choice.stage, bestAction=choice.action;
 
         Candidate c = new Candidate();
         c.docId = docId;
@@ -571,17 +543,6 @@ public class MainActivity extends Activity {
         c.ogrnip = extractOgrnip(c.certificate);
 
         return c;
-    }
-
-    private int scoreAction(String name) {
-        if (name == null) return 0;
-        String n = name.trim();
-        if ("Погружен".equalsIgnoreCase(n) || "Принят".equalsIgnoreCase(n) ||
-                "Выдан".equalsIgnoreCase(n) || "Согласовано".equalsIgnoreCase(n)) return 100;
-        if (n.toLowerCase(Locale.ROOT).contains("не принят") ||
-                n.toLowerCase(Locale.ROOT).contains("не выдан") ||
-                n.toLowerCase(Locale.ROOT).contains("переназнач")) return 10;
-        return 50;
     }
 
     private JSONObject chooseCertificate(JSONArray certificates) {
@@ -758,7 +719,7 @@ public class MainActivity extends Activity {
                         return;
                     }
 
-                    collectSignableAttachmentIds(response.opt("result"), c.preparedAttachmentIds);
+                    c.preparedAttachmentIds.addAll(ProtocolChecks.signableIds(response.opt("result"),c.docId,c.stageId));
                     dedupe(c.preparedAttachmentIds);
                     if (c.preparedAttachmentIds.isEmpty()) {
                         logOnUi("PREPARE STOP doc=" + shortId(c.docId) + ": нет вложений с ТребуемоеДействие=Подписать\n" + pretty(response));
@@ -946,6 +907,11 @@ public class MainActivity extends Activity {
 
     private JSONObject rpc(String endpoint, String method, JSONObject params, String session) throws Exception {
         JSONObject request = SabyRpcContract.envelope(method, params, System.currentTimeMillis());
+        if (BuildConfig.LAB_ONLY) {
+            LabHooks.Transport transport=LabHooks.transport;
+            if(transport==null) throw new IllegalStateException("LAB_NETWORK_DISABLED: real Saby/Goskey calls are prohibited");
+            return ProtocolChecks.validateEnvelope(request,transport.call(endpoint,request,session));
+        }
 
         byte[] body = request.toString().getBytes(StandardCharsets.UTF_8);
         HttpURLConnection connection = (HttpURLConnection) new URL(endpoint).openConnection();
