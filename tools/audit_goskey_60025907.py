@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import hashlib, json, re, sys, urllib.request, zipfile
+import hashlib, json, re, time, sys, urllib.request, zipfile
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
@@ -10,8 +10,19 @@ TMP = Path("/tmp/goskey_60025907.docx")
 OUT.mkdir(parents=True, exist_ok=True)
 
 req = urllib.request.Request(URL, headers={"User-Agent":"ETRN-Contract-Audit/1.0"})
-with urllib.request.urlopen(req, timeout=90) as r:
-    data = r.read()
+last_error=None
+for attempt in range(1,5):
+    try:
+        with urllib.request.urlopen(req, timeout=90) as r:
+            data=r.read()
+        break
+    except Exception as e:
+        last_error=e
+        if attempt==4:
+            raise
+        time.sleep(attempt * 2)
+else:
+    raise last_error
 TMP.write_bytes(data)
 sha = hashlib.sha256(data).hexdigest()
 if sha != EXPECTED_SHA256:
