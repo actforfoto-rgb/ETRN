@@ -39,10 +39,18 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
+    // R2_FIX1_CERTIFICATE_PREFLIGHT
+    private JSONObject currentUser = new JSONObject();
+    private JSONObject approvedSigner;
+    private String approvedPair = "";
+    private String lastPreparationKey = "";
+    private volatile boolean createAttempted;
+    private final List<String> protectedValues = java.util.Collections.synchronizedList(new ArrayList<>());
+
     private static final String AUTH_URL = "https://online.sbis.ru/auth/service/";
     private static final String ONLINE_SERVICE_URL = "https://online.sbis.ru/service/?srv=1";
     private static final String TMS_SERVICE_URL = "https://tms.saby.ru/service/";
-    private static final String USER_AGENT = "KOMUS-ETRN-GOSKEY-BATCH-PROBE-R2/2.0";
+    private static final String USER_AGENT = "KOMUS-ETRN-GOSKEY-BATCH-PROBE-R2-FIX1/2.1";
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final List<Candidate> candidates = new ArrayList<>();
@@ -84,6 +92,7 @@ public class MainActivity extends Activity {
         String actionName;
         JSONObject certificate;
         String ogrnip;
+        JSONObject ownFl = new JSONObject();
         final List<String> preparedAttachmentIds = new ArrayList<>();
 
         String display() {
@@ -99,6 +108,10 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(buildUi());
         setDefaultDate();
+        createAttempted = getPreferences(MODE_PRIVATE).getBoolean("createAttempted", false);
+        operationId = getPreferences(MODE_PRIVATE).getString("operationId", "");
+        log("R2_FIX1 START. Проверка реквизитов подписанта включена. Отправка в Госключ — отдельное подтверждение.");
+        if (createAttempted) log("CREATE LOCK: запрос уже запускался на этом телефоне. Повторная отправка запрещена; проверь Госключ и статус.");
         updateButtons();
     }
 
@@ -123,7 +136,7 @@ public class MainActivity extends Activity {
         scroll.addView(root);
 
         TextView title = new TextView(this);
-        title.setText("ETRN_GOSKEY_BATCH_PROBE_R2");
+        title.setText("ЭТрН — Госключ · R2 FIX1");
         title.setTextSize(22);
         root.addView(title);
 
@@ -159,7 +172,7 @@ public class MainActivity extends Activity {
         addHeader(root, "3. Подготовить две ЭТрН");
         TextView prepareHelp = addInfo(root, "Выбери ровно две ЭТрН. R2 сама вызовет СБИС.ПодготовитьДействие и возьмёт AttachmentID файлов, которые Saby пометил «Подписать».");
         prepareHelp.setPadding(0, 0, 0, dp(6));
-        prepareButton = addButton(root, "Подготовить выбранные 2 ЭТрН", v -> prepareSelected());
+        prepareButton = addButton(root, "Проверить подписанта и подготовить 2 ЭТрН", v -> reviewSigner());
         preparedState = addInfo(root, "Пакет не подготовлен");
 
         addHeader(root, "4. Проверить пакетный Госключ");
@@ -200,6 +213,7 @@ public class MainActivity extends Activity {
     private EditText addField(LinearLayout root, String hint, boolean password) {
         EditText e = new EditText(this);
         e.setHint(hint);
+        e.setSaveEnabled(false);
         e.setSingleLine(true);
         if (password) {
             e.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
@@ -253,6 +267,18 @@ public class MainActivity extends Activity {
         JSONObject parameter = new JSONObject();
         JSONObject params = new JSONObject();
         try {
+            sessionId = null;
+            tempSessionId = null;
+            authChallengeId = null;
+            currentUser = new JSONObject();
+            prepared = false;
+            approvedSigner = null;
+            approvedPair = "";
+            candidates.clear();
+            docsContainer.removeAllViews();
+            candidateChecks.clear();
+            rememberSecret(login);
+            rememberSecret(password);
             parameter.put("Логин", login);
             parameter.put("Пароль", password);
             String account = text(accountField);
@@ -270,6 +296,7 @@ public class MainActivity extends Activity {
                 Object result = response.opt("result");
                 if (result instanceof String && !((String) result).isEmpty()) {
                     sessionId = (String) result;
+                    rememberSecret(sessionId);
                     tempSessionId = null;
                     authChallengeId = null;
                     logOnUi("AUTH OK. Сессия хранится только в памяти приложения.");
@@ -298,6 +325,8 @@ public class MainActivity extends Activity {
         String challenge = deepString(response, new String[]{"Идентификатор", "AuthID", "ИдентификаторПодтверждения"});
         if (temp == null || temp.isEmpty()) return false;
         tempSessionId = temp;
+        rememberSecret(temp);
+        rememberSecret(challenge);
         authChallengeId = challenge;
         return true;
     }
@@ -345,6 +374,7 @@ public class MainActivity extends Activity {
         JSONObject params = new JSONObject();
         try {
             params.put("Идентификатор", authChallengeId);
+            rememberSecret(code);
             params.put("Код", code);
         } catch (Exception e) {
             log("2FA CONFIRM JSON ERROR: " + e);
@@ -358,6 +388,7 @@ public class MainActivity extends Activity {
                 Object result = response.opt("result");
                 if (result instanceof String && !((String) result).isEmpty()) {
                     sessionId = (String) result;
+                    rememberSecret(sessionId);
                     tempSessionId = null;
                     authChallengeId = null;
                     logOnUi("2FA OK. Полная Saby-сессия получена.");
@@ -386,7 +417,6 @@ public class MainActivity extends Activity {
         }
 
         prepared = false;
-        operationId = null;
         candidates.clear();
         runOnUiThread(() -> {
             docsContainer.removeAllViews();
@@ -397,6 +427,20 @@ public class MainActivity extends Activity {
 
         executor.execute(() -> {
             try {
+                // A read-only call: current user's name, never another document party.
+                try {
+                    JSONObject userResponse = rpc(ONLINE_SERVICE_URL, "СБИС.ИнформацияОТекущемПользователе",
+                            new JSONObject().put("Параметр", new JSONObject()), sessionId);
+                    currentUser = SignerSupport.user(userResponse);
+                    rememberSecret(SignerSupport.name(currentUser));
+                    logOnUi("PROFILE: ФИО=" + (!SignerSupport.name(currentUser).isEmpty() ? "PRESENT" : "MISSING"));
+                    if (userResponse.has("error")) logOnUi("PROFILE RESPONSE\n" + pretty(userResponse));
+                } catch (Exception profileError) {
+                    currentUser = new JSONObject();
+                    logOnUi("PROFILE UNAVAILABLE: " + profileError.getClass().getSimpleName());
+                }
+                approvedSigner = null;
+                approvedPair = "";
                 JSONObject filter = new JSONObject();
                 filter.put("ДатаВремяС", date + " 00.00.00");
                 filter.put("ДатаВремяПо", date + " 23.59.59");
@@ -514,7 +558,15 @@ public class MainActivity extends Activity {
         c.stageId = bestStage.optString("Идентификатор", "");
         c.stageName = bestStage.optString("Название", "");
         c.actionName = bestAction.optString("Название", "");
-        c.certificate = chooseCertificate(bestAction.optJSONArray("Сертификат"));
+        c.ownFl = SignerSupport.ownFl(doc);
+        c.certificate = SignerSupport.suggest(currentUser, c.ownFl, bestAction.opt("Сертификат"), doc.opt("Сертификат"));
+        rememberSigner(c.certificate);
+        logOnUi("CERT DISCOVERY doc=" + shortId(docId)
+                + ": action_entries=" + SignerSupport.objects(bestAction.opt("Сертификат")).size()
+                + ", document_entries=" + SignerSupport.objects(doc.opt("Сертификат")).size()
+                + ", OUR_FL=" + (c.ownFl.length() > 0 ? "PRESENT" : "MISSING")
+                + ", FIO=" + present(c.certificate, "ФИО") + ", INN=" + present(c.certificate, "ИНН")
+                + ", OGRNIP=" + present(c.certificate, "ОГРНИП"));
         c.ogrnip = extractOgrnip(c.certificate);
 
         return c;
@@ -593,6 +645,81 @@ public class MainActivity extends Activity {
         return selected;
     }
 
+    private String pairKey(List<Candidate> selected) {
+        if (selected.size() != 2) return "";
+        return selected.get(0).docId + "|" + selected.get(1).docId;
+    }
+
+    private String present(JSONObject o, String key) {
+        return SignerSupport.str(o, key).isEmpty() ? "MISSING" : "PRESENT";
+    }
+
+    private void rememberSecret(String value) {
+        if (value != null && !value.isEmpty()) protectedValues.add(value);
+    }
+
+    private List<String> secretsSnapshot() {
+        synchronized (protectedValues) { return new ArrayList<>(protectedValues); }
+    }
+
+    private void rememberSigner(JSONObject o) {
+        for (String key : new String[]{"ФИО", "ИНН", "ОГРНИП"}) rememberSecret(SignerSupport.str(o, key));
+    }
+
+    private void reviewSigner() {
+        if (busy || !hasSession()) return;
+        if (createAttempted) { toast("Запрос в Госключ уже запускался. Скопируй лог и проверь статус."); return; }
+        List<Candidate> selected = selectedCandidates();
+        if (selected.size() != 2) { toast("Выбери ровно две ЭТрН"); return; }
+        final JSONObject suggested;
+        try { suggested = SignerSupport.merge(selected.get(0).certificate, selected.get(1).certificate); }
+        catch (Exception e) { log("SIGNER STOP: " + e.getMessage()); toast(e.getMessage()); return; }
+
+        LinearLayout form = new LinearLayout(this);
+        form.setOrientation(LinearLayout.VERTICAL);
+        form.setPadding(dp(20), dp(8), dp(20), dp(8));
+        addInfo(form, "Проверь свои реквизиты ИП. Доступные сведения подставлены из Saby. Пустые поля заполни по своим документам ИП или сертификату в Госключе. Это подготовка титулов, не выпуск и не проверка действительности ЭП.");
+        EditText fio = addField(form, "Фамилия Имя Отчество", false);
+        EditText inn = addField(form, "ИНН ИП — 12 цифр", false);
+        EditText ogrnip = addField(form, "ОГРНИП — 15 цифр", false);
+        EditText job = addField(form, "Статус подписанта", false);
+        inn.setInputType(InputType.TYPE_CLASS_NUMBER);
+        ogrnip.setInputType(InputType.TYPE_CLASS_NUMBER);
+        fio.setText(SignerSupport.str(suggested, "ФИО"));
+        inn.setText(SignerSupport.str(suggested, "ИНН"));
+        ogrnip.setText(SignerSupport.str(suggested, "ОГРНИП"));
+        job.setText(firstNonEmpty(SignerSupport.str(suggested, "Должность"), "Индивидуальный предприниматель"));
+        CheckBox owner = new CheckBox(this);
+        owner.setText("Это мои реквизиты. Я сам водитель-ИП и буду подписывать своей КЭП ИП в Госключе.");
+        form.addView(owner);
+        TextView error = addInfo(form, "");
+        ScrollView scroll = new ScrollView(this);
+        scroll.addView(form);
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("Кто подписывает две ЭТрН")
+                .setView(scroll).setNegativeButton("Отмена", null)
+                .setPositiveButton("Подготовить", null).create();
+        dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            try {
+                if (!owner.isChecked()) throw new IllegalArgumentException("Сначала проверь реквизиты и подтверди, что подписываешь как владелец ИП.");
+                if (!pairKey(selected).equals(pairKey(selectedCandidates()))) throw new IllegalArgumentException("Выбор ЭТрН изменился. Открой проверку подписанта заново.");
+                JSONObject signer = new JSONObject().put("ФИО", text(fio)).put("ИНН", text(inn))
+                        .put("ОГРНИП", text(ogrnip)).put("Должность", text(job));
+                SignerSupport.validate(signer, currentUser, selected.get(0).ownFl, selected.get(1).ownFl);
+                rememberSigner(signer);
+                approvedSigner = signer;
+                approvedPair = pairKey(selected);
+                for (Candidate c : selected) {
+                    c.certificate = new JSONObject(signer.toString());
+                    c.ogrnip = SignerSupport.str(signer, "ОГРНИП");
+                }
+                dialog.dismiss();
+                prepareSelected();
+            } catch (Exception e) { error.setText(e.getMessage()); }
+        }));
+        dialog.show();
+    }
+
     private void prepareSelected() {
         if (!hasSession()) return;
         List<Candidate> selected = selectedCandidates();
@@ -602,7 +729,19 @@ public class MainActivity extends Activity {
         }
 
         prepared = false;
-        operationId = null;
+        if (busy || createAttempted) return;
+        if (approvedSigner == null || !approvedPair.equals(pairKey(selected))) {
+            log("CERT PREFLIGHT STOP: подписант не подтверждён для этих двух ЭТрН."); return;
+        }
+        try { SignerSupport.requireComplete(approvedSigner); }
+        catch (Exception e) { log(e.getMessage()); return; }
+        String preparationKey = approvedPair + "|" + approvedSigner.toString();
+        if (preparationKey.equals(lastPreparationKey)) {
+            log("PREPARE REPEAT BLOCKED: эта подготовка уже запускалась. Не повторяй запрос; скопируй лог.");
+            toast("Эта подготовка уже запускалась. Скопируй лог."); return;
+        }
+        lastPreparationKey = preparationKey;
+        log("CERT PREFLIGHT OK: FIO=PRESENT, INN=PRESENT, OGRNIP=PRESENT, JOB=PRESENT; owner=CONFIRMED. Это не проверка действительности сертификата.");
         for (Candidate c : selected) c.preparedAttachmentIds.clear();
         runOnUiThread(() -> preparedState.setText("Подготовка..."));
         setBusy(true);
@@ -631,7 +770,7 @@ public class MainActivity extends Activity {
                 prepared = true;
                 int files = selected.get(0).preparedAttachmentIds.size() + selected.get(1).preparedAttachmentIds.size();
                 String ogrnip = chooseOgrnip(selected);
-                String extra = ogrnip.isEmpty() ? "\nВНИМАНИЕ: ОГРНИП не найден в данных сертификата. Create будет заблокирован, чтобы не отправлять неверный тип подписи." : "\nОГРНИП получен из сертификата Saby.";
+                String extra = ogrnip.isEmpty() ? "\nВНИМАНИЕ: ОГРНИП не найден в данных сертификата. Create будет заблокирован, чтобы не отправлять неверный тип подписи." : "\nОГРНИП указан в подтверждённых реквизитах подписанта.";
                 runOnUiThread(() -> preparedState.setText("Готово: 2 ЭТрН, подписываемых файлов: " + files + extra));
                 logOnUi("PACKAGE READY. 2 docs, files=" + files + ", OGRNIP=" + (ogrnip.isEmpty() ? "MISSING" : "AUTO"));
             } catch (Exception e) {
@@ -645,6 +784,7 @@ public class MainActivity extends Activity {
     }
 
     private JSONObject prepareCandidate(Candidate c) throws Exception {
+        SignerSupport.requireComplete(c.certificate);
         JSONObject action = new JSONObject().put("Название", c.actionName);
         JSONObject sanitizedCert = sanitizeCertificate(c.certificate);
         if (sanitizedCert.length() > 0) action.put("Сертификат", sanitizedCert);
@@ -718,6 +858,11 @@ public class MainActivity extends Activity {
     }
 
     private void createOperation(List<Candidate> selected, String ogrnip) {
+        if (busy || createAttempted) { toast("Повторная отправка в Госключ заблокирована"); return; }
+        if (!getPreferences(MODE_PRIVATE).edit().putBoolean("createAttempted", true).commit()) {
+            log("CREATE STOP: не удалось сохранить защиту от повторной отправки."); return;
+        }
+        createAttempted = true;
         setBusy(true);
         executor.execute(() -> {
             try {
@@ -741,13 +886,14 @@ public class MainActivity extends Activity {
                 JSONObject response = rpc(ONLINE_SERVICE_URL, "sabyCryptoOperation.Create", params, sessionId);
                 logOnUi("CREATE RESPONSE\n" + pretty(response));
 
-                String opId = extractOperationId(response.opt("result"));
+                String opId = response.has("error") ? "" : extractOperationId(response.opt("result"));
                 if (opId != null && !opId.isEmpty()) {
                     operationId = opId;
-                    logOnUi("GATE SERVER ACCEPT: получен OperationID. Открой Госключ — проверяем, пришёл ли один пакет и включает ли он обе ЭТрН.");
-                    runOnUiThread(() -> preparedState.setText("GATE ACCEPT: OperationID получен. Теперь смотри Госключ."));
+                    getPreferences(MODE_PRIVATE).edit().putString("operationId", opId).commit();
+                    logOnUi("GATE PENDING: получен OperationID. Это ещё не подтверждение пакетного подписания. Открой Госключ — проверяем, пришёл ли один пакет и включает ли он обе ЭТрН.");
+                    runOnUiThread(() -> preparedState.setText("Запрос создан. Проверь обе ЭТрН в Госключе. Итог пока не доказан."));
                 } else if (response.has("error")) {
-                    runOnUiThread(() -> preparedState.setText("GATE REJECT: Saby отверг пакет. Скопируй лог."));
+                    runOnUiThread(() -> preparedState.setText("CREATE ERROR: Saby вернул ошибку. Скопируй лог — причина требует разбора."));
                 } else {
                     runOnUiThread(() -> preparedState.setText("GATE INDETERMINATE: нет OperationID. Скопируй лог."));
                 }
@@ -968,31 +1114,7 @@ public class MainActivity extends Activity {
     }
 
     private String extractOperationId(Object result) {
-        if (result == null || result == JSONObject.NULL) return null;
-        if (result instanceof String) return (String) result;
-        if (result instanceof JSONObject) {
-            JSONObject o = (JSONObject) result;
-            String[] names = new String[]{"OperationID", "OperationId", "operationId", "ИдентификаторОперации"};
-            for (String name : names) {
-                String value = o.optString(name, "");
-                if (!value.isEmpty()) return value;
-            }
-            JSONArray keys = o.names();
-            if (keys != null) {
-                for (int i = 0; i < keys.length(); i++) {
-                    String nested = extractOperationId(o.opt(keys.optString(i)));
-                    if (nested != null && !nested.isEmpty()) return nested;
-                }
-            }
-        }
-        if (result instanceof JSONArray) {
-            JSONArray a = (JSONArray) result;
-            for (int i = 0; i < a.length(); i++) {
-                String nested = extractOperationId(a.opt(i));
-                if (nested != null && !nested.isEmpty()) return nested;
-            }
-        }
-        return null;
+        return SignerSupport.operationId(result);
     }
 
     private boolean hasSession() {
@@ -1020,13 +1142,16 @@ public class MainActivity extends Activity {
         runOnUiThread(() -> {
             boolean signedIn = sessionId != null && !sessionId.isEmpty();
             boolean twoFactor = tempSessionId != null && !tempSessionId.isEmpty();
+            for (CheckBox cb : candidateChecks) cb.setEnabled(!busy && !createAttempted);
+            for (EditText f : new EditText[]{loginField, passwordField, accountField, codeField, dateField})
+                if (f != null) f.setEnabled(!busy);
 
             if (authButton != null) authButton.setEnabled(!busy);
             if (sendCodeButton != null) sendCodeButton.setEnabled(!busy && twoFactor);
             if (confirmCodeButton != null) confirmCodeButton.setEnabled(!busy && twoFactor);
             if (loadButton != null) loadButton.setEnabled(!busy && signedIn);
-            if (prepareButton != null) prepareButton.setEnabled(!busy && signedIn && selectedCandidates().size() == 2);
-            if (createButton != null) createButton.setEnabled(!busy && signedIn && prepared && selectedCandidates().size() == 2);
+            if (prepareButton != null) prepareButton.setEnabled(!busy && !prepared && !createAttempted && signedIn && selectedCandidates().size() == 2);
+            if (createButton != null) createButton.setEnabled(!busy && !createAttempted && signedIn && prepared && selectedCandidates().size() == 2);
             if (statusButton != null) statusButton.setEnabled(!busy && signedIn && operationId != null && !operationId.isEmpty());
         });
     }
@@ -1045,6 +1170,7 @@ public class MainActivity extends Activity {
     }
 
     private void log(String message) {
+        message = SignerSupport.redactText(message, secretsSnapshot());
         String old = logView == null ? "" : String.valueOf(logView.getText());
         if (logView != null) logView.setText(old + time() + " " + message + "\n");
     }
@@ -1059,11 +1185,11 @@ public class MainActivity extends Activity {
 
     private String pretty(Object value) {
         try {
-            if (value instanceof JSONObject) return ((JSONObject) value).toString(2);
-            if (value instanceof JSONArray) return ((JSONArray) value).toString(2);
-        } catch (Exception ignored) {
-        }
-        return String.valueOf(value);
+            Object safe = SignerSupport.safeJson(value, secretsSnapshot());
+            if (safe instanceof JSONObject) return ((JSONObject) safe).toString(2);
+            if (safe instanceof JSONArray) return ((JSONArray) safe).toString(2);
+            return String.valueOf(safe);
+        } catch (Exception e) { return "[ответ скрыт: ошибка безопасного форматирования]"; }
     }
 
     private String text(EditText e) {
