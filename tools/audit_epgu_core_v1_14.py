@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import hashlib, json, re, urllib.request, zipfile
+import hashlib, json, re, time, urllib.request, zipfile
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
@@ -8,7 +8,19 @@ EXPECTED_SHA256="0c50f630f233935621d4c4f0b3ac0f3a714e355222120b5ef8bfd4fd48c36d3
 OUT=Path("audit/epgu_core_v1_14"); TMP=Path("/tmp/epgu_core_v1_14.docx")
 OUT.mkdir(parents=True,exist_ok=True)
 req=urllib.request.Request(URL,headers={"User-Agent":"ETRN-Contract-Audit/1.0"})
-with urllib.request.urlopen(req,timeout=90) as r:data=r.read()
+last_error=None
+for attempt in range(1,5):
+    try:
+        with urllib.request.urlopen(req,timeout=90) as r:
+            data=r.read()
+        break
+    except Exception as e:
+        last_error=e
+        if attempt==4:
+            raise
+        time.sleep(attempt*2)
+else:
+    raise last_error
 TMP.write_bytes(data)
 sha=hashlib.sha256(data).hexdigest()
 if sha!=EXPECTED_SHA256: raise SystemExit(f"CORE_SPEC_SHA256_MISMATCH expected={EXPECTED_SHA256} got={sha}")
