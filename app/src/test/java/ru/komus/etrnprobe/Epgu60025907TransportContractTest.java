@@ -6,7 +6,7 @@ import java.util.*;
 import static org.junit.Assert.*;
 
 public class Epgu60025907TransportContractTest {
-    @Test public void metaUsesExactServiceAndTargetCodes(){
+    @Test public void metaUsesExactServiceAndTargetCodes() throws Exception {
         JSONObject m=new Epgu60025907TransportContract.Meta("77000000000").json();
         assertEquals("77000000000",m.getString("region"));
         assertEquals("60025907",m.getString("serviceCode"));
