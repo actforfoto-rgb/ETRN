@@ -21,7 +21,7 @@ public class EpguV114ResponseContractTest {
             .put("closed",true)
             .put("currentStatusHistory",new JSONObject().put("finalStatus",true))
             .put("orderResponseFiles",new JSONArray()
-                .put(new JSONObject().put("fileName","piev_epgu.zip").put("link","terrabyte://bucket/result%20type"))
+                .put(new JSONObject().put("fileName","piev_epgu.zip").put("link","terrabyte://bucket/piev_epgu.zip/result%20type"))
                 .put(new JSONObject().put("fileName","").put("link","ignored")));
         EpguV114ResponseContract.OrderDetails d=EpguV114ResponseContract.parseOrder(
             new JSONObject().put("order",nested.toString()));

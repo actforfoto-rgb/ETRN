@@ -97,12 +97,16 @@ public final class Epgu60025907TransportContract {
         return ORDER_DETAILS_PREFIX+orderId;
     }
 
-    public static String download(long currentStatusHistoryId,int objectType,String mnemonic) {
+    public static String download(long currentStatusHistoryId,String objectType,String mnemonic) {
         if(currentStatusHistoryId<=0)throw new IllegalArgumentException("STATUS_HISTORY_ID_POSITIVE");
-        if(objectType<=0)throw new IllegalArgumentException("OBJECT_TYPE_POSITIVE");
-        return DOWNLOAD_PREFIX+currentStatusHistoryId+"/"+objectType+
+        return DOWNLOAD_PREFIX+currentStatusHistoryId+"/"+urlComponent(required(objectType))+
                 "?mnemonic="+urlComponent(required(mnemonic))+
                 "&eserviceCode="+Goskey60025907Contract.SERVICE_CODE;
+    }
+
+    public static String download(long currentStatusHistoryId,int objectType,String mnemonic) {
+        if(objectType<=0)throw new IllegalArgumentException("OBJECT_TYPE_POSITIVE");
+        return download(currentStatusHistoryId,String.valueOf(objectType),mnemonic);
     }
 
     private static String urlComponent(String s){

@@ -17,8 +17,7 @@ public final class EpguV114ResponseContract {
             this.fileName=required(fileName);this.link=required(link);this.objectType=required(objectType);
         }
         public String downloadPath(long currentStatusHistoryId){
-            return Epgu60025907TransportContract.download(
-                    currentStatusHistoryId,1,fileName).replace("/1?","/"+encodePathSegment(objectType)+"?");
+            return Epgu60025907TransportContract.download(currentStatusHistoryId,objectType,fileName);
         }
     }
 
@@ -109,10 +108,6 @@ public final class EpguV114ResponseContract {
         return required(slash>=0?v.substring(slash+1):v);
     }
 
-    private static String encodePathSegment(String s){
-        try{return java.net.URLEncoder.encode(required(s),"UTF-8").replace("+","%20").replace("%2F","%252F");}
-        catch(Exception e){throw new IllegalStateException(e);}
-    }
     private static Object first(Object... xs){for(Object x:xs)if(x!=null&&x!=JSONObject.NULL)return x;return null;}
     private static long positiveLong(Object x,String field){
         Long v=optionalPositiveLong(x,field);if(v==null)throw new IllegalArgumentException(field+"_MISSING");return v;
