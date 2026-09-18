@@ -1,0 +1,81 @@
+name: Runtime Saby CryptoPro local-store probe
+on:
+  push:
+    branches: [dev/saby-cryptopro-runtime]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download exact Saby 26.3246.5
+        run: |
+          rm -rf audit/runtime_probe /tmp/saby_rutoken_audit
+          python3 tools/audit_saby_rutoken.py
+          mkdir -p audit/runtime_probe
+          cp audit/saby_rutoken/APK_IDENTITY.txt audit/runtime_probe/APK_IDENTITY.txt
+      - name: Install emulator image
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "emulator" "system-images;android-30;google_apis;x86_64"
+          export ANDROID_AVD_HOME=/tmp/avd
+          mkdir -p "$ANDROID_AVD_HOME"
+          echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd -n saby_cp -k "system-images;android-30;google_apis;x86_64" --force
+          echo "ANDROID_AVD_HOME=$ANDROID_AVD_HOME" >> "$GITHUB_ENV"
+      - name: Boot root-capable Android emulator
+        run: |
+          sudo chmod a+rw /dev/kvm
+          "$ANDROID_HOME/platform-tools/adb" start-server
+          "$ANDROID_HOME/emulator/emulator" -avd saby_cp -no-window -no-audio -no-boot-anim -no-snapshot              -gpu swiftshader_indirect -accel on -memory 3072 -partition-size 4096              > audit/runtime_probe/emulator.log 2>&1 &
+          timeout 300 bash -c 'until "$ANDROID_HOME/platform-tools/adb" shell getprop sys.boot_completed 2>/dev/null | grep -q 1; do sleep 2; done'
+          "$ANDROID_HOME/platform-tools/adb" root || true
+          "$ANDROID_HOME/platform-tools/adb" wait-for-device
+          "$ANDROID_HOME/platform-tools/adb" shell settings put global window_animation_scale 0
+          "$ANDROID_HOME/platform-tools/adb" shell settings put global transition_animation_scale 0
+          "$ANDROID_HOME/platform-tools/adb" shell settings put global animator_duration_scale 0
+          "$ANDROID_HOME/platform-tools/adb" shell getprop ro.build.type | tee audit/runtime_probe/build_type.txt
+      - name: Install exact Saby
+        run: |
+          "$ANDROID_HOME/platform-tools/adb" install -r -g /tmp/saby_rutoken_audit/saby.apk | tee audit/runtime_probe/install.txt
+          "$ANDROID_HOME/platform-tools/adb" shell pm path ru.tensor.sbis.courier.saby | tee audit/runtime_probe/pm_path.txt
+      - name: Install fixed Frida 17.18.0
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir 'frida==17.18.0'
+          curl --fail --location --retry 3             https://github.com/frida/frida/releases/download/17.18.0/frida-server-17.18.0-android-x86_64.xz             -o /tmp/frida-server.xz
+          echo 'c2bd76f2a26330f8d0c104d104cec7fe91a6f607dc930902ffeed68ba1a37b7b  /tmp/frida-server.xz' | sha256sum -c -
+          xz -d /tmp/frida-server.xz
+          chmod +x /tmp/frida-server
+          "$ANDROID_HOME/platform-tools/adb" push /tmp/frida-server /data/local/tmp/frida-server >/dev/null
+          "$ANDROID_HOME/platform-tools/adb" shell chmod 755 /data/local/tmp/frida-server
+          "$ANDROID_HOME/platform-tools/adb" shell '/data/local/tmp/frida-server >/data/local/tmp/frida.log 2>&1 &' || true
+          sleep 2
+          "$ANDROID_HOME/platform-tools/adb" shell ps -A | grep frida | tee audit/runtime_probe/frida_process.txt
+      - name: Probe embedded CryptoPro inside Saby process
+        run: |
+          python3 tools/run_frida_probe.py tools/frida_saby_cryptopro_probe.js audit/runtime_probe/PROBE_MESSAGES.json             | tee audit/runtime_probe/PROBE_STDOUT.txt
+          grep -q '"tag": "PROBE_DONE"' audit/runtime_probe/PROBE_STDOUT.txt
+          grep -q '"tag": "CRYPTOPRO_INIT_RESULT"' audit/runtime_probe/PROBE_STDOUT.txt
+          grep -q '"tag": "KEYSTORE_OK"' audit/runtime_probe/PROBE_STDOUT.txt
+      - name: Capture process evidence
+        if: always()
+        run: |
+          "$ANDROID_HOME/platform-tools/adb" logcat -d | grep -Ei 'CryptoPro|CSPConfig|cryptopro_config|HDIMAGE|HDImage|JCSP|Saby|SBIS'             | tail -n 3000 > audit/runtime_probe/logcat_crypto.txt || true
+          "$ANDROID_HOME/platform-tools/adb" shell run-as ru.tensor.sbis.courier.saby ls -la files             > audit/runtime_probe/run_as_files.txt 2>&1 || true
+          "$ANDROID_HOME/platform-tools/adb" exec-out screencap -p > audit/runtime_probe/screen.png 2>/dev/null || true
+          rm -rf /tmp/saby_rutoken_audit
+          rm -f /tmp/frida-server
+          rm -rf audit/saby_rutoken
+          if find audit/runtime_probe -type f | grep -E '\.(apk|dex|so)$'; then exit 1; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SABY_2632465_CRYPTOPRO_RUNTIME
+          path: audit/runtime_probe/
+          if-no-files-found: error
+          retention-days: 14
