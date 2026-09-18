@@ -25,7 +25,7 @@ public final class Epgu60025907TransportContract {
     public static final class Meta {
         public final String region;
         public Meta(String region) { this.region = required(region); }
-        public JSONObject json() {
+        public JSONObject json() throws Exception {
             return new JSONObject()
                     .put("region", region)
                     .put("serviceCode", Goskey60025907Contract.SERVICE_CODE)
