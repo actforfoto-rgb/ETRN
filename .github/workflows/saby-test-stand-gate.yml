@@ -1,0 +1,27 @@
+name: Probe Saby test-stand crypto gate
+on:
+  push:
+    branches: [dev/saby-test-stand-gate]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Probe test stand without credentials or real documents
+        run: |
+          rm -rf audit/saby_test_stand
+          python3 tools/probe_saby_test_stand.py
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: SABY_TEST_STAND_GATE_PROBE
+          path: audit/saby_test_stand/
+          if-no-files-found: error
+          retention-days: 14
