@@ -11,7 +11,7 @@ permissions:
 jobs:
   run-once:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - name: Checkout ARB branch
         uses: actions/checkout@v4
@@ -42,7 +42,7 @@ jobs:
 
       - name: Collect
         if: steps.flag.outputs.run == 'yes'
-        run: python NORM_LAB/ARBITRAGE_RADAR/collector.py --minutes 3
+        run: python NORM_LAB/ARBITRAGE_RADAR/collector.py --minutes 1
 
       - name: Mark complete and save results
         if: always() && steps.flag.outputs.run == 'yes'
