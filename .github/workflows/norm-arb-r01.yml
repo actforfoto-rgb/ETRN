@@ -1,0 +1,56 @@
+name: NORM ARB-R01 Cloud Collector
+
+on:
+  push:
+    branches:
+      - norm-arb-r01
+    paths:
+      - 'NORM_LAB/ARBITRAGE_RADAR/collector.py'
+      - '.github/workflows/norm-arb-r01.yml'
+      - 'NORM_LAB/ARBITRAGE_RADAR/TRIGGER.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: norm-arb-r01
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install market library
+        run: python -m pip install --disable-pip-version-check --quiet ccxt
+
+      - name: Collect market data
+        run: python NORM_LAB/ARBITRAGE_RADAR/collector.py --minutes 3
+
+      - name: Save results to branch
+        if: always()
+        run: |
+          git config user.name "NORM LAB Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add NORM_LAB/ARBITRAGE_RADAR/results || true
+          if git diff --cached --quiet; then
+            echo "No result changes to commit"
+          else
+            git commit -m "ARB-R01 cloud results [skip ci]"
+            git push origin HEAD:norm-arb-r01
+          fi
+
+      - name: Upload results artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NORM_ARB_R01_RESULTS
+          path: NORM_LAB/ARBITRAGE_RADAR/results
+          if-no-files-found: warn
