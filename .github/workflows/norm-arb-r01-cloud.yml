@@ -1,0 +1,68 @@
+name: NORM ARB-R01 Cloud Runner
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  run-once:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout ARB branch
+        uses: actions/checkout@v4
+        with:
+          ref: norm-arb-r01
+          fetch-depth: 0
+
+      - name: Check run flag
+        id: flag
+        shell: bash
+        run: |
+          FLAG="NORM_LAB/ARBITRAGE_RADAR/RUN_ONCE.flag"
+          if [ -f "$FLAG" ] && grep -q '^RUN$' "$FLAG"; then
+            echo "run=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=no" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Python
+        if: steps.flag.outputs.run == 'yes'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install market library
+        if: steps.flag.outputs.run == 'yes'
+        run: python -m pip install --disable-pip-version-check --quiet ccxt
+
+      - name: Collect
+        if: steps.flag.outputs.run == 'yes'
+        run: python NORM_LAB/ARBITRAGE_RADAR/collector.py --minutes 3
+
+      - name: Mark complete and save results
+        if: always() && steps.flag.outputs.run == 'yes'
+        shell: bash
+        run: |
+          printf "DONE\n" > NORM_LAB/ARBITRAGE_RADAR/RUN_ONCE.flag
+          git config user.name "NORM LAB Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add NORM_LAB/ARBITRAGE_RADAR/results NORM_LAB/ARBITRAGE_RADAR/RUN_ONCE.flag || true
+          if git diff --cached --quiet; then
+            echo "Nothing to commit"
+          else
+            git commit -m "ARB-R01 cloud run results [skip ci]"
+            git push origin HEAD:norm-arb-r01
+          fi
+
+      - name: Upload artifact
+        if: always() && steps.flag.outputs.run == 'yes'
+        uses: actions/upload-artifact@v4
+        with:
+          name: NORM_ARB_R01_RESULTS
+          path: NORM_LAB/ARBITRAGE_RADAR/results
+          if-no-files-found: warn
