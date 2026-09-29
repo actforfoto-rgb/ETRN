@@ -53,6 +53,10 @@ jobs:
         if: steps.flags.outputs.c02 == 'yes'
         run: python NORM_LAB/ARBITRAGE_RADAR/crypto_funding_radar.py
 
+      - name: Run crypto funding history
+        if: steps.flags.outputs.c02 == 'yes'
+        run: python NORM_LAB/ARBITRAGE_RADAR/crypto_funding_history.py
+
       - name: Run MOEX-M01 probe
         if: steps.flags.outputs.m01 == 'yes'
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_m01_probe.py
