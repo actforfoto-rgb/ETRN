@@ -7,32 +7,24 @@
   },
   "moex": {
     "CNY": {
-      "status": "SHADOW",
+      "status": "RESEARCH_REJECTED",
+      "research_status": "REJECTED_RESEARCH",
       "strong_scans": 3,
       "calendar_days": 1,
-      "median_screen_return_on_im_pct": 30.90398385096625,
-      "min_screen_return_on_im_pct": 30.90398385096625,
-      "median_swaprate_ratio": 3.3457831257396085,
-      "requirements": {
-        "strong_scans": 20,
-        "calendar_days": 5
-      }
+      "reason": "completed-cycle holdout 2026 negative in all three completed quarters"
     },
     "EUR": {
-      "status": "SHADOW",
+      "status": "RESEARCH_REJECTED",
+      "research_status": "REJECTED_RESEARCH",
       "strong_scans": 0,
       "calendar_days": 1,
-      "median_screen_return_on_im_pct": null,
-      "min_screen_return_on_im_pct": null,
-      "median_swaprate_ratio": null,
-      "requirements": {
-        "strong_scans": 20,
-        "calendar_days": 5
-      }
+      "reason": "completed-cycle train and holdout fail after de-duplication; prior daily-entry result was pseudo-replication"
     },
     "IMOEX": {
       "status": "SHADOW",
-      "strong_scans": 3,
+      "research_status": "SHADOW_PRIMARY",
+      "strong_scans": 4,
+      "research_rule_eligible_scans": 4,
       "calendar_days": 1,
       "median_screen_return_on_im_pct": 4.103931795420309,
       "min_screen_return_on_im_pct": 4.103931795420309,
@@ -43,28 +35,18 @@
       }
     },
     "RGBI": {
-      "status": "SHADOW",
+      "status": "RESEARCH_SECONDARY",
+      "research_status": "RESEARCH_SECONDARY",
       "strong_scans": 0,
       "calendar_days": 1,
-      "median_screen_return_on_im_pct": null,
-      "min_screen_return_on_im_pct": null,
-      "median_swaprate_ratio": null,
-      "requirements": {
-        "strong_scans": 20,
-        "calendar_days": 5
-      }
+      "reason": "not yet validated by completed-cycle walk-forward"
     },
     "USD": {
-      "status": "SHADOW",
+      "status": "RESEARCH_REJECTED",
+      "research_status": "REJECTED_RESEARCH",
       "strong_scans": 3,
       "calendar_days": 1,
-      "median_screen_return_on_im_pct": 19.00486722362727,
-      "min_screen_return_on_im_pct": 19.00486722362727,
-      "median_swaprate_ratio": 3.3635415201527805,
-      "requirements": {
-        "strong_scans": 20,
-        "calendar_days": 5
-      }
+      "reason": "completed-cycle holdout 2026 negative in all three completed quarters with fat-tail losses"
     }
   },
   "rule": "Eligibility is not permission for real-money trading. PAPER and MICRO_LIVE require separate enablement."
