@@ -15,6 +15,14 @@ KEY_RATE=0.14
 EXEC_BUFFER_BPS=5.0
 STOCK_FEE_BUFFER_BPS=5.0
 
+# Corporate actions already approved/recommended and known to the market by 2026-09-29.
+# Keep both gross-fair-value and a separate 13% dividend-tax scenario; do not mix them.
+KNOWN_DIVIDENDS = {
+    "TATN":[{"date":"2026-10-13","value":32.88,"status":"approved"}],
+    "TATNP":[{"date":"2026-10-13","value":32.88,"status":"approved"}],
+    "GMKN":[{"date":"2026-10-12","value":1.85,"status":"recommended"}],
+}
+
 ASSET_TO_SPOT = {
 "SBRF":"SBER","SBPR":"SBERP","GAZR":"GAZP","GMKN":"GMKN","LKOH":"LKOH","ROSN":"ROSN",
 "YDEX":"YDEX","VTBR":"VTBR","NOTK":"NVTK","PLZL":"PLZL","FEES":"FEES","HEAD":"HEAD",
@@ -51,6 +59,10 @@ def spot_snapshot(secid):
     }
 
 def dividends(secid, today, expiry):
+    # First use the explicit verified/recommended corporate-action registry.
+    explicit=[x for x in KNOWN_DIVIDENDS.get(secid,[]) if today < x["date"] <= expiry]
+    if explicit:
+        return explicit,sum(float(x["value"]) for x in explicit)
     try:
         j=get(f"{BASE}/securities/{secid}/dividends.json",{"iss.meta":"off"})
         rr=rows(j,"dividends")
@@ -61,7 +73,7 @@ def dividends(secid, today, expiry):
         d=r.get("registryclosedate") or r.get("registry_close_date")
         val=num(r.get("value"))
         if d and val is not None and today < d <= expiry:
-            keep.append({"date":d,"value":val})
+            keep.append({"date":d,"value":val,"status":"iss"})
             total += val
     return keep,total
 
@@ -107,6 +119,14 @@ def main():
         futures_rt_bps=(2*futures_fee/(S0*lot))*10000
         net_excess_bps=raw_basis_bps-fair_basis_bps-futures_rt_bps-EXEC_BUFFER_BPS-STOCK_FEE_BUFFER_BPS
         ann_excess_pct=(net_excess_bps/100)/T if T>0 else None
+
+        # Scenario for a taxable holder receiving only 87% of the cash dividend.
+        # The futures market typically reflects gross corporate action economics, so this is
+        # an important retail-screening drag rather than a fair-value input for the contract.
+        net_dividend_13 = div_total * 0.87
+        investor_fair_13=(S0-net_dividend_13)*math.exp(KEY_RATE*T)
+        investor_fair_13_bps=(investor_fair_13/S0-1)*10000
+        investor_net_13_bps=raw_basis_bps-investor_fair_13_bps-futures_rt_bps-EXEC_BUFFER_BPS-STOCK_FEE_BUFFER_BPS
         out.append({
           "spot":spot,"assetcode":asset,"future":secid,"shortname":s.get("SHORTNAME"),
           "expiry":exp,"days":(expd-today).days,"lotvolume":lot,
@@ -117,6 +137,7 @@ def main():
           "exec_plus_stockfee_buffer_bps":EXEC_BUFFER_BPS+STOCK_FEE_BUFFER_BPS,
           "screen_net_excess_bps":net_excess_bps,
           "screen_net_annualized_pct":ann_excess_pct,
+          "screen_net_bps_dividend_tax13_scenario":investor_net_13_bps,
           "future_volume":num(m.get("VOLTODAY")) or 0,
           "future_value":num(m.get("VALTODAY")) or 0,
           "future_numtrades":num(m.get("NUMTRADES")) or 0,
