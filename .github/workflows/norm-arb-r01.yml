@@ -1,41 +1,45 @@
-name: NORM ARB-R01 Cloud Collector
+name: NORM ARBITRAGE RADAR Branch Runner
 
 on:
   push:
     branches:
       - norm-arb-r01
     paths:
-      - 'NORM_LAB/ARBITRAGE_RADAR/collector.py'
+      - 'NORM_LAB/ARBITRAGE_RADAR/TRIGGER_EXTENDED.txt'
       - '.github/workflows/norm-arb-r01.yml'
-      - 'NORM_LAB/ARBITRAGE_RADAR/TRIGGER.txt'
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  collect:
+  run:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: norm-arb-r01
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Install market library
-        run: python -m pip install --disable-pip-version-check --quiet ccxt
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check --quiet ccxt requests
 
-      - name: Collect market data
-        run: python NORM_LAB/ARBITRAGE_RADAR/collector.py --minutes 3
+      - name: Run ARB-C02
+        run: python NORM_LAB/ARBITRAGE_RADAR/crypto_c02.py --minutes 1
 
-      - name: Save results to branch
+      - name: Run MOEX-M01 probe
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_m01_probe.py
+
+      - name: Save outputs
         if: always()
+        shell: bash
         run: |
           git config user.name "NORM LAB Bot"
           git config user.email "actions@users.noreply.github.com"
@@ -43,14 +47,14 @@ jobs:
           if git diff --cached --quiet; then
             echo "No result changes to commit"
           else
-            git commit -m "ARB-R01 cloud results [skip ci]"
+            git commit -m "ARB C02 + MOEX M01 results [skip ci]"
             git push origin HEAD:norm-arb-r01
           fi
 
-      - name: Upload results artifact
+      - name: Upload artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: NORM_ARB_R01_RESULTS
+          name: NORM_ARBITRAGE_RESULTS
           path: NORM_LAB/ARBITRAGE_RADAR/results
           if-no-files-found: warn
