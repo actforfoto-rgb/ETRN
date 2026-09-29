@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv, json, math
+from zoneinfo import ZoneInfo
 from datetime import date, timedelta
 from pathlib import Path
 import requests
@@ -69,7 +70,7 @@ def main():
         q=fut(qid)
         if not q or q["ask"] is None or not q["expiry"]:continue
         exp=date.fromisoformat(q["expiry"])
-        today=date(2026,9,29)
+        today=datetime.now(ZoneInfo("Europe/Moscow")).date()
         if exp<=today:continue
         bdays=business_days(today,exp)
         lot=q["lot"]
