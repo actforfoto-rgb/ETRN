@@ -1,0 +1,48 @@
+name: NORM ARBITRAGE IMOEX Revaluation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'NORM_LAB/ARBITRAGE_RADAR/IMOEX_REVALUE_TRIGGER.txt'
+      - '.github/workflows/norm-arb-imoex-revalue.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: norm-arb-imoex-revalue
+  cancel-in-progress: true
+
+jobs:
+  revalue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout ARB branch
+        uses: actions/checkout@v4
+        with:
+          ref: norm-arb-r01
+          fetch-depth: 0
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check --quiet requests beautifulsoup4
+      - name: Revalue completed cycles with IMOEXDIV
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_expiry_cycle_backtest.py
+      - name: Run blind walk-forward selector
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_walkforward_selector.py
+      - name: Save revaluation
+        shell: bash
+        run: |
+          git config user.name "NORM LAB IMOEX Revalue"
+          git config user.email "actions@users.noreply.github.com"
+          git add NORM_LAB/ARBITRAGE_RADAR/results/moex_cycle_* NORM_LAB/ARBITRAGE_RADAR/results/moex_walkforward_selection.json
+          git commit -m "IMOEX revaluation with dividend adjustment [skip ci]" || true
+          git fetch origin norm-arb-r01
+          git rebase origin/norm-arb-r01
+          git push origin HEAD:norm-arb-r01
