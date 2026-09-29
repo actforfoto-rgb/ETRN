@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv, json, math
+from zoneinfo import ZoneInfo
 from datetime import date, datetime, timezone
 from pathlib import Path
 import requests
@@ -78,7 +79,7 @@ def dividends(secid, today, expiry):
     return keep,total
 
 def main():
-    today=date(2026,9,29)
+    today=datetime.now(ZoneInfo("Europe/Moscow")).date()
     j=get(f"{BASE}/engines/futures/markets/forts/securities.json",{
       "iss.meta":"off","iss.only":"securities,marketdata"
     })
