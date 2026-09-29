@@ -1,6 +1,12 @@
 name: NORM ARBITRAGE RADAR Extended Runner
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'NORM_LAB/ARBITRAGE_RADAR/RUNNER_TRIGGER.txt'
+      - '.github/workflows/norm-arb-r01-cloud.yml'
   schedule:
     - cron: '*/5 * * * *'
   workflow_dispatch:
