@@ -6,6 +6,15 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parent
 STATE=ROOT/"shadow_state"
 OUT=ROOT/"promotion_status.json"
+REGISTRY=ROOT/"strategy_registry.json"
+
+MOEX_STRATEGY_MAP={
+    "CNY":"MOEX_CNY_PERP_CURVE",
+    "USD":"MOEX_USD_PERP_CURVE",
+    "EUR":"MOEX_EUR_PERP_CURVE",
+    "IMOEX":"MOEX_IMOEX_PERP_CURVE",
+    "RGBI":"MOEX_RGBI_PERP_CURVE",
+}
 
 MIN_SHADOW_CLOSED=30
 MIN_SHADOW_DAYS=30
@@ -53,6 +62,11 @@ def crypto_gate():
 
 def moex_gate():
     rows=read_csv(STATE/"moex_shadow_timeseries.csv")
+    try:
+        reg=json.loads(REGISTRY.read_text(encoding="utf-8"))
+        regmap={x.get("id"):x for x in reg.get("strategies",[])}
+    except Exception:
+        regmap={}
     by={}
     dates={}
     for r in rows:
@@ -66,17 +80,48 @@ def moex_gate():
         if d:dates[name].add(d)
     out={}
     for name in sorted(set(list(by)+list(dates))):
+        sid=MOEX_STRATEGY_MAP.get(name)
+        strat=regmap.get(sid,{})
+        research_status=strat.get("status","UNKNOWN")
+        if research_status in ("REJECTED_RESEARCH","RESEARCH_SECONDARY"):
+            out[name]={
+              "status":"RESEARCH_REJECTED" if research_status=="REJECTED_RESEARCH" else "RESEARCH_SECONDARY",
+              "research_status":research_status,
+              "strong_scans":len(by.get(name,[])),
+              "calendar_days":len(dates.get(name,set())),
+              "reason":strat.get("reason","Not approved for PAPER promotion")
+            }
+            continue
         strong=by.get(name,[])
         try:
             returns=[float(r.get("screen_return_on_im_pct") or 0) for r in strong]
             ratios=[float(r.get("swaprate_ratio") or 0) for r in strong if r.get("swaprate_ratio") not in ("",None)]
         except:
             returns=[];ratios=[]
-        eligible=(len(strong)>=MOEX_MIN_STRONG_SCANS and len(dates.get(name,set()))>=5
-                  and returns and min(returns)>0)
+        rule=strat.get("research_rule") or {}
+        min_ratio=float(rule.get("min_swaprate_to_breakeven_ratio",0.0) or 0.0)
+        min_ret=float(rule.get("min_screen_return_on_im_pct",0.0) or 0.0)
+        eligible_rows=[]
+        for r in strong:
+            try:
+                rr=float(r.get("swaprate_ratio") or 0.0)
+                rv=float(r.get("screen_return_on_im_pct") or 0.0)
+                if rr>=min_ratio and rv>=min_ret:
+                    eligible_rows.append(r)
+            except Exception:
+                pass
+        eligible=(
+            research_status in ("SHADOW_PRIMARY","SHADOW")
+            and len(eligible_rows)>=MOEX_MIN_STRONG_SCANS
+            and len(dates.get(name,set()))>=5
+            and returns and min(returns)>0
+        )
         out[name]={
           "status":"PAPER_ELIGIBLE" if eligible else "SHADOW",
-          "strong_scans":len(strong),"calendar_days":len(dates.get(name,set())),
+          "research_status":research_status,
+          "strong_scans":len(strong),
+          "research_rule_eligible_scans":len(eligible_rows),
+          "calendar_days":len(dates.get(name,set())),
           "median_screen_return_on_im_pct":statistics.median(returns) if returns else None,
           "min_screen_return_on_im_pct":min(returns) if returns else None,
           "median_swaprate_ratio":statistics.median(ratios) if ratios else None,
