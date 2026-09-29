@@ -1,0 +1,26 @@
+name: NORM ARBITRAGE CI
+
+on:
+  push:
+    branches:
+      - norm-arb-r01
+    paths:
+      - 'NORM_LAB/ARBITRAGE_RADAR/**/*.py'
+      - 'NORM_LAB/ARBITRAGE_RADAR/*.py'
+  workflow_dispatch:
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout ARB branch
+        uses: actions/checkout@v4
+        with:
+          ref: norm-arb-r01
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile every Python module
+        run: python -m compileall -q NORM_LAB/ARBITRAGE_RADAR
