@@ -14,6 +14,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: norm-arb-shadow
+  cancel-in-progress: false
+
 jobs:
   shadow:
     runs-on: ubuntu-latest
@@ -59,7 +63,9 @@ jobs:
             echo "No shadow-state changes"
           else
             git commit -m "ARB shadow state [skip ci]"
-            git push origin HEAD:norm-arb-r01
+            git fetch origin norm-arb-r01
+          git rebase origin/norm-arb-r01
+          git push origin HEAD:norm-arb-r01
           fi
 
       - name: Upload shadow artifact
