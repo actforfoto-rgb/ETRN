@@ -81,6 +81,10 @@ jobs:
         if: steps.flags.outputs.m01 == 'yes'
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_quarterly_perpetual_backtest.py
 
+      - name: Run MOEX calendar spread scan
+        if: steps.flags.outputs.m01 == 'yes'
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_calendar_spread_scan.py
+
       - name: Run SBER-SBERF funding study
         if: steps.flags.outputs.m01 == 'yes'
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_sberf_funding.py
