@@ -1,6 +1,12 @@
 name: NORM ARBITRAGE Shadow Bot
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'NORM_LAB/ARBITRAGE_RADAR/SHADOW_TRIGGER.txt'
+      - '.github/workflows/norm-arb-shadow.yml'
   schedule:
     - cron: '*/15 * * * *'
   workflow_dispatch:
