@@ -1,0 +1,53 @@
+name: NORM ARBITRAGE Shadow Bot
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  shadow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout ARB branch
+        uses: actions/checkout@v4
+        with:
+          ref: norm-arb-r01
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check --quiet ccxt
+
+      - name: Run shadow bot
+        run: python NORM_LAB/ARBITRAGE_RADAR/production/crypto_shadow_bot.py
+
+      - name: Persist shadow state
+        if: always()
+        shell: bash
+        run: |
+          git config user.name "NORM LAB Shadow"
+          git config user.email "actions@users.noreply.github.com"
+          git add NORM_LAB/ARBITRAGE_RADAR/production/shadow_state || true
+          if git diff --cached --quiet; then
+            echo "No shadow-state changes"
+          else
+            git commit -m "ARB shadow state [skip ci]"
+            git push origin HEAD:norm-arb-r01
+          fi
+
+      - name: Upload shadow artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NORM_ARB_SHADOW_STATE
+          path: NORM_LAB/ARBITRAGE_RADAR/production/shadow_state
+          if-no-files-found: warn
