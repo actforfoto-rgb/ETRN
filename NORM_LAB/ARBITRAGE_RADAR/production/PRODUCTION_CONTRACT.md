@@ -73,3 +73,22 @@ Current screens are conditional on future SwapRate persistence and must pass his
 
 ## Live-capital rule
 The system must never interpret a positive screen as permission to trade real money. Real order routing is enabled only after the stage gate is explicitly promoted and credentials are supplied for the selected venue/broker.
+
+
+## Low-frequency MOEX curve exception
+Quarterly perpetual-vs-fixed strategies cannot reasonably satisfy a 30-closed-cycle gate without waiting many years. For these strategies the evidence gate is frequency-adjusted:
+
+SHADOW -> PAPER:
+- at least 7 completed historical expiry cycles where available;
+- a chronologically separate holdout with positive aggregate NET;
+- conservative stress aggregate NET positive;
+- at least 20 live STRONG scans over at least 5 calendar days.
+
+PAPER -> MICRO-LIVE:
+- at least 30 calendar days of uninterrupted paper/shadow operation;
+- no reconciliation or data-integrity incident;
+- current signal must still satisfy the research-approved entry rule;
+- cumulative paper mark/funding economics remain non-negative after conservative execution costs;
+- MICRO-LIVE is one smallest practical pair only, with a hard kill-switch.
+
+This exception does not weaken the real-money safety controls. It changes only the sample-count requirement to match quarterly trade frequency.
