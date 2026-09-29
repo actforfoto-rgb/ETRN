@@ -53,6 +53,10 @@ jobs:
         if: steps.flags.outputs.m01 == 'yes'
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_m01_probe.py
 
+      - name: Run MOEX equity universe
+        if: steps.flags.outputs.m01 == 'yes'
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_equity_universe.py
+
       - name: Run SBER-SBERF funding study
         if: steps.flags.outputs.m01 == 'yes'
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_sberf_funding.py
