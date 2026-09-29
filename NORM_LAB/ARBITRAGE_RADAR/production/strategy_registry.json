@@ -1,31 +1,12 @@
 {
-  "updated_at": "2026-09-30T01:22:00+03:00",
+  "updated_at": "2026-09-30T01:58:00+03:00",
   "strategies": [
     {
       "id": "MOEX_IMOEX_PERP_CURVE",
-      "status": "SHADOW_PRIMARY",
-      "route": "MMZ6/IMOEXF",
-      "research_rule": {
-        "min_swaprate_to_breakeven_ratio": 1.25,
-        "min_screen_return_on_im_pct": 2,
-        "rule_basis": "predefined 25% safety margin above breakeven; not holdout-optimized"
-      },
-      "evidence": {
-        "completed_cycles": 7,
-        "train_2025_cycles": 4,
-        "holdout_2026_cycles": 3,
-        "train_positive_pct": 75,
-        "train_median_return_on_im_pct": 8.293143045963047,
-        "train_stress_median_return_on_im_pct": 5.146470015963303,
-        "holdout_positive_pct": 66.66666666666667,
-        "holdout_median_return_on_im_pct": 2.606573421590956,
-        "holdout_aggregate_net_rub": 549.7806012328689,
-        "holdout_stress_positive_pct": 66.66666666666667,
-        "holdout_stress_median_return_on_im_pct": 0.0044209395364159425,
-        "holdout_stress_aggregate_net_rub": 147.14680184929637
-      },
-      "caveat": "stress margin is very thin; stay SHADOW until live persistence and paper cycles confirm execution economics",
-      "next_gate": "PAPER"
+      "status": "REJECTED_RESEARCH",
+      "route": "MM quarterly / IMOEXF",
+      "reason": "Historical IMOEXDIV dividend adjustment was omitted in prior test. After adding actual IMOEXDIV cashflows, 2026 holdout is 0/3 positive; median return on proxy IM about -8.81%; walk-forward selector REJECT_TRAIN.",
+      "supersedes": "SHADOW_PRIMARY evidence before IMOEXDIV integration"
     },
     {
       "id": "MOEX_CNY_PERP_CURVE",
