@@ -117,6 +117,44 @@ def settle(r):
     return None
 
 
+def imoexdiv_history_map(frm="2025-01-01", till=None):
+    """Daily gross IMOEX dividend-adjustment index points.
+
+    MOEX perpetual-index VM credits IndexDiv to LONG and debits it from SHORT.
+    CLOSE is the daily IMOEXDIV value; zeros are valid non-dividend days.
+    """
+    if till is None:
+        till = TODAY.isoformat()
+    url = (
+        f"{BASE}/history/engines/stock/markets/index/"
+        f"securities/IMOEXDIV.json"
+    )
+    out = {}
+    start = 0
+    while True:
+        j = get(
+            url,
+            {
+                "from": frm,
+                "till": till,
+                "start": start,
+                "iss.meta": "off",
+            },
+        )
+        rr = rows(j, "history")
+        for r in rr:
+            d = r.get("TRADEDATE")
+            v = num(r.get("CLOSE"))
+            if d and v is not None:
+                out[d] = v
+        cur = rows(j, "history.cursor")
+        total = int(cur[0].get("TOTAL") or 0) if cur else len(out)
+        if not rr or len(out) >= total:
+            break
+        start += len(rr)
+    return out
+
+
 def swap(r):
     return num(r.get("SWAPRATE") or r.get("SWAPRATE_CURR"))
 
@@ -202,7 +240,7 @@ def infer_scale(q, p):
     return min(cands, key=lambda s: abs(math.log(max(1e-12, (q / s) / p))))
 
 
-def completed_cycle(year, month, quarter_sid, fam, pmeta, qmeta, rate_map):
+def completed_cycle(year, month, quarter_sid, fam, pmeta, qmeta, rate_map, imoexdiv):
     qh = hist(quarter_sid, frm=f"{year}-01-01", till=TODAY.isoformat())
     ph = hist(fam["perp"], frm=f"{year}-01-01", till=TODAY.isoformat())
 
@@ -263,6 +301,16 @@ def completed_cycle(year, month, quarter_sid, fam, pmeta, qmeta, rate_map):
 
         carry = capital_cost(combined_im, d, exit_date, rate_map, 1.0)
 
+        div_points = (
+            sum(
+                float(imoexdiv.get(x, 0.0))
+                for x in common
+                if d < x <= exit_date
+            )
+            if fam["name"] == "IMOEX"
+            else 0.0
+        )
+
         if sw >= 0:
             direction = "LONG_QUARTERLY_SHORT_PERP"
             entry_gap = (
@@ -275,6 +323,8 @@ def completed_cycle(year, month, quarter_sid, fam, pmeta, qmeta, rate_map):
                 for x in common
                 if d < x <= exit_date
             )
+            # Short perpetual receives positive SwapRate but pays IndexDiv.
+            dividend_adjustment = -div_points * pmeta["unit"]
         else:
             direction = "SHORT_QUARTERLY_LONG_PERP"
             entry_gap = (
@@ -287,6 +337,9 @@ def completed_cycle(year, month, quarter_sid, fam, pmeta, qmeta, rate_map):
                 for x in common
                 if d < x <= exit_date
             )
+            # Long perpetual pays negative/positive funding according to sign,
+            # and receives IndexDiv.
+            dividend_adjustment = div_points * pmeta["unit"]
 
         # Base requirement uses 2x current full-spread proxy.
         exec_buffer = 2.0 * spread_proxy
@@ -295,13 +348,17 @@ def completed_cycle(year, month, quarter_sid, fam, pmeta, qmeta, rate_map):
         ) / (pmeta["unit"] * work)
         ratio = abs(sw) / required if required > 0 else 99.0
 
-        net = q_pnl + p_pnl + funding - carry - fees - exec_buffer
+        net = (
+            q_pnl + p_pnl + funding + dividend_adjustment
+            - carry - fees - exec_buffer
+        )
 
         # Stress: 1.5x capital opportunity cost and 2x execution buffer again.
         stress_carry = capital_cost(combined_im, d, exit_date, rate_map, 1.5)
         stress_exec = 4.0 * spread_proxy
         stress_net = (
-            q_pnl + p_pnl + funding - stress_carry - fees - stress_exec
+            q_pnl + p_pnl + funding + dividend_adjustment
+            - stress_carry - fees - stress_exec
         )
 
         entries.append(
@@ -323,6 +380,8 @@ def completed_cycle(year, month, quarter_sid, fam, pmeta, qmeta, rate_map):
                 "quarter_pnl_rub": q_pnl,
                 "perp_pnl_rub": p_pnl,
                 "funding_rub": funding,
+                "imoexdiv_points": div_points,
+                "dividend_adjustment_rub": dividend_adjustment,
                 "capital_cost_rub": carry,
                 "fees_rub": fees,
                 "execution_buffer_rub": exec_buffer,
@@ -388,6 +447,7 @@ def main():
         rate_map = {}
         rate_source = f"fallback:{type(e).__name__}"
 
+    imoexdiv = imoexdiv_history_map()
     cycles = []
     resolution = []
 
@@ -412,7 +472,7 @@ def main():
 
                 try:
                     cyc = completed_cycle(
-                        year, month, sid, fam, pmeta, qmeta, rate_map
+                        year, month, sid, fam, pmeta, qmeta, rate_map, imoexdiv
                     )
                 except Exception as e:
                     resolution.append(
@@ -504,6 +564,8 @@ def main():
             {
                 "today_moscow": TODAY.isoformat(),
                 "key_rate_source": rate_source,
+                "imoexdiv_rows": len(imoexdiv),
+                "imoexdiv_nonzero_days": sum(1 for v in imoexdiv.values() if abs(v) > 1e-12),
                 "resolution": resolution,
             },
             ensure_ascii=False,
