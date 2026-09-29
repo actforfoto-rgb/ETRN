@@ -31,9 +31,12 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install requests
-        run: python -m pip install --disable-pip-version-check --quiet requests
+        run: python -m pip install --disable-pip-version-check --quiet requests beautifulsoup4
       - name: Probe crypto perpetuals
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_crypto_perp_probe.py
+
+      - name: Probe crypto IndexDiv pages
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_crypto_indexdiv_probe.py
 
       - name: Research crypto perpetual-fixed curves
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_crypto_curve_research.py
@@ -42,7 +45,7 @@ jobs:
         run: |
           git config user.name "NORM LAB MOEX Crypto"
           git config user.email "actions@users.noreply.github.com"
-          git add NORM_LAB/ARBITRAGE_RADAR/results/moex_crypto_perp_probe.json NORM_LAB/ARBITRAGE_RADAR/results/moex_crypto_curve_*
+          git add NORM_LAB/ARBITRAGE_RADAR/results/moex_crypto_perp_probe.json NORM_LAB/ARBITRAGE_RADAR/results/moex_crypto_indexdiv_page_probe.json NORM_LAB/ARBITRAGE_RADAR/results/moex_crypto_curve_*
           git commit -m "MOEX crypto perpetual probe [skip ci]" || true
           git fetch origin norm-arb-r01
           git rebase origin/norm-arb-r01
