@@ -45,6 +45,9 @@ jobs:
       - name: Validate paper execution engine
         run: python NORM_LAB/ARBITRAGE_RADAR/production/paper_execution_engine.py
 
+      - name: Validate live execution fail-closed
+        run: python NORM_LAB/ARBITRAGE_RADAR/production/live_execution_engine.py
+
       - name: Persist shadow state
         if: always()
         shell: bash
