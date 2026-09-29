@@ -19,7 +19,7 @@ FEES = {
     "BITGET": {"spot": 0.0010, "perp": 0.0006},
     "OKX": {"spot": 0.0010, "perp": 0.0005},
     "KRAKEN": {"spot": 0.0080, "perp": 0.0005},
-    "GATE": {"spot": 0.0010, "perp": 0.0005},
+    "GATE": {"spot": 0.0010, "perp": 0.0005}, # VIP0 official baseline
     "BYBIT": {"spot": 0.0010, "perp": 0.00055},
     "BINANCE": {"spot": 0.0010, "perp": 0.0005},
 }
@@ -30,8 +30,8 @@ def utc():
 def vwap(levels, quote_amount):
     rem = quote_amount
     base = done = 0.0
-    for px, qty in levels:
-        px = float(px); qty = float(qty)
+    for level in levels:
+        px = float(level[0]); qty = float(level[1])
         q = px * qty
         take = min(rem, q)
         done += take
@@ -47,7 +47,7 @@ def normalize_deriv_levels(levels, market):
     cs = float(market.get("contractSize") or 1.0)
     if not market.get("contract"):
         cs = 1.0
-    return [(float(p), float(q) * cs) for p, q in levels]
+    return [(float(level[0]), float(level[1]) * cs) for level in levels]
 
 def choose_pair(ex, base, quote):
     spots = [m for m in ex.markets.values() if m.get("spot") and m.get("active", True)
