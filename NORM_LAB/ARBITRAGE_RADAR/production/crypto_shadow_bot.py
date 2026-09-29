@@ -25,6 +25,9 @@ NOTIONAL = 1000.0
 EXECUTION_BUFFER_BPS = 4.0
 ENTRY_MIN_NET1_BPS = 5.0
 ENTRY_MIN_FUNDING_BPS = 1.0
+ENTRY_MIN_MINUTES_TO_FUNDING = 5
+ENTRY_MAX_MINUTES_TO_FUNDING = 90
+MAX_FUNDING_TIME_SKEW_MINUTES = 5
 MAX_OPEN_PER_ASSET = 1
 MAX_HOLD_HOURS = 72
 TAKE_NET_BPS = 12.0
@@ -83,7 +86,9 @@ def current_funding(ex,symbol):
     try:
         if ex.has.get("fetchFundingRate"):
             r=ex.fetch_funding_rate(symbol)
-            return float(r.get("fundingRate") or 0.0), int(r.get("fundingTimestamp") or 0)
+            rate=float(r.get("fundingRate") or 0.0)
+            nxt=int(r.get("nextFundingTimestamp") or r.get("fundingTimestamp") or 0)
+            return rate,nxt
     except Exception:
         pass
     return 0.0,0
@@ -138,6 +143,17 @@ def scan_candidates(snap):
                 fund=(-L["funding"]+S["funding"])*10000
                 fees=2*(FEE.get(ln,.0007)+FEE.get(sn,.0007))*10000
                 net1=gross+fund-fees-EXECUTION_BUFFER_BPS
+                nowms=int(time.time()*1000)
+                lts=int(L.get("funding_ts") or 0)
+                sts=int(S.get("funding_ts") or 0)
+                next_ts=max(lts,sts) if lts and sts else 0
+                mins=(next_ts-nowms)/60000 if next_ts else None
+                skew=abs(lts-sts)/60000 if lts and sts else None
+                funding_aligned=(
+                    mins is not None and skew is not None
+                    and ENTRY_MIN_MINUTES_TO_FUNDING <= mins <= ENTRY_MAX_MINUTES_TO_FUNDING
+                    and skew <= MAX_FUNDING_TIME_SKEW_MINUTES
+                )
                 rows.append({
                     "base":b,"long_provider":ln,"short_provider":sn,
                     "long_ask":L["ask"],"short_bid":S["bid"],
@@ -145,6 +161,8 @@ def scan_candidates(snap):
                     "short_funding_bps":S["funding"]*10000,
                     "funding_capture_bps":fund,"gross_basis_bps":gross,
                     "fees_bps":fees,"screen_net1_bps":net1,
+                    "minutes_to_funding":mins,"funding_time_skew_minutes":skew,
+                    "funding_aligned":funding_aligned,
                     "long_symbol":L["symbol"],"short_symbol":S["symbol"]
                 })
     rows.sort(key=lambda x:x["screen_net1_bps"],reverse=True)
@@ -208,6 +226,7 @@ def main():
         if c["base"] in occupied:continue
         if c["screen_net1_bps"]<ENTRY_MIN_NET1_BPS:break
         if c["funding_capture_bps"]<ENTRY_MIN_FUNDING_BPS:continue
+        if not c.get("funding_aligned"):continue
         key=c["base"]
         pos={
             "base":c["base"],"long_provider":c["long_provider"],"short_provider":c["short_provider"],
@@ -215,7 +234,9 @@ def main():
             "long_symbol":c["long_symbol"],"short_symbol":c["short_symbol"],
             "fees_bps":c["fees_bps"],"entry_ms":int(time.time()*1000),
             "entry_utc":utc(),"entry_screen_net1_bps":c["screen_net1_bps"],
-            "entry_funding_capture_bps":c["funding_capture_bps"]
+            "entry_funding_capture_bps":c["funding_capture_bps"],
+            "entry_minutes_to_funding":c.get("minutes_to_funding"),
+            "entry_funding_time_skew_minutes":c.get("funding_time_skew_minutes")
         }
         state["positions"][key]=pos
         occupied.add(c["base"])
