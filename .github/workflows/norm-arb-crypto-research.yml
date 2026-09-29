@@ -14,6 +14,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: norm-arb-crypto
+  cancel-in-progress: false
+
 jobs:
   crypto:
     runs-on: ubuntu-latest
@@ -57,7 +61,9 @@ jobs:
             echo "No crypto result changes"
           else
             git commit -m "ARB crypto research results [skip ci]"
-            git push origin HEAD:norm-arb-r01
+            git fetch origin norm-arb-r01
+          git rebase origin/norm-arb-r01
+          git push origin HEAD:norm-arb-r01
           fi
 
       - name: Upload artifact
