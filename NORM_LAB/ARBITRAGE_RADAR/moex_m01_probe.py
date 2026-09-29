@@ -1,32 +1,32 @@
 from __future__ import annotations
 
-import csv, json, math, time
+import csv
+import json
+import math
+import statistics
 from datetime import datetime, timezone
 from pathlib import Path
+
 import requests
 
 ROOT=Path(__file__).resolve().parent
 OUT=ROOT/"results"
 OUT.mkdir(parents=True,exist_ok=True)
 S=requests.Session()
-S.headers.update({"User-Agent":"NORM-LAB-ARBITRAGE-RADAR/1.1"})
-ISS="https://iss.moex.com/iss"
-
-TARGET_SHORTNAMES=["SBRF-12.26","SBRF-3.27","SBRF-6.27"]
-FUNDING_SCENARIOS=[0.1413,0.16,0.18]  # RUONIA-like baseline + stress scenarios
-SPOT_TAKER_EXCHANGE=0.0003
-EXECUTION_BUFFER_BPS=5.0
+S.headers.update({"User-Agent":"NORM-LAB-ARBITRAGE-RADAR/1.0"})
+BASE="https://iss.moex.com/iss"
 
 def utc(): return datetime.now(timezone.utc).isoformat()
 
-def get(url, timeout=25):
-    r=S.get(url,timeout=timeout)
+def get(url, params=None, timeout=20):
+    r=S.get(url,params=params or {},timeout=timeout)
     r.raise_for_status()
     return r.json()
 
-def block(j,name):
-    x=j.get(name,{})
-    return [dict(zip(x.get("columns",[]),r)) for r in x.get("data",[])]
+def rows(j,name):
+    b=j.get(name,{})
+    cols=b.get("columns",[])
+    return [dict(zip(cols,r)) for r in b.get("data",[])]
 
 def num(v):
     try:return float(v)
@@ -34,139 +34,167 @@ def num(v):
 
 def field(row,*names):
     for n in names:
-        if row.get(n) not in (None,""): return row[n]
+        v=row.get(n)
+        if v not in (None,""): return v
     return None
 
-def discover_forts():
-    rows=[]
-    start=0
+def search(q):
+    j=get(f"{BASE}/securities.json",{"q":q,"iss.meta":"off"})
+    return rows(j,"securities")
+
+def current(secid,engine,market,board=None):
+    if board:
+        url=f"{BASE}/engines/{engine}/markets/{market}/boards/{board}/securities/{secid}.json"
+    else:
+        url=f"{BASE}/engines/{engine}/markets/{market}/securities/{secid}.json"
+    return url,get(url,{"iss.meta":"off"})
+
+def history(secid,engine,market,board=None,frm="2026-01-01",till="2026-09-29"):
+    if board:
+        url=f"{BASE}/history/engines/{engine}/markets/{market}/boards/{board}/securities/{secid}.json"
+    else:
+        url=f"{BASE}/history/engines/{engine}/markets/{market}/securities/{secid}.json"
+    out=[];start=0
     while True:
-        cols="SECID,SHORTNAME,ASSETCODE,LASTTRADEDATE,LOTVOLUME,INITIALMARGIN,BUYSELLFEE,SCALPERFEE,SETTLEPRICE_CLR"
-        url=f"{ISS}/engines/futures/markets/forts/securities.json?iss.meta=off&iss.only=securities&securities.columns={cols}&start={start}"
-        j=get(url)
-        page=block(j,"securities")
-        rows.extend(page)
-        if len(page)<100: break
-        start += len(page)
-        if start>3000: break
-    found={}
-    for r in rows:
-        sn=str(r.get("SHORTNAME") or "")
-        if sn in TARGET_SHORTNAMES:
-            found[sn]=r
-    (OUT/"moex_m01_forts_catalog.json").write_text(json.dumps(
-        {"targets":found,"total_rows":len(rows)},ensure_ascii=False,indent=2),encoding="utf-8")
-    return found
+        j=get(url,{"from":frm,"till":till,"start":start,"iss.meta":"off"})
+        rr=rows(j,"history")
+        out.extend(rr)
+        cur=rows(j,"history.cursor")
+        total=int(cur[0].get("TOTAL") or 0) if cur else len(out)
+        if not rr or len(out)>=total: break
+        start=len(out)
+    return url,out
 
-def market(secid):
-    j=get(f"{ISS}/engines/futures/markets/forts/securities/{secid}.json?iss.meta=off")
-    sec=block(j,"securities")
-    md=block(j,"marketdata")
-    return (sec[0] if sec else {}, md[0] if md else {})
+def resolve_contract(label):
+    hits=search(label)
+    # Prefer futures contracts and exact display names.
+    def score(r):
+        txt=" ".join(str(r.get(k) or "") for k in ["SECID","SHORTNAME","NAME"]).upper()
+        s=0
+        if label.upper() in txt: s-=10
+        if str(r.get("GROUP","")).lower().find("future")>=0: s-=5
+        if r.get("IS_TRADED") in (1,"1"): s-=2
+        return s
+    hits=sorted(hits,key=score)
+    return hits[0] if hits else None,hits[:20]
 
-def stock():
-    j=get(f"{ISS}/engines/stock/markets/shares/boards/TQBR/securities/SBER.json?iss.meta=off")
-    sec=block(j,"securities")[0]
-    md=block(j,"marketdata")[0]
-    return sec,md
+def market_row(j):
+    rr=rows(j,"marketdata")
+    return rr[0] if rr else {}
 
-def history(secid, date_from="2026-03-01", date_to="2026-09-29"):
-    allrows=[];start=0
-    while True:
-        u=f"{ISS}/history/engines/futures/markets/forts/boards/RFUD/securities/{secid}.json?from={date_from}&till={date_to}&iss.meta=off&start={start}"
-        j=get(u)
-        pg=block(j,"history");allrows.extend(pg)
-        if len(pg)<100:break
-        start += len(pg)
-    return allrows
+def security_row(j):
+    rr=rows(j,"securities")
+    return rr[0] if rr else {}
 
-def px(row,side):
-    if side=="bid": return num(field(row,"BID","BESTBID"))
-    if side=="ask": return num(field(row,"OFFER","BESTASK"))
-    return num(field(row,"LAST","SETTLEPRICE","SETTLEPRICE_CLR"))
+def get_px(r,side):
+    names={"bid":("BID","BESTBID"),"ask":("OFFER","ASK","BESTASK"),
+           "last":("LAST","SETTLEPRICE","SETTLEPRICE_CLR","LCURRENTPRICE")}
+    return num(field(r,*names[side]))
 
 def main():
-    catalog=discover_forts()
-    sec_s,md_s=stock()
-    s_bid=px(md_s,"bid");s_ask=px(md_s,"ask");s_last=px(md_s,"last")
-    stock_row={
-        "utc":utc(),"instrument":"SBER","secid":"SBER","bid":s_bid,"ask":s_ask,"last":s_last,
-        "lot_volume":sec_s.get("LOTSIZE"),"initial_margin":None,"buy_sell_fee":None,
-        "expiry":None,"settle":None,"open_interest":None,"volume":md_s.get("VOLTODAY"),
-        "numtrades":md_s.get("NUMTRADES"),"systime":md_s.get("SYSTIME")
-    }
-    rows=[stock_row]; diags=[]; histories={}
-    nowdt=datetime.now(timezone.utc)
+    query_terms=["SBRF","SBRF-12.26","SBRF-3.27","SBRF-6.27","SRZ6","SRH7","SRM7",
+                 "SBRF-12.26-3.27","календарный спред SBRF"]
+    search_report={}
+    for q in query_terms:
+        try: search_report[q]=search(q)
+        except Exception as e: search_report[q]=[{"error":f"{type(e).__name__}: {e}"}]
+    (OUT/"moex_m01_security_search.json").write_text(
+        json.dumps(search_report,ensure_ascii=False,indent=2),encoding="utf-8")
 
-    # perpetual, discovered directly
-    psec,pmd=market("SBERF")
-    rows.append({
-        "utc":utc(),"instrument":"SBERF","secid":"SBERF","bid":px(pmd,"bid"),"ask":px(pmd,"ask"),
-        "last":px(pmd,"last"),"lot_volume":psec.get("LOTVOLUME"),"initial_margin":psec.get("INITIALMARGIN"),
-        "buy_sell_fee":psec.get("BUYSELLFEE"),"expiry":psec.get("LASTTRADEDATE"),
-        "settle":field(pmd,"SETTLEPRICE","SETTLEPRICE_CLR"),"open_interest":pmd.get("OPENPOSITION"),
-        "volume":pmd.get("VOLTODAY"),"numtrades":pmd.get("NUMTRADES"),"systime":pmd.get("SYSTIME")
-    })
+    mapping={"SBER":"SBER","SBERF":"SBERF"}
+    resolution={}
+    for label in ["SBRF-12.26","SBRF-3.27","SBRF-6.27"]:
+        hit,hits=resolve_contract(label)
+        resolution[label]={"chosen":hit,"candidates":hits}
+        if hit and hit.get("SECID"):
+            mapping[label]=hit["SECID"]
+    (OUT/"moex_m01_contract_mapping.json").write_text(
+        json.dumps({"mapping":mapping,"resolution":resolution},ensure_ascii=False,indent=2),encoding="utf-8")
 
-    for human in TARGET_SHORTNAMES:
-        ref=catalog.get(human)
-        if not ref: continue
-        secid=ref["SECID"]
-        sec,md=market(secid)
-        lot=float(sec.get("LOTVOLUME") or ref.get("LOTVOLUME") or 100)
-        bid=px(md,"bid");ask=px(md,"ask");last=px(md,"last")
-        exp_s=sec.get("LASTTRADEDATE") or ref.get("LASTTRADEDATE")
-        rows.append({
-            "utc":utc(),"instrument":human,"secid":secid,"bid":bid,"ask":ask,"last":last,
-            "lot_volume":lot,"initial_margin":sec.get("INITIALMARGIN") or ref.get("INITIALMARGIN"),
-            "buy_sell_fee":sec.get("BUYSELLFEE") or ref.get("BUYSELLFEE"),
-            "expiry":exp_s,"settle":field(md,"SETTLEPRICE","SETTLEPRICE_CLR"),
-            "open_interest":md.get("OPENPOSITION"),"volume":md.get("VOLTODAY"),
-            "numtrades":md.get("NUMTRADES"),"systime":md.get("SYSTIME")
-        })
-        histories[human]=history(secid)
-        if s_ask and bid and exp_s:
-            exp=datetime.fromisoformat(exp_s).replace(tzinfo=timezone.utc)
-            T=max((exp-nowdt).total_seconds(),0)/(365.0*86400)
-            fut_share=bid/lot
-            gross=(fut_share/s_ask-1.0)
-            fut_fee=float(sec.get("BUYSELLFEE") or ref.get("BUYSELLFEE") or 0.0)
-            # 100-share cash-and-carry; exchange-only estimate, no broker fee.
-            spot_exchange_roundtrip = 2*SPOT_TAKER_EXCHANGE*(s_ask*lot)
-            futures_roundtrip = 2*fut_fee
-            execution_buffer_rub = EXECUTION_BUFFER_BPS/10000.0*(s_ask*lot)
-            for rate in FUNDING_SCENARIOS:
-                fair=s_ask*math.exp(rate*T)
-                fair_basis=fair/s_ask-1.0
-                excess_before_cost=gross-fair_basis
-                gross_excess_rub=excess_before_cost*s_ask*lot
-                net_rub=gross_excess_rub-spot_exchange_roundtrip-futures_roundtrip-execution_buffer_rub
-                capital=s_ask*lot
-                net_pct=net_rub/capital if capital else None
-                annualized=(net_pct/T if T>0 else None)
-                diags.append({
-                    "utc":utc(),"instrument":human,"secid":secid,"spot_ask":s_ask,
-                    "futures_bid":bid,"futures_bid_per_share":fut_share,
-                    "lot":lot,"days_to_expiry":round(T*365,3),
-                    "funding_rate_scenario":rate,
-                    "raw_basis_pct":gross*100,"fair_basis_no_div_pct":fair_basis*100,
-                    "excess_basis_before_cost_pct":excess_before_cost*100,
-                    "spot_exchange_roundtrip_rub":spot_exchange_roundtrip,
-                    "futures_roundtrip_fee_rub":futures_roundtrip,
-                    "execution_buffer_rub":execution_buffer_rub,
-                    "net_excess_rub_before_broker_dividend":net_rub,
-                    "net_excess_pct_before_broker_dividend":None if net_pct is None else net_pct*100,
-                    "simple_annualized_net_pct":None if annualized is None else annualized*100
-                })
+    probe=[]
+    current_rows=[]
+    histories={}
 
-    with (OUT/"moex_m01_current.csv").open("w",newline="",encoding="utf-8") as f:
-        w=csv.DictWriter(f,fieldnames=list(rows[0].keys()));w.writeheader();w.writerows(rows)
-    if diags:
-        with (OUT/"moex_m01_current_diagnostic.csv").open("w",newline="",encoding="utf-8") as f:
-            w=csv.DictWriter(f,fieldnames=list(diags[0].keys()));w.writeheader();w.writerows(diags)
-    (OUT/"moex_m01_history_probe.json").write_text(json.dumps({
-        k:{"rows":len(v),"sample":v[:2]} for k,v in histories.items()
-    },ensure_ascii=False,indent=2),encoding="utf-8")
+    targets=[
+      ("SBER",mapping["SBER"],"stock","shares","TQBR"),
+      ("SBERF",mapping["SBERF"],"futures","forts","RFUD")
+    ]
+    for label in ["SBRF-12.26","SBRF-3.27","SBRF-6.27"]:
+        if label in mapping:
+            targets.append((label,mapping[label],"futures","forts","RFUD"))
+
+    for label,secid,engine,market,board in targets:
+        try:
+            url,j=current(secid,engine,market,board)
+            sr=security_row(j);mr=market_row(j)
+            current_rows.append({
+              "utc":utc(),"label":label,"secid":secid,"board":board,
+              "bid":get_px(mr,"bid"),"ask":get_px(mr,"ask"),"last":get_px(mr,"last"),
+              "settle":num(field(mr,"SETTLEPRICE","SETTLEPRICE_CLR")),
+              "swaprate":num(field(mr,"SWAPRATE","SWAPRATE_CURR")),
+              "volume":num(field(mr,"VOLTODAY","VOLUME")),
+              "numtrades":num(field(mr,"NUMTRADES")),
+              "openposition":num(field(mr,"OPENPOSITION")),
+              "expiry":field(sr,"LASTTRADEDATE","LASTDELDATE"),
+              "lotvolume":field(sr,"LOTVOLUME","LOTSIZE"),
+              "initialmargin":field(sr,"INITIALMARGIN"),
+              "buysellfee":field(sr,"BUYSELLFEE"),
+              "scalperfee":field(sr,"SCALPERFEE"),
+              "stepprice":field(sr,"STEPPRICE"),
+            })
+            probe.append({"label":label,"secid":secid,"current_ok":True,"current_url":url,
+                          "current_rows":len(rows(j,"marketdata"))})
+        except Exception as e:
+            probe.append({"label":label,"secid":secid,"current_ok":False,
+                          "error":f"{type(e).__name__}: {e}"[:700]})
+
+        try:
+            hurl,h=history(secid,engine,market,board)
+            histories[label]=h
+            probe[-1]["history_url"]=hurl
+            probe[-1]["history_rows"]=len(h)
+            probe[-1]["history_first"]=h[0].get("TRADEDATE") if h else None
+            probe[-1]["history_last"]=h[-1].get("TRADEDATE") if h else None
+        except Exception as e:
+            probe[-1]["history_error"]=f"{type(e).__name__}: {e}"[:700]
+
+    (OUT/"moex_m01_probe.json").write_text(json.dumps(probe,ensure_ascii=False,indent=2),encoding="utf-8")
+
+    if current_rows:
+        p=OUT/"moex_m01_current.csv"
+        with p.open("w",newline="",encoding="utf-8") as f:
+            w=csv.DictWriter(f,fieldnames=list(current_rows[0].keys()));w.writeheader();w.writerows(current_rows)
+
+    # Daily raw basis joined to SBER. Quarterly SBRF quotes are per 100 shares.
+    spot_hist={r.get("TRADEDATE"):r for r in histories.get("SBER",[])}
+    basis=[]
+    for label,h in histories.items():
+        if label=="SBER": continue
+        for r in h:
+            d=r.get("TRADEDATE"); s=spot_hist.get(d)
+            if not s: continue
+            sp=num(field(s,"LEGALCLOSEPRICE","WAPRICE","CLOSE"))
+            fp=num(field(r,"SETTLEPRICE","WAPRICE","CLOSE"))
+            if not sp or not fp: continue
+            per_share=fp/100.0 if label.startswith("SBRF-") else fp
+            basis.append({
+              "date":d,"instrument":label,"spot_price":sp,"future_per_share":per_share,
+              "raw_basis_pct":(per_share/sp-1)*100,
+              "futures_volume":r.get("VOLUME"),"futures_numtrades":r.get("NUMTRADES"),
+              "openposition":r.get("OPENPOSITION"),"swaprate":r.get("SWAPRATE")
+            })
+    if basis:
+        p=OUT/"moex_m01_daily_raw_basis.csv"
+        with p.open("w",newline="",encoding="utf-8") as f:
+            w=csv.DictWriter(f,fieldnames=list(basis[0].keys()));w.writeheader();w.writerows(basis)
+        by={}
+        for r in basis: by.setdefault(r["instrument"],[]).append(float(r["raw_basis_pct"]))
+        sm=[]
+        for k,x in sorted(by.items()):
+            sm.append({"instrument":k,"n":len(x),"min_pct":min(x),
+                       "median_pct":statistics.median(x),"mean_pct":statistics.fmean(x),"max_pct":max(x)})
+        with (OUT/"moex_m01_daily_raw_basis_summary.csv").open("w",newline="",encoding="utf-8") as f:
+            w=csv.DictWriter(f,fieldnames=list(sm[0].keys()));w.writeheader();w.writerows(sm)
 
 if __name__=="__main__":
     main()
