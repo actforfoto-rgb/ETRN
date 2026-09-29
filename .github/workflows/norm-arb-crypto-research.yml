@@ -49,6 +49,9 @@ jobs:
       - name: Run pair basis-funding backtest
         run: python NORM_LAB/ARBITRAGE_RADAR/crypto_pair_backtest.py
 
+      - name: Run executable pre-funding signal backtest
+        run: python NORM_LAB/ARBITRAGE_RADAR/crypto_event_signal_backtest.py
+
       - name: Save results
         if: always()
         shell: bash
