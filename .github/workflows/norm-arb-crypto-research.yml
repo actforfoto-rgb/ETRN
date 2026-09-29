@@ -1,0 +1,69 @@
+name: NORM ARBITRAGE Crypto Research
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'NORM_LAB/ARBITRAGE_RADAR/CRYPTO_TRIGGER.txt'
+      - '.github/workflows/norm-arb-crypto-research.yml'
+  schedule:
+    - cron: '15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  crypto:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout ARB branch
+        uses: actions/checkout@v4
+        with:
+          ref: norm-arb-r01
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check --quiet ccxt requests
+
+      - name: Run C02 live screen
+        run: python NORM_LAB/ARBITRAGE_RADAR/crypto_c02.py --minutes 1
+
+      - name: Run broad funding radar
+        run: python NORM_LAB/ARBITRAGE_RADAR/crypto_funding_radar.py
+
+      - name: Run funding persistence history
+        run: python NORM_LAB/ARBITRAGE_RADAR/crypto_funding_history.py
+
+      - name: Run pair basis-funding backtest
+        run: python NORM_LAB/ARBITRAGE_RADAR/crypto_pair_backtest.py
+
+      - name: Save results
+        if: always()
+        shell: bash
+        run: |
+          printf "DONE\n" > NORM_LAB/ARBITRAGE_RADAR/RUN_C02.flag
+          git config user.name "NORM LAB Crypto Research"
+          git config user.email "actions@users.noreply.github.com"
+          git add NORM_LAB/ARBITRAGE_RADAR/results NORM_LAB/ARBITRAGE_RADAR/RUN_C02.flag || true
+          if git diff --cached --quiet; then
+            echo "No crypto result changes"
+          else
+            git commit -m "ARB crypto research results [skip ci]"
+            git push origin HEAD:norm-arb-r01
+          fi
+
+      - name: Upload artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NORM_ARB_CRYPTO_RESEARCH
+          path: NORM_LAB/ARBITRAGE_RADAR/results
+          if-no-files-found: warn
