@@ -46,6 +46,9 @@ jobs:
       - name: Run promotion gatekeeper
         run: python NORM_LAB/ARBITRAGE_RADAR/production/gatekeeper.py
 
+      - name: Run IMOEX paper bot
+        run: python NORM_LAB/ARBITRAGE_RADAR/production/moex_imoex_paper_bot.py
+
       - name: Validate paper execution engine
         run: python NORM_LAB/ARBITRAGE_RADAR/production/paper_execution_engine.py
 
@@ -58,7 +61,7 @@ jobs:
         run: |
           git config user.name "NORM LAB Shadow"
           git config user.email "actions@users.noreply.github.com"
-          git add NORM_LAB/ARBITRAGE_RADAR/production/shadow_state NORM_LAB/ARBITRAGE_RADAR/production/promotion_status.json || true
+          git add NORM_LAB/ARBITRAGE_RADAR/production/shadow_state NORM_LAB/ARBITRAGE_RADAR/production/paper_state NORM_LAB/ARBITRAGE_RADAR/production/promotion_status.json || true
           if git diff --cached --quiet; then
             echo "No shadow-state changes"
           else
