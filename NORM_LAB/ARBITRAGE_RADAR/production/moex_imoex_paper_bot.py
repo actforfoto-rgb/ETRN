@@ -29,7 +29,7 @@ STOP_MARK_RETURN_IM_PCT=-5.0
 FIELDS=[
  "utc","event","quarter","perp","direction","entry_date",
  "quarter_entry","perp_entry","quarter_mark_bid","perp_mark_ask",
- "funding_rub","gross_pair_pnl_rub","fees_rub","capital_cost_rub",
+ "funding_rub","dividend_adjustment_rub","gross_pair_pnl_rub","fees_rub","capital_cost_rub",
  "net_pnl_rub","net_return_on_im_pct","combined_im_rub",
  "swaprate","ratio","screen_return_on_im_pct","risk_flag"
 ]
@@ -148,19 +148,48 @@ def hist_swaps(frm):
        {"from":frm,"till":now_msk().date().isoformat(),"iss.meta":"off"})
  return rows(j,"history")
 
-def funding_since(pos,punit):
- applied=set(pos.get("funding_dates_applied") or [])
- total=float(pos.get("funding_rub") or 0.0)
+def hist_dividends(frm):
+ j=get(f"{BASE}/history/engines/stock/markets/index/securities/IMOEXDIV.json",
+       {"from":frm,"till":now_msk().date().isoformat(),"iss.meta":"off"})
+ return rows(j,"history")
+
+def carry_since(pos,punit):
+ funding_applied=set(pos.get("funding_dates_applied") or [])
+ div_applied=set(pos.get("dividend_dates_applied") or [])
+ funding_total=float(pos.get("funding_rub") or 0.0)
+ dividend_total=float(pos.get("dividend_adjustment_rub") or 0.0)
  new=[]
+
+ # LONG_QUARTERLY_SHORT_PERP -> short perpetual receives +SwapRate.
+ # Opposite direction -> long perpetual pays SwapRate.
+ funding_sign=1.0 if pos["direction"]=="LONG_QUARTERLY_SHORT_PERP" else -1.0
  for r in hist_swaps(pos["entry_date"]):
   d=r.get("TRADEDATE")
-  if not d or d<=pos["entry_date"] or d in applied:continue
+  if not d or d<=pos["entry_date"] or d in funding_applied:continue
   sw=num(r.get("SWAPRATE") or r.get("SWAPRATE_CURR"))
   if sw is None:continue
-  sign=1.0 if pos["direction"]=="LONG_QUARTERLY_SHORT_PERP" else -1.0
-  total += sign*sw*punit
-  applied.add(d);new.append({"date":d,"swaprate":sw,"pnl":sign*sw*punit})
- return total,sorted(applied),new
+  pnl=funding_sign*sw*punit
+  funding_total += pnl
+  funding_applied.add(d)
+  new.append({"date":d,"kind":"SWAPRATE","value":sw,"pnl":pnl})
+
+ # Short perpetual pays IMOEXDIV; long perpetual receives it.
+ dividend_sign=-1.0 if pos["direction"]=="LONG_QUARTERLY_SHORT_PERP" else 1.0
+ for r in hist_dividends(pos["entry_date"]):
+  d=r.get("TRADEDATE")
+  if not d or d<=pos["entry_date"] or d in div_applied:continue
+  dv=num(r.get("CLOSE"))
+  if dv is None:continue
+  pnl=dividend_sign*dv*punit
+  dividend_total += pnl
+  div_applied.add(d)
+  if abs(dv)>1e-12:
+   new.append({"date":d,"kind":"IMOEXDIV","value":dv,"pnl":pnl})
+
+ return (
+  funding_total, sorted(funding_applied),
+  dividend_total, sorted(div_applied), new
+ )
 
 def append(row):
  new=not TS.exists()
@@ -210,13 +239,17 @@ def main():
    "perp_entry":p["bid"] if screen["direction"]=="LONG_QUARTERLY_SHORT_PERP" else p["ask"],
    "combined_im":screen["combined_im"],"fees_roundtrip":screen["fees_roundtrip"],
    "funding_rub":0.0,"funding_dates_applied":[],
+   "dividend_adjustment_rub":0.0,"dividend_dates_applied":[],
    "status":"OPEN"
   }
   st["position"]=pos
   event="OPEN"
 
- funding,applied,newfund=funding_since(pos,p["unit"])
- pos["funding_rub"]=funding;pos["funding_dates_applied"]=applied
+ funding,f_applied,dividend,d_applied,newcarry=carry_since(pos,p["unit"])
+ pos["funding_rub"]=funding
+ pos["funding_dates_applied"]=f_applied
+ pos["dividend_adjustment_rub"]=dividend
+ pos["dividend_dates_applied"]=d_applied
 
  if pos["direction"]=="LONG_QUARTERLY_SHORT_PERP":
   q_pnl=(q["bid"]-pos["quarter_entry"])*q["unit"]*pos["qty"]
@@ -225,7 +258,7 @@ def main():
   q_pnl=(pos["quarter_entry"]-q["ask"])*q["unit"]*pos["qty"]
   p_pnl=(p["bid"]-pos["perp_entry"])*p["unit"]
 
- gross=q_pnl+p_pnl+funding
+ gross=q_pnl+p_pnl+funding+dividend
  held=max(0,(now_msk().date()-date.fromisoformat(pos["entry_date"])).days)
  carry=pos["combined_im"]*KEY_RATE*held/365
  net=gross-pos["fees_roundtrip"]-carry
@@ -237,7 +270,8 @@ def main():
   "direction":pos["direction"],"entry_date":pos["entry_date"],
   "quarter_entry":pos["quarter_entry"],"perp_entry":pos["perp_entry"],
   "quarter_mark_bid":q["bid"],"perp_mark_ask":p["ask"],
-  "funding_rub":funding,"gross_pair_pnl_rub":gross,
+  "funding_rub":funding,"dividend_adjustment_rub":dividend,
+  "gross_pair_pnl_rub":gross,
   "fees_rub":pos["fees_roundtrip"],"capital_cost_rub":carry,
   "net_pnl_rub":net,"net_return_on_im_pct":ret,
   "combined_im_rub":pos["combined_im"],"swaprate":p["swaprate"],
@@ -251,7 +285,7 @@ def main():
 
  print(json.dumps({
   "status":"PAPER_OPEN" if pos else "IDLE",
-  "position":pos,"new_funding":newfund,
+  "position":pos,"new_carry_cashflows":newcarry,
   "mark_net_rub":net,"mark_return_im_pct":ret,
   "screen_ratio":screen["ratio"],"screen_return_im_pct":screen["screen_return"]
  },ensure_ascii=False,indent=2))
