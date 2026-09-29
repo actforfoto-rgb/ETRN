@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv, json, math
+from zoneinfo import ZoneInfo
 from datetime import date, timedelta
 from pathlib import Path
 import requests
@@ -10,7 +11,7 @@ OUT=ROOT/"results"
 OUT.mkdir(parents=True,exist_ok=True)
 S=requests.Session(); S.headers.update({"User-Agent":"NORM-LAB-ARBITRAGE-RADAR/1.0"})
 BASE="https://iss.moex.com/iss"
-TODAY=date(2026,9,29)
+TODAY=datetime.now(ZoneInfo("Europe/Moscow")).date()
 KEY_RATE=0.14
 
 CONFIGS=[
