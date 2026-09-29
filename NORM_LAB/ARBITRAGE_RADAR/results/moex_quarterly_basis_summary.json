@@ -1,0 +1,53 @@
+{
+  "period": [
+    "2026-07-21",
+    "2026-09-29"
+  ],
+  "fee_model": {
+    "spot_taker_each_side": 0.0003,
+    "equity_futures_taker_each_side": 0.000198,
+    "execution_buffer_bps": 5.0
+  },
+  "dividend_model": "No announced dividend cashflow inserted in this first post-2026-record diagnostic; point-in-time dividend expectations must be added before executable classification.",
+  "summary": [
+    {
+      "contract": "SBRF-12.26",
+      "secid": "SRZ6",
+      "n_days": 50,
+      "positive_net_days": 8,
+      "positive_net_pct": 16.0,
+      "median_diagnostic_net_pct": -0.2207086854183862,
+      "max_diagnostic_net_pct": 1.037449885501201,
+      "median_annualized_net_pct": -0.717765905133143,
+      "max_annualized_net_pct": 3.5061963722957263
+    },
+    {
+      "contract": "SBRF-3.27",
+      "secid": "SRH7",
+      "n_days": 50,
+      "positive_net_days": 7,
+      "positive_net_pct": 14.0,
+      "median_diagnostic_net_pct": -0.3166007685024122,
+      "max_diagnostic_net_pct": 0.8956227160594906,
+      "median_annualized_net_pct": -0.5749565219990952,
+      "max_annualized_net_pct": 1.6427250822196686
+    },
+    {
+      "contract": "SBRF-6.27",
+      "secid": "SRM7",
+      "n_days": 50,
+      "positive_net_days": 4,
+      "positive_net_pct": 8.0,
+      "median_diagnostic_net_pct": -1.0918420047411341,
+      "max_diagnostic_net_pct": 0.5099491586157465,
+      "median_annualized_net_pct": -1.3080219851395396,
+      "max_annualized_net_pct": 0.5744384590352858
+    }
+  ],
+  "limitations": [
+    "Daily stock close and futures settlement are not synchronized executable bid/ask quotes.",
+    "RUONIA is a benchmark proxy, not executable account funding.",
+    "Broker commissions, taxes, margin collateral remuneration and delivery mechanics are excluded.",
+    "This output can rank periods for intraday replay but cannot label a trade executable."
+  ]
+}
