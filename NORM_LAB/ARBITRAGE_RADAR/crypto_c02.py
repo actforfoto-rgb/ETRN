@@ -163,8 +163,9 @@ def collect(minutes):
                     try:
                         spot_m, perp_m = pairs[base]
                         t0 = time.time()
-                        sb = sx.fetch_order_book(spot_m["symbol"], 50)
-                        db = dx.fetch_order_book(perp_m["symbol"], 50)
+                        limit = 20 if name == "HTX" else 50
+                        sb = sx.fetch_order_book(spot_m["symbol"], limit)
+                        db = dx.fetch_order_book(perp_m["symbol"], limit)
                         fr, _ = funding(dx, perp_m["symbol"])
                         ms = int((time.time()-t0)*1000)
                         asks = [(float(p),float(q)) for p,q in sb["asks"]]
