@@ -12,6 +12,15 @@ STATE_DIR.mkdir(parents=True,exist_ok=True)
 CSV_PATH=STATE_DIR/"moex_shadow_timeseries.csv"
 LAST_PATH=STATE_DIR/"moex_last_scan.json"
 STATE_PATH=STATE_DIR/"moex_state.json"
+REGISTRY_PATH=ROOT/"strategy_registry.json"
+
+MOEX_STRATEGY_MAP={
+ "CNY":"MOEX_CNY_PERP_CURVE",
+ "USD":"MOEX_USD_PERP_CURVE",
+ "EUR":"MOEX_EUR_PERP_CURVE",
+ "IMOEX":"MOEX_IMOEX_PERP_CURVE",
+ "RGBI":"MOEX_RGBI_PERP_CURVE",
+}
 
 BASE="https://iss.moex.com/iss"
 S=requests.Session(); S.headers.update({"User-Agent":"NORM-LAB-ARBITRAGE-RADAR-SHADOW/1.0"})
@@ -104,11 +113,21 @@ def calc(cfg):
     req=(carry+fees+spreadbuf-convergence)/(p["unit"]*work)
     ratio=abs(p["swaprate"])/req if req>0 else None
     ret=net/margin*100 if margin else None
+    policy=research_policy(cfg["name"])
+    research_status=policy.get("status","UNKNOWN")
     status="REJECT"
-    if ratio is not None and ratio>=1.25 and ret is not None and ret>=2.0 and p["trades"]>=50 and q["trades"]>=50:
-        status="STRONG"
-    elif ratio is not None and ratio>=1.05 and ret is not None and ret>0:
-        status="WATCH"
+    if research_status=="REJECTED_RESEARCH":
+        status="RESEARCH_REJECTED"
+    elif research_status=="RESEARCH_SECONDARY":
+        status="RESEARCH_SECONDARY"
+    else:
+        rule=policy.get("research_rule") or {}
+        min_ratio=float(rule.get("min_swaprate_to_breakeven_ratio",1.25) or 1.25)
+        min_ret=float(rule.get("min_screen_return_on_im_pct",2.0) or 2.0)
+        if ratio is not None and ratio>=min_ratio and ret is not None and ret>=min_ret and p["trades"]>=50 and q["trades"]>=50:
+            status="STRONG"
+        elif ratio is not None and ratio>=1.05 and ret is not None and ret>0:
+            status="WATCH"
     return {
       "utc":utc(),"name":cfg["name"],"perp":cfg["perp"],"quarter":cfg["quarter"],
       "direction":direction,"perp_bid":p["bid"],"perp_ask":p["ask"],
@@ -116,8 +135,17 @@ def calc(cfg):
       "required_swaprate":req,"swaprate_ratio":ratio,"calendar_days":days,"business_days":work,
       "combined_im_rub":margin,"screen_net_rub":net,"screen_return_on_im_pct":ret,
       "perp_volume":p["volume"],"quarter_volume":q["volume"],"perp_oi":p["oi"],"quarter_oi":q["oi"],
-      "status":status
+      "status":status,"research_status":research_status
     }
+
+def research_policy(name):
+    try:
+        reg=json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
+        sid=MOEX_STRATEGY_MAP.get(name)
+        s=next((x for x in reg.get("strategies",[]) if x.get("id")==sid),{})
+        return s
+    except Exception:
+        return {}
 
 def load_state():
     if STATE_PATH.exists():
