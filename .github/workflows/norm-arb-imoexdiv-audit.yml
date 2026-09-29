@@ -38,12 +38,15 @@ jobs:
       - name: Probe IMOEXDIV
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_dividend_probe.py
 
+      - name: Probe perpetual metadata
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_perpetual_metadata_probe.py
+
       - name: Save probe
         shell: bash
         run: |
           git config user.name "NORM LAB IMOEXDIV Audit"
           git config user.email "actions@users.noreply.github.com"
-          git add NORM_LAB/ARBITRAGE_RADAR/results/imoexdiv_history_probe.*
+          git add NORM_LAB/ARBITRAGE_RADAR/results/imoexdiv_history_probe.* NORM_LAB/ARBITRAGE_RADAR/results/moex_perpetual_metadata_probe.json
           if git diff --cached --quiet; then
             echo "No probe changes"
           else
