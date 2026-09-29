@@ -1,0 +1,81 @@
+name: NORM ARBITRAGE MOEX Research
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'NORM_LAB/ARBITRAGE_RADAR/MOEX_TRIGGER.txt'
+      - '.github/workflows/norm-arb-moex-research.yml'
+  schedule:
+    - cron: '35 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  moex:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout ARB branch
+        uses: actions/checkout@v4
+        with:
+          ref: norm-arb-r01
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check --quiet requests beautifulsoup4
+
+      - name: Probe and resolve MOEX instruments
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_m01_probe.py
+
+      - name: Scan equity futures universe
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_equity_universe.py
+
+      - name: Scan stock cash-and-carry
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_cashcarry_scan.py
+
+      - name: Backtest equity perpetual pairs
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_perpetual_backtest.py
+
+      - name: Current quarterly-perpetual screen
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_quarterly_perpetual.py
+
+      - name: Backtest quarterly-perpetual equity pairs
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_quarterly_perpetual_backtest.py
+
+      - name: Current perpetual curve universe
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_perp_curve_universe.py
+
+      - name: Backtest currency and index perpetual curves
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_curve_backtest.py
+
+      - name: Save results
+        if: always()
+        shell: bash
+        run: |
+          printf "DONE\n" > NORM_LAB/ARBITRAGE_RADAR/RUN_M01.flag
+          git config user.name "NORM LAB MOEX Research"
+          git config user.email "actions@users.noreply.github.com"
+          git add NORM_LAB/ARBITRAGE_RADAR/results NORM_LAB/ARBITRAGE_RADAR/RUN_M01.flag || true
+          if git diff --cached --quiet; then
+            echo "No MOEX result changes"
+          else
+            git commit -m "ARB MOEX research results [skip ci]"
+            git push origin HEAD:norm-arb-r01
+          fi
+
+      - name: Upload artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NORM_ARB_MOEX_RESEARCH
+          path: NORM_LAB/ARBITRAGE_RADAR/results
+          if-no-files-found: warn
