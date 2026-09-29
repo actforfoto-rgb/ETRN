@@ -1,6 +1,56 @@
 {
-  "updated_at": "2026-09-30T00:35:00+03:00",
+  "updated_at": "2026-09-30T01:22:00+03:00",
   "strategies": [
+    {
+      "id": "MOEX_IMOEX_PERP_CURVE",
+      "status": "SHADOW_PRIMARY",
+      "route": "MMZ6/IMOEXF",
+      "research_rule": {
+        "min_swaprate_to_breakeven_ratio": 1.25,
+        "min_screen_return_on_im_pct": 2,
+        "rule_basis": "predefined 25% safety margin above breakeven; not holdout-optimized"
+      },
+      "evidence": {
+        "completed_cycles": 7,
+        "train_2025_cycles": 4,
+        "holdout_2026_cycles": 3,
+        "train_positive_pct": 75,
+        "train_median_return_on_im_pct": 8.293143045963047,
+        "train_stress_median_return_on_im_pct": 5.146470015963303,
+        "holdout_positive_pct": 66.66666666666667,
+        "holdout_median_return_on_im_pct": 2.606573421590956,
+        "holdout_aggregate_net_rub": 549.7806012328689,
+        "holdout_stress_positive_pct": 66.66666666666667,
+        "holdout_stress_median_return_on_im_pct": 0.0044209395364159425,
+        "holdout_stress_aggregate_net_rub": 147.14680184929637
+      },
+      "caveat": "stress margin is very thin; stay SHADOW until live persistence and paper cycles confirm execution economics",
+      "next_gate": "PAPER"
+    },
+    {
+      "id": "MOEX_CNY_PERP_CURVE",
+      "status": "REJECTED_RESEARCH",
+      "route": "CRZ6/CNYRUBF",
+      "reason": "completed-cycle holdout 2026 negative in all three completed quarters"
+    },
+    {
+      "id": "MOEX_USD_PERP_CURVE",
+      "status": "REJECTED_RESEARCH",
+      "route": "SiZ6/USDRUBF",
+      "reason": "completed-cycle holdout 2026 negative in all three completed quarters with fat-tail losses"
+    },
+    {
+      "id": "MOEX_EUR_PERP_CURVE",
+      "status": "REJECTED_RESEARCH",
+      "route": "EuZ6/EURRUBF",
+      "reason": "completed-cycle train and holdout fail after de-duplication; prior daily-entry result was pseudo-replication"
+    },
+    {
+      "id": "MOEX_RGBI_PERP_CURVE",
+      "status": "RESEARCH_SECONDARY",
+      "route": "RBZ6/RGBIF",
+      "reason": "not yet validated by completed-cycle walk-forward"
+    },
     {
       "id": "CRYPTO_CROSS_FUNDING",
       "status": "SHADOW",
@@ -15,42 +65,13 @@
         "GATE",
         "BITGET"
       ],
-      "next_gate": "PAPER"
-    },
-    {
-      "id": "MOEX_CNY_PERP_CURVE",
-      "status": "SHADOW",
-      "route": "CRZ6/CNYRUBF",
-      "next_gate": "PAPER"
-    },
-    {
-      "id": "MOEX_USD_PERP_CURVE",
-      "status": "SHADOW",
-      "route": "SiZ6/USDRUBF",
-      "next_gate": "PAPER"
-    },
-    {
-      "id": "MOEX_IMOEX_PERP_CURVE",
-      "status": "SHADOW",
-      "route": "MMZ6/IMOEXF",
-      "next_gate": "PAPER"
-    },
-    {
-      "id": "MOEX_RGBI_PERP_CURVE",
-      "status": "SHADOW",
-      "route": "RBZ6/RGBIF",
-      "next_gate": "PAPER"
-    },
-    {
-      "id": "MOEX_EUR_PERP_CURVE",
-      "status": "RESEARCH",
-      "route": "EuZ6/EURRUBF",
-      "next_gate": "SHADOW"
+      "next_gate": "PAPER",
+      "caveat": "always-on funding carry rejected; executable pre-funding event filter under validation"
     },
     {
       "id": "MOEX_STOCK_CASHCARRY",
       "status": "RESEARCH_SECONDARY",
-      "next_gate": "SHADOW"
+      "reason": "current NET mostly near zero/negative after capital cost, execution and retail dividend-tax scenarios"
     }
   ],
   "live_enabled": false,
