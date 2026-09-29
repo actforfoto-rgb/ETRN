@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import csv, json, math
 from zoneinfo import ZoneInfo
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 import requests
 
