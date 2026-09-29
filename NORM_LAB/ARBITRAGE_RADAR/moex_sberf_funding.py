@@ -49,9 +49,9 @@ def fetch_perp():
       f"{ISS}/history/engines/futures/markets/forts/boards/RFUD/securities/SBERF.json?from={DATE_FROM}&till={DATE_TO}"
     )
 
-def fetch_keyrate():
+def fetch_ruonia():
     params={"UniDbQuery.Posted":"True","UniDbQuery.From":"01.01.2025","UniDbQuery.To":"29.09.2026"}
-    r=S.get("https://www.cbr.ru/hd_base/KeyRate/",params=params,timeout=30)
+    r=S.get("https://www.cbr.ru/hd_base/ruonia/dynamics/",params=params,timeout=30)
     r.raise_for_status()
     soup=BeautifulSoup(r.text,"html.parser")
     rates={}
@@ -77,7 +77,7 @@ def n(v):
     except:return None
 
 def main():
-    stock=fetch_stock();perp=fetch_perp();rates=fetch_keyrate()
+    stock=fetch_stock();perp=fetch_perp();rates=fetch_ruonia()
     sm={r["TRADEDATE"]:r for r in stock}
     pm={r["TRADEDATE"]:r for r in perp}
     dates=sorted(set(sm)&set(pm))
@@ -93,17 +93,17 @@ def main():
         if kr is None:continue
         premium=settle-spot
         fund_ann=(swap/spot)*365*100 if spot else None
-        key_daily_rub=spot*LOT*(kr/100)/365
+        ruonia_daily_rub=spot*LOT*(kr/100)/365
         fund_rub=swap*LOT
-        excess_day=fund_rub-key_daily_rub
+        excess_day=fund_rub-ruonia_daily_rub
         fixed_roundtrip=2*SPOT_TAKER*spot*LOT + 2*FUT_FEE_SIDE_RUB + EXEC_BUFFER_BPS/10000*spot*LOT
         rows.append({
           "date":ds,"spot_close":spot,"perp_settle":settle,"premium_rub_per_share":premium,
           "premium_bps":premium/spot*10000,"swaprate_rub_per_share":swap,
           "funding_rub_per_contract":fund_rub,"funding_annualized_pct":fund_ann,
-          "key_rate_pct":kr,"capital_cost_rub_per_day":key_daily_rub,
-          "funding_minus_key_rub_per_day":excess_day,
-          "funding_minus_key_annualized_pct":fund_ann-kr,
+          "ruonia_pct":kr,"capital_cost_rub_per_day":ruonia_daily_rub,
+          "funding_minus_ruonia_rub_per_day":excess_day,
+          "funding_minus_ruonia_annualized_pct":fund_ann-kr,
           "roundtrip_exchange_plus_buffer_rub":fixed_roundtrip,
           "perp_volume":n(p.get("VOLUME")),"perp_open_interest":n(p.get("OPENPOSITION"))
         })
@@ -112,12 +112,12 @@ def main():
         with path.open("w",newline="",encoding="utf-8") as f:
             w=csv.DictWriter(f,fieldnames=list(rows[0].keys()));w.writeheader();w.writerows(rows)
 
-    xs=[r["funding_minus_key_annualized_pct"] for r in rows]
-    pos=[r for r in rows if r["funding_minus_key_rub_per_day"]>0]
+    xs=[r["funding_minus_ruonia_annualized_pct"] for r in rows]
+    pos=[r for r in rows if r["funding_minus_ruonia_rub_per_day"]>0]
     # contiguous positive-excess runs; asks whether daily funding could amortize entry/exit costs
     runs=[];cur=[]
     for r in rows:
-        if r["funding_minus_key_rub_per_day"]>0:
+        if r["funding_minus_ruonia_rub_per_day"]>0:
             if cur and (datetime.fromisoformat(r["date"]).date()-datetime.fromisoformat(cur[-1]["date"]).date()).days<=4:
                 cur.append(r)
             else:
@@ -129,23 +129,23 @@ def main():
 
     runout=[]
     for rr in runs:
-        cum=sum(x["funding_minus_key_rub_per_day"] for x in rr)
+        cum=sum(x["funding_minus_ruonia_rub_per_day"] for x in rr)
         fee=rr[0]["roundtrip_exchange_plus_buffer_rub"]
         runout.append({
           "start":rr[0]["date"],"end":rr[-1]["date"],"trading_days":len(rr),
-          "cum_funding_minus_key_rub":round(cum,4),
+          "cum_funding_minus_ruonia_rub":round(cum,4),
           "entry_exit_exchange_plus_buffer_rub":round(fee,4),
           "net_after_fixed_cost_rub":round(cum-fee,4),
-          "avg_excess_annualized_pct":round(statistics.fmean(x["funding_minus_key_annualized_pct"] for x in rr),4),
-          "max_excess_annualized_pct":round(max(x["funding_minus_key_annualized_pct"] for x in rr),4)
+          "avg_excess_annualized_pct":round(statistics.fmean(x["funding_minus_ruonia_annualized_pct"] for x in rr),4),
+          "max_excess_annualized_pct":round(max(x["funding_minus_ruonia_annualized_pct"] for x in rr),4)
         })
     with (OUT/"moex_sberf_positive_runs.csv").open("w",newline="",encoding="utf-8") as f:
-        fields=["start","end","trading_days","cum_funding_minus_key_rub","entry_exit_exchange_plus_buffer_rub","net_after_fixed_cost_rub","avg_excess_annualized_pct","max_excess_annualized_pct"]
+        fields=["start","end","trading_days","cum_funding_minus_ruonia_rub","entry_exit_exchange_plus_buffer_rub","net_after_fixed_cost_rub","avg_excess_annualized_pct","max_excess_annualized_pct"]
         w=csv.DictWriter(f,fieldnames=fields);w.writeheader();w.writerows(runout)
 
     summary={
       "from":DATE_FROM,"to":DATE_TO,"matched_days":len(rows),
-      "positive_funding_minus_key_days":len(pos),
+      "positive_funding_minus_ruonia_days":len(pos),
       "positive_day_pct":(100*len(pos)/len(rows) if rows else None),
       "median_funding_annualized_pct":(statistics.median(r["funding_annualized_pct"] for r in rows) if rows else None),
       "median_excess_vs_key_pct":(statistics.median(xs) if xs else None),
@@ -155,8 +155,8 @@ def main():
       "best_run":max(runout,key=lambda x:x["net_after_fixed_cost_rub"]) if runout else None,
       "important_limitations":[
         "Daily settlement/close data, not intraday executable bid/ask replay.",
-        "Key rate is a capital-cost proxy, not an executable broker/repo funding rate.",
-        "Broker commissions, taxes and stock borrow are excluded.",
+        "RUONIA is a wholesale overnight funding benchmark, not the user's executable broker/repo funding rate.",
+        "Broker commissions and taxes are excluded. Dividend/tax cash-flow mismatch requires a separate after-tax scenario.",
         "Dividend adjustment on SBERF economically offsets the stock dividend for the long-stock/short-perp hedge, but tax/timing effects need separate modelling."
       ]
     }
