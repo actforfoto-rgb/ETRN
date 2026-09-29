@@ -89,6 +89,10 @@ jobs:
         if: steps.flags.outputs.m01 == 'yes'
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_perp_curve_universe.py
 
+      - name: Run all MOEX perpetual pairs
+        if: steps.flags.outputs.m01 == 'yes'
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_all_perp_pair_scan.py
+
       - name: Run SBER-SBERF funding study
         if: steps.flags.outputs.m01 == 'yes'
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_sberf_funding.py
