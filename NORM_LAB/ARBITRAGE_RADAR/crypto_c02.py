@@ -22,6 +22,8 @@ FEES = {
     "GATE": {"spot": 0.0010, "perp": 0.0005}, # VIP0 official baseline
     "BYBIT": {"spot": 0.0010, "perp": 0.00055},
     "BINANCE": {"spot": 0.0010, "perp": 0.0005},
+    "MEXC": {"spot": 0.0005, "perp": 0.0008},
+    "HTX": {"spot": 0.0020, "perp": 0.0005},
 }
 
 def utc():
@@ -102,6 +104,7 @@ def funding(ex, symbol):
 
 def discover():
     specs = [("okx", build_same), ("bitget", build_same), ("gate", build_same),
+             ("mexc", build_same), ("htx", build_same),
              ("bybit", build_same), ("binance", build_same)]
     providers = []
     cov = []
@@ -134,13 +137,14 @@ def discover():
     return providers
 
 SP_FIELDS = ["utc","provider","base","quote","capital","spot_ask_vwap","perp_bid_vwap",
-             "gross_basis_bps","funding_rate","roundtrip_fee_bps","net_one_funding_bps",
+             "gross_basis_bps","funding_rate","funding_bps","roundtrip_fee_bps",
+             "net_one_funding_bps","funding_intervals_to_breakeven",
              "spot_symbol","perp_symbol","contract_size","sample_ms"]
 
 CP_FIELDS = ["utc","base","quote","capital","long_provider","short_provider",
              "long_perp_ask_vwap","short_perp_bid_vwap","gross_cross_basis_bps",
-             "long_funding_rate","short_funding_rate","roundtrip_fee_bps",
-             "screen_net_bps"]
+             "long_funding_rate","short_funding_rate","funding_capture_bps",
+             "roundtrip_fee_bps","screen_net_bps","funding_intervals_to_breakeven"]
 
 def collect(minutes):
     providers = discover()
@@ -182,8 +186,12 @@ def collect(minutes):
                                 "utc":utc(),"provider":name,"base":base,"quote":quote,"capital":cap,
                                 "spot_ask_vwap":f"{sp:.10f}","perp_bid_vwap":f"{pp:.10f}",
                                 "gross_basis_bps":f"{gross:.6f}","funding_rate":f"{fr:.12f}",
+                                "funding_bps":f"{fr*10000:.6f}",
                                 "roundtrip_fee_bps":f"{rt:.6f}",
                                 "net_one_funding_bps":f"{gross+fr*10000-rt:.6f}",
+                                "funding_intervals_to_breakeven":(
+                                    "" if fr <= 0 else f"{max(0.0,(rt-gross)/(fr*10000)):.4f}"
+                                ),
                                 "spot_symbol":spot_m["symbol"],"perp_symbol":perp_m["symbol"],
                                 "contract_size":perp_m.get("contractSize") or 1.0,"sample_ms":ms
                             })
@@ -207,6 +215,7 @@ def collect(minutes):
                             rt=2*(L["perp_fee"]+S["perp_fee"])*10000
                             # Funding sign convention: long pays positive funding; short receives positive funding.
                             fund = (-L["funding"] + S["funding"]) * 10000
+                            be = "" if fund <= 0 else f"{max(0.0,(rt-gross)/fund):.4f}"
                             cw.writerow({
                                 "utc":utc(),"base":base,"quote":L["quote"],"capital":cap,
                                 "long_provider":long_name,"short_provider":short_name,
@@ -214,8 +223,10 @@ def collect(minutes):
                                 "gross_cross_basis_bps":f"{gross:.6f}",
                                 "long_funding_rate":f"{L['funding']:.12f}",
                                 "short_funding_rate":f"{S['funding']:.12f}",
+                                "funding_capture_bps":f"{fund:.6f}",
                                 "roundtrip_fee_bps":f"{rt:.6f}",
-                                "screen_net_bps":f"{gross+fund-rt:.6f}"
+                                "screen_net_bps":f"{gross+fund-rt:.6f}",
+                                "funding_intervals_to_breakeven":be
                             })
             cf.flush()
             time.sleep(5)
