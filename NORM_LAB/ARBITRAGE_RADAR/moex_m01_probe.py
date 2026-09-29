@@ -91,6 +91,89 @@ def get_px(r,side):
            "last":("LAST","SETTLEPRICE","SETTLEPRICE_CLR","LCURRENTPRICE")}
     return num(field(r,*names[side]))
 
+def cbr_key_rates(frm="01.01.2026", till="29.09.2026"):
+    from bs4 import BeautifulSoup
+    url="https://www.cbr.ru/hd_base/KeyRate/"
+    r=S.get(url,params={"UniDbQuery.Posted":"True","UniDbQuery.From":frm,"UniDbQuery.To":till},timeout=25)
+    r.raise_for_status()
+    soup=BeautifulSoup(r.text,"html.parser")
+    out={}
+    for tr in soup.select("table.data tbody tr"):
+        tds=[x.get_text(" ",strip=True) for x in tr.find_all("td")]
+        if len(tds)>=2:
+            try:
+                dt=datetime.strptime(tds[0],"%d.%m.%Y").date().isoformat()
+                rate=float(tds[1].replace(",","."))
+                out[dt]=rate
+            except Exception:
+                pass
+    return out
+
+def last_known_rate(rates, date_s):
+    eligible=[d for d in rates if d<=date_s]
+    if not eligible:return None
+    return rates[max(eligible)]
+
+def build_sberf_funding_history(histories):
+    spot_hist={r.get("TRADEDATE"):r for r in histories.get("SBER",[])}
+    fut_hist={r.get("TRADEDATE"):r for r in histories.get("SBERF",[])}
+    try:
+        rates=cbr_key_rates()
+    except Exception as e:
+        rates={}
+        (OUT/"moex_m01_cbr_error.txt").write_text(f"{type(e).__name__}: {e}",encoding="utf-8")
+    rr=[]
+    for d in sorted(set(spot_hist)&set(fut_hist)):
+        s=spot_hist[d]; f=fut_hist[d]
+        sp=num(field(s,"LEGALCLOSEPRICE","WAPRICE","CLOSE"))
+        sw=num(field(f,"SWAPRATE","SWAPRATE_CURR"))
+        if not sp or sw is None: continue
+        kr=last_known_rate(rates,d)
+        funding_bps=sw/sp*10000
+        key_daily_bps=(kr/100/365*10000) if kr is not None else None
+        excess=(funding_bps-key_daily_bps) if key_daily_bps is not None else None
+        rr.append({
+          "date":d,"spot_price":sp,"swaprate_rub_per_share":sw,
+          "funding_bps_per_day":funding_bps,"key_rate_pct":kr,
+          "key_rate_cost_bps_per_day":key_daily_bps,
+          "excess_funding_over_key_bps_per_day":excess,
+          "sberf_volume":f.get("VOLUME"),"sberf_numtrades":f.get("NUMTRADES"),
+          "sberf_openposition":f.get("OPENPOSITION")
+        })
+    if not rr:return
+    p=OUT/"moex_m01_sberf_funding_history.csv"
+    with p.open("w",newline="",encoding="utf-8") as fh:
+        w=csv.DictWriter(fh,fieldnames=list(rr[0].keys()));w.writeheader();w.writerows(rr)
+    xs=[r["excess_funding_over_key_bps_per_day"] for r in rr if r["excess_funding_over_key_bps_per_day"] is not None]
+    fs=[r["funding_bps_per_day"] for r in rr]
+    summary={
+      "n_days":len(rr),
+      "n_days_with_key_rate":len(xs),
+      "funding_positive_days":sum(x>0 for x in fs),
+      "funding_above_key_days":sum(x>0 for x in xs),
+      "funding_above_key_pct":(100*sum(x>0 for x in xs)/len(xs)) if xs else None,
+      "median_funding_bps_day":statistics.median(fs) if fs else None,
+      "median_excess_over_key_bps_day":statistics.median(xs) if xs else None,
+      "mean_excess_over_key_bps_day":statistics.fmean(xs) if xs else None,
+      "sum_excess_over_key_bps":sum(xs) if xs else None,
+      "max_excess_over_key_bps_day":max(xs) if xs else None,
+      "min_excess_over_key_bps_day":min(xs) if xs else None
+    }
+    # Longest / richest consecutive positive-excess run.
+    best={"days":0,"sum_bps":0.0,"start":None,"end":None}
+    cur={"days":0,"sum_bps":0.0,"start":None,"end":None}
+    for r in rr:
+        x=r["excess_funding_over_key_bps_per_day"]
+        if x is not None and x>0:
+            if cur["days"]==0:cur["start"]=r["date"]
+            cur["days"]+=1;cur["sum_bps"]+=x;cur["end"]=r["date"]
+            if cur["sum_bps"]>best["sum_bps"]:best=dict(cur)
+        else:
+            cur={"days":0,"sum_bps":0.0,"start":None,"end":None}
+    summary["best_positive_run"]=best
+    (OUT/"moex_m01_sberf_funding_summary.json").write_text(
+        json.dumps(summary,ensure_ascii=False,indent=2),encoding="utf-8")
+
 def main():
     query_terms=["SBRF","SBRF-12.26","SBRF-3.27","SBRF-6.27","SRZ6","SRH7","SRM7",
                  "SBRF-12.26-3.27","календарный спред SBRF"]
@@ -106,8 +189,8 @@ def main():
     for label in ["SBRF-12.26","SBRF-3.27","SBRF-6.27"]:
         hit,hits=resolve_contract(label)
         resolution[label]={"chosen":hit,"candidates":hits}
-        if hit and hit.get("SECID"):
-            mapping[label]=hit["SECID"]
+        if hit and (hit.get("SECID") or hit.get("secid")):
+            mapping[label]=hit.get("SECID") or hit.get("secid")
     (OUT/"moex_m01_contract_mapping.json").write_text(
         json.dumps({"mapping":mapping,"resolution":resolution},ensure_ascii=False,indent=2),encoding="utf-8")
 
@@ -195,6 +278,8 @@ def main():
                        "median_pct":statistics.median(x),"mean_pct":statistics.fmean(x),"max_pct":max(x)})
         with (OUT/"moex_m01_daily_raw_basis_summary.csv").open("w",newline="",encoding="utf-8") as f:
             w=csv.DictWriter(f,fieldnames=list(sm[0].keys()));w.writeheader();w.writerows(sm)
+
+    build_sberf_funding_history(histories)
 
 if __name__=="__main__":
     main()
