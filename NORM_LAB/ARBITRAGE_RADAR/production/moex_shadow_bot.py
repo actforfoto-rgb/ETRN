@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv, json, math
+from zoneinfo import ZoneInfo
 from datetime import datetime, timezone, date, timedelta
 from pathlib import Path
 import requests
@@ -14,7 +15,7 @@ STATE_PATH=STATE_DIR/"moex_state.json"
 
 BASE="https://iss.moex.com/iss"
 S=requests.Session(); S.headers.update({"User-Agent":"NORM-LAB-ARBITRAGE-RADAR-SHADOW/1.0"})
-TODAY=date(2026,9,30)
+TODAY=datetime.now(ZoneInfo("Europe/Moscow")).date()
 KEY_RATE=0.14
 
 CONFIGS=[
