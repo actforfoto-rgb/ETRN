@@ -1,0 +1,64 @@
+[
+  {
+    "family": "CNY",
+    "status": "REJECT_TRAIN",
+    "reason": "No 2025 threshold passed conservative train criteria"
+  },
+  {
+    "family": "EUR",
+    "status": "REJECT_TRAIN",
+    "reason": "No 2025 threshold passed conservative train criteria"
+  },
+  {
+    "family": "IMOEX",
+    "status": "HOLDOUT_STRONG",
+    "chosen_threshold": 1.0,
+    "selection_rule": "lowest 2025 threshold with >=2 cycles, stress median/aggregate >0 and stress positive >=66%",
+    "train": {
+      "family": "IMOEX",
+      "ratio_threshold": 1.0,
+      "split": "TRAIN_2025",
+      "n_cycles": 4,
+      "positive_cycles_pct": 75.0,
+      "median_return_on_im_pct": 8.293143045963047,
+      "mean_return_on_im_pct": 8.49841016823366,
+      "aggregate_net_rub": 1694.0594854794285,
+      "worst_return_on_im_pct": -0.23901713443426117,
+      "best_return_on_im_pct": 17.646371715442804,
+      "stress_positive_cycles_pct": 75.0,
+      "stress_median_return_on_im_pct": 5.146470015963303,
+      "stress_aggregate_net_rub": 1034.5166282191412,
+      "cycles": [
+        "IMOEX-2025-03",
+        "IMOEX-2025-06",
+        "IMOEX-2025-09",
+        "IMOEX-2025-12"
+      ]
+    },
+    "holdout": {
+      "family": "IMOEX",
+      "ratio_threshold": 1.0,
+      "split": "HOLDOUT_2026",
+      "n_cycles": 3,
+      "positive_cycles_pct": 66.66666666666667,
+      "median_return_on_im_pct": 2.606573421590956,
+      "mean_return_on_im_pct": 3.381015778276691,
+      "aggregate_net_rub": 505.4747067123228,
+      "worst_return_on_im_pct": -1.56530006191993,
+      "best_return_on_im_pct": 9.101773975159048,
+      "stress_positive_cycles_pct": 66.66666666666667,
+      "stress_median_return_on_im_pct": 0.0044209395364159425,
+      "stress_aggregate_net_rub": 100.79291006847627,
+      "cycles": [
+        "IMOEX-2026-03",
+        "IMOEX-2026-06",
+        "IMOEX-2026-09"
+      ]
+    }
+  },
+  {
+    "family": "USD",
+    "status": "REJECT_TRAIN",
+    "reason": "No 2025 threshold passed conservative train criteria"
+  }
+]
