@@ -206,6 +206,15 @@ def main():
         if label in mapping:
             targets.append((label,mapping[label],"futures","forts","RFUD"))
 
+    # Exchange-listed calendar spread SECIDs are concatenated leg SECIDs.
+    spread_targets=[]
+    if "SBRF-12.26" in mapping and "SBRF-3.27" in mapping:
+        spread_targets.append(("CAL_12.26_3.27", mapping["SBRF-12.26"]+mapping["SBRF-3.27"]))
+    if "SBRF-3.27" in mapping and "SBRF-6.27" in mapping:
+        spread_targets.append(("CAL_3.27_6.27", mapping["SBRF-3.27"]+mapping["SBRF-6.27"]))
+    for label,secid in spread_targets:
+        targets.append((label,secid,"futures","forts","RFUD"))
+
     for label,secid,engine,market,board in targets:
         try:
             url,j=current(secid,engine,market,board)
