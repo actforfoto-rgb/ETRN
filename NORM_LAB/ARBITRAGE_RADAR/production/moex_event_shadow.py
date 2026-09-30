@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 import requests
 
 ROOT=Path(__file__).resolve().parent
+CONFIG_FILE=ROOT/"event_route_config.json"
 STATE_DIR=ROOT/"event_state"
 STATE_DIR.mkdir(parents=True,exist_ok=True)
 STATE_FILE=STATE_DIR/"moex_event_state.json"
@@ -58,6 +59,13 @@ LEDGER_FIELDS=[
 ]
 
 def utc():return datetime.now(ZoneInfo("UTC")).isoformat()
+
+def load_validated_routes():
+ try:
+  j=json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
+  return j.get("moex") or {}
+ except Exception:
+  return {}
 
 def get(url,params=None):
  r=S.get(url,params=params or {},timeout=25);r.raise_for_status();return r.json()
@@ -318,6 +326,8 @@ def mark_pnl(pos,r):
 
 def main():
  state=load_state()
+ validated=load_validated_routes()
+ validated_only=bool(validated)
  session=datetime.now(MSK).date().isoformat()
  if state.get("session")!=session:
   state["session"]=session
@@ -357,7 +367,10 @@ def main():
   mean=st["mean"];sd=math.sqrt(max(st["var"],0)) if st["var"]>0 else None
   expected=None;direction=None;entry_spread=None
 
+  route_cfg=validated.get(r["key"])
   if z is not None and abs(z)>=ENTRY_Z and r["key"] not in state["positions"]:
+   if validated_only and not route_cfg:
+    continue
    costs=r["fee_rt"]+r["exit_spread_rub"]+EXTRA_SLIPPAGE_RUB
    if z>0:
     gross=(r["hi"]-mean)*r["unit_rub"]
@@ -393,7 +406,9 @@ def main():
                 "im_rub":r["im"],"open":r["key"] in state["positions"]})
 
  save_state(state)
- report={"utc":utc(),"session":session,"relations":len(rels),"opened":opened,"closed":closed,
+ report={"utc":utc(),"session":session,"relations":len(rels),
+         "validated_only":validated_only,"validated_routes":len(validated),
+         "opened":opened,"closed":closed,
          "open_positions":state["positions"],
          "top_anomalies":sorted([x for x in scans if x["z"] is not None],
                                 key=lambda x:abs(x["z"]),reverse=True)[:30]}
