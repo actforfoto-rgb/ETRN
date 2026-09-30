@@ -21,6 +21,7 @@ STOP_Z=5.0
 MAX_HOLD_BARS=120
 DAYS=5
 STOCK_ROUNDTRIP_FEE_BPS=10.0
+CASH_ROUNDTRIP_FEE_BPS=8.0
 EXTRA_RUB=2.0
 
 def get(url,params=None):
@@ -51,9 +52,23 @@ def stock_meta(secid):
  a=s[0];b=m[0] if m else {}
  return {"bid":num(b.get("BID")),"ask":num(b.get("OFFER")),"lot":num(a.get("LOTSIZE")) or 1.0}
 
+def cash_meta(secid):
+ try:
+  j=get(f"{BASE}/engines/currency/markets/selt/securities/{secid}.json",{"iss.meta":"off"})
+  sec=rows(j,"securities");md=rows(j,"marketdata")
+  for s in sec:
+   for m in md:
+    if m.get("BOARDID")==s.get("BOARDID"):
+     bid=num(m.get("BID"));ask=num(m.get("OFFER"))
+     if bid is not None and ask is not None:return {"bid":bid,"ask":ask}
+ except Exception:pass
+ return None
+
 def candles(secid,kind,frm,till):
  if kind=="fut":
   url=f"{BASE}/engines/futures/markets/forts/securities/{secid}/candles.json"
+ elif kind=="cash":
+  url=f"{BASE}/engines/currency/markets/selt/securities/{secid}/candles.json"
  else:
   url=f"{BASE}/engines/stock/markets/shares/securities/{secid}/candles.json"
  out=[];start=0
@@ -98,6 +113,34 @@ def build_spec(key):
   cost=2*(am["fee"]+bqty*bm["fee"])+2*spread+EXTRA_RUB
   return {"key":key,"type":typ,"a":a,"b":b,"ak":"fut","bk":"fut","scale":1.0,
           "unit":am["unit"],"cost":cost,"two_way":True}
+
+ if typ=="SP":
+  _,a,b=parts
+  am=stock_meta(a);bm=fut_meta(b)
+  if not am or not bm:return None
+  ap=current_price(am);bp=current_price(bm)
+  if not ap or not bp:return None
+  scale=infer_scale(ap,bp)
+  exposure=bm["unit"]*scale
+  stock_notional=ap*exposure
+  spread=(am["ask"]-am["bid"])*exposure+(bm["ask"]-bm["bid"])*bm["unit"]
+  cost=stock_notional*STOCK_ROUNDTRIP_FEE_BPS/10000+2*bm["fee"]+2*spread+EXTRA_RUB
+  return {"key":key,"type":typ,"a":a,"b":b,"ak":"stock","bk":"fut","scale":scale,
+          "unit":exposure,"cost":cost,"two_way":False}
+ if typ in ("CASH_PERP","CASH_FIXED"):
+  _,a,b=parts
+  am=cash_meta(a);bm=fut_meta(b)
+  if not am or not bm:return None
+  ap=current_price(am);bp=current_price(bm)
+  if not ap or not bp:return None
+  scale=infer_scale(ap,bp)
+  exposure=bm["unit"]*scale
+  cash_notional=ap*exposure
+  spread=(am["ask"]-am["bid"])*exposure+(bm["ask"]-bm["bid"])*bm["unit"]
+  cost=cash_notional*CASH_ROUNDTRIP_FEE_BPS/10000+2*bm["fee"]+2*spread+EXTRA_RUB
+  return {"key":key,"type":typ,"a":a,"b":b,"ak":"cash","bk":"fut","scale":scale,
+          "unit":exposure,"cost":cost,"two_way":False}
+
  if typ=="SF":
   _,a,b=parts
   am=stock_meta(a);bm=fut_meta(b)
@@ -159,7 +202,9 @@ def main():
  pf=[k for k in keys if k.startswith("PF:")]
  ff=[k for k in keys if k.startswith("FF:")][:12]
  sf=[k for k in keys if k.startswith("SF:")][:12]
- keys=pf+ff+sf
+ sp=[k for k in keys if k.startswith("SP:")]
+ cash=[k for k in keys if k.startswith("CASH_PERP:") or k.startswith("CASH_FIXED:")]
+ keys=pf+sp+cash+ff+sf
 
  now=datetime.now(MSK)
  frm=(now-timedelta(days=DAYS)).strftime("%Y-%m-%d")
