@@ -212,7 +212,7 @@ def main():
                 if not tm or tm["n"]<MIN_TRAIN:continue
                 score=tm["median_net_rub"]*math.sqrt(tm["n"])*(tm["positive_pct"]/100)
                 threshold_rows.append({"entry_z":ez,"score":score,"train":tm,"holdout":hm,
-                                       "bars":bars,"trades":tr})
+                                       "bars":bars,"trades":tr,"cutoff_epoch":cut})
             if not threshold_rows:continue
             threshold_rows.sort(key=lambda x:x["score"],reverse=True)
             sel=threshold_rows[0];hm=sel["holdout"]
@@ -223,20 +223,41 @@ def main():
               "current_trades":p["trades"],"current_volume":p["volume_contracts"],
               "cost_proxy_rub":cost["total"],"selected_entry_z":sel["entry_z"],
               "train_score":sel["score"],"train":sel["train"],"holdout":hm,
-              "holdout_pass":pass_hold
+              "cutoff_epoch":sel["cutoff_epoch"],
+              "holdout_pass":pass_hold,
+              "_selected_trades":sel["trades"]
             })
         except Exception as e:
             errors.append({"spread":p["code"],"error":f"{type(e).__name__}: {e}"[:700]})
 
+    selected_events=[]
+    clean_results=[]
+    for r in results:
+        trades=r.pop("_selected_trades",[])
+        cutoff=int(r.get("cutoff_epoch") or 0)
+        for t in trades:
+            ep=int(datetime.fromisoformat(t["entry_ts"]).timestamp())
+            selected_events.append({
+              "spread":r["spread"],"near":r["near"],"far":r["far"],
+              "selected_entry_z":r["selected_entry_z"],
+              "train_score":r["train_score"],"holdout_pass":r["holdout_pass"],
+              "phase":"HOLDOUT" if ep>=cutoff else "TRAIN",
+              **t
+            })
+        clean_results.append(r)
+    results=clean_results
     results.sort(key=lambda r:(1 if r["holdout_pass"] else 0,
                                (r.get("holdout") or {}).get("aggregate_net_rub",-1e99),
                                r["current_volume"]),reverse=True)
+    selected_events.sort(key=lambda x:x["entry_ts"])
     report={"utc":now.isoformat(),"discovery_candidates":len(candidates),
             "tested_routes":len(results),
             "holdout_pass":sum(r["holdout_pass"] for r in results),
             "routes":results,"errors":errors}
     (OUT/"moex_calendar_event_universe_walkforward.json").write_text(
         json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
+    (OUT/"moex_calendar_event_selected_trades.json").write_text(
+        json.dumps(selected_events,ensure_ascii=False,indent=2),encoding="utf-8")
     print(json.dumps({"candidates":len(candidates),"tested":len(results),
                       "holdout_pass":report["holdout_pass"],"top":results[:30],
                       "errors":errors[:20]},ensure_ascii=False,indent=2))
