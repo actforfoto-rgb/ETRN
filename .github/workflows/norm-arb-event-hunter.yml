@@ -67,7 +67,7 @@ jobs:
         run: |
           git config user.name "NORM LAB Event Hunter"
           git config user.email "actions@users.noreply.github.com"
-          git add NORM_LAB/ARBITRAGE_RADAR/production/event_state NORM_LAB/ARBITRAGE_RADAR/production/event_route_config.json NORM_LAB/ARBITRAGE_RADAR/results/moex_option_parity_scan.json || true
+          git add NORM_LAB/ARBITRAGE_RADAR/production/event_state NORM_LAB/ARBITRAGE_RADAR/results/moex_option_parity_scan.json || true
           if git diff --cached --quiet; then
             echo "No event-state changes"
           else
