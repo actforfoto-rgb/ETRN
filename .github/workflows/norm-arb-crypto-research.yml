@@ -73,6 +73,10 @@ jobs:
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/crypto_tight_venues_60d.py
 
+      - name: Run tight-venue 60-day walk-forward
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/crypto_tight_venues_walkforward.py
+
       - name: Run crypto spot identity audit
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/crypto_spot_identity_audit.py
