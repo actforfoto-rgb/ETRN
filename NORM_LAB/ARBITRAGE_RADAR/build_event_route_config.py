@@ -77,6 +77,30 @@ def main():
                   "status":"VALIDATED_STRESS10" if stress10_pass else "VALIDATED_SHADOW"
                 }
 
+    tp=RESULTS/"crypto_tight_venues_60d_walkforward.json"
+    if tp.exists():
+        t=json.loads(tp.read_text(encoding="utf-8"))
+        for r in t.get("routes",[]):
+            if not r.get("holdout_pass"):continue
+            h=r.get("holdout") or {}
+            if h.get("n",0)<2 or h.get("aggregate_net_bps",0)<=0:continue
+            va,vb=sorted([r["venue_a"],r["venue_b"]])
+            key=f"{r['base']}|{va}|{vb}"
+            candidate={
+              "base":r["base"],"venue_a":r["venue_a"],"venue_b":r["venue_b"],
+              "entry_z":float(r["selected_entry_z"]),
+              "train_score":r.get("train_score"),
+              "train":r.get("train"),"holdout":h,
+              "stress5_pass":bool(r.get("stress5_pass")),
+              "stress10_pass":False,
+              "source":"60d_non_htx_active_candles",
+              "priority_live":True,
+              "status":"VALIDATED_60D_TIGHT_HOLDOUT"
+            }
+            old=cfg["crypto_perp"].get(key)
+            if old is None or float(h.get("aggregate_net_bps") or 0) > float((old.get("holdout") or {}).get("aggregate_net_bps") or 0):
+                cfg["crypto_perp"][key]=candidate
+
     mp=RESULTS/"moex_intraday_event_walkforward.json"
     if mp.exists():
         m=json.loads(mp.read_text(encoding="utf-8"))
