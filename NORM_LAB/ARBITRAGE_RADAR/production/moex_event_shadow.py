@@ -21,8 +21,10 @@ S=requests.Session();S.headers.update({"User-Agent":"NORM-LAB-ARBITRAGE-EVENT-HU
 ALPHA=0.12
 MIN_BASELINE_SCANS=8
 ENTRY_Z=2.5
+MAX_ENTRY_Z=4.0
 EXIT_Z=0.5
 STOP_Z=5.0
+MIN_CONFIRM_SCANS=2
 MAX_HOLD_MIN=360
 MIN_TRADES=20
 MIN_NET_RUB=2.0
@@ -98,7 +100,7 @@ def load_state():
  if STATE_FILE.exists():
   try:return json.loads(STATE_FILE.read_text(encoding="utf-8"))
   except:pass
- return {"session":None,"stats":{},"positions":{}}
+ return {"session":None,"stats":{},"positions":{},"confirm":{}}
 
 def save_state(s):
  STATE_FILE.write_text(json.dumps(s,ensure_ascii=False,indent=2),encoding="utf-8")
@@ -332,6 +334,7 @@ def main():
  if state.get("session")!=session:
   state["session"]=session
   state["stats"]={}
+  state["confirm"]={}
   # Never carry event trades overnight in shadow evaluation.
   state["positions"]={}
 
@@ -394,12 +397,15 @@ def main():
           "a_entry":a_entry,"b_entry":b_entry,"fee_rt":r["fee_rt"],
           "expected_net_rub":expected}
      state["positions"][r["key"]]=pos
+     state.setdefault("confirm",{})[r["key"]]=0
      append_ledger({"utc":utc(),"event":"OPEN","key":r["key"],"type":r["type"],"label":r["label"],
                     "direction":direction,"entry_z":z,"baseline_mean":mean,
                     "entry_spread":entry_spread,"expected_net_rub":expected,
                     "reason":"EVENT_DISLOCATION"})
      opened.append(pos)
 
+  if z is None or abs(z)<ENTRY_Z:
+   state.setdefault("confirm",{})[r["key"]]=0
   scans.append({"key":r["key"],"type":r["type"],"label":r["label"],"mid_spread":r["x"],
                 "baseline_mean":mean,"baseline_sd":sd,"z":z,"n":st["n"],
                 "fee_rt_rub":r["fee_rt"],"exit_spread_rub":r["exit_spread_rub"],
