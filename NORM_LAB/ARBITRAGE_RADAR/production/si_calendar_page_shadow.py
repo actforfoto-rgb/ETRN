@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import csv, json, math, re, statistics, time
 from collections import deque
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 import requests
@@ -25,7 +25,7 @@ FAR="SiH7"
 S=requests.Session()
 S.headers.update({"User-Agent":"NORM-LAB-SI-CALENDAR-PAGE/1.0"})
 
-LOOKBACK=24
+LOOKBACK=60
 ENTRY_Z=2.5
 EXIT_Z=0.5
 STOP_Z=5.0
@@ -82,6 +82,33 @@ def fut(secid):
       "scalper_fee":num(a.get("SCALPERFEE")) or 0.0
     }
 
+def candle_series(secid):
+    till=datetime.now(timezone.utc)
+    frm=till-timedelta(days=3)
+    j=get_json(f"{ISS}/engines/futures/markets/forts/securities/{secid}/candles.json",
+               {"from":frm.strftime("%Y-%m-%d"),"till":till.strftime("%Y-%m-%d"),
+                "interval":1,"iss.meta":"off"})
+    out={}
+    for r in rows(j,"candles"):
+        ts=r.get("begin")
+        if not ts:continue
+        try:
+            close=float(r.get("close"))
+            volume=float(r.get("volume") or 0)
+        except Exception:
+            continue
+        out[ts]={"close":close,"volume":volume}
+    return out
+
+def synthetic_baseline():
+    A=candle_series(NEAR);B=candle_series(FAR)
+    ts=[t for t in sorted(set(A)&set(B))
+        if A[t]["volume"]>0 and B[t]["volume"]>0][-LOOKBACK:]
+    xs=[B[t]["close"]-A[t]["close"] for t in ts]
+    if len(xs)<30:
+        raise RuntimeError(f"synthetic active-minute baseline too short: {len(xs)}")
+    return statistics.fmean(xs),statistics.pstdev(xs),len(xs)
+
 def page_row():
     r=S.get(PAGE,timeout=25)
     r.raise_for_status()
@@ -131,7 +158,7 @@ def append_csv(path,fields,row):
         if new:w.writeheader()
         w.writerow({k:row.get(k,"") for k in fields})
 
-def once(st):
+def once(st,mean,sd,nbase):
     pr=page_row()
     if pr.get("error"):return {"utc":utc(),**pr}
     if pr["bid"] is None or pr["ask"] is None or pr["bid"]==0 or pr["ask"]==0:
@@ -155,10 +182,7 @@ def once(st):
     lock_b=(synthetic_bid-pr["ask"])*n["unit"]-lock_cost
 
     history=st.setdefault("history",[])
-    hist_vals=[float(x["atomic_mid"]) for x in history[-LOOKBACK:] if x.get("atomic_mid") is not None]
-    mean=statistics.fmean(hist_vals) if len(hist_vals)>=LOOKBACK else None
-    sd=statistics.pstdev(hist_vals) if len(hist_vals)>=LOOKBACK else None
-    z=(atomic_mid-mean)/sd if mean is not None and sd and sd>1e-12 else None
+    z=(atomic_mid-mean)/sd if sd and sd>1e-12 else 0.0
 
     atomic_width=(pr["ask"]-pr["bid"])*n["unit"]
     atomic_rt_fee=2*leg_scalper
@@ -223,18 +247,21 @@ def once(st):
 
 def main():
     st=load_state();samples=[]
+    mean,sd,nbase=synthetic_baseline()
     for i in range(SAMPLES):
-        try:r=once(st)
+        try:r=once(st,mean,sd,nbase)
         except Exception as e:r={"utc":utc(),"error":f"{type(e).__name__}: {e}"}
         samples.append(r)
         if "error" not in r:
             append_csv(TS_FILE,TS_FIELDS,r)
             save_state(st)
         if i<SAMPLES-1:time.sleep(SLEEP_SEC)
-    report={"utc":utc(),"code":CODE,"samples":samples,"position":st.get("position"),
+    report={"utc":utc(),"code":CODE,
+            "baseline":{"source":"active-minute synthetic SiH7-SiZ6","mean":mean,"sd":sd,"bars":nbase},
+            "samples":samples,"position":st.get("position"),
             "history_points":len(st.get("history",[]))}
     LAST_FILE.write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
-    print(json.dumps({"history_points":report["history_points"],
+    print(json.dumps({"history_points":report["history_points"],"baseline":report["baseline"],
                       "last":samples[-1] if samples else None,
                       "position":st.get("position")},ensure_ascii=False,indent=2))
 
