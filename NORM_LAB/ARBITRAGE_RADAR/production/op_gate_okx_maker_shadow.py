@@ -36,7 +36,7 @@ SLEEP_SEC=5
 
 LEDGER_FIELDS=[
  "utc","event","direction","gate_limit","gate_fill","okx_hedge","entry_z","exit_z",
- "expected_net_bps","realized_net_bps","hold_sec","maker_wait_sec","reason"
+ "expected_net_bps","funding_bps","realized_net_bps","hold_sec","maker_wait_sec","reason"
 ]
 
 def utc(): return datetime.now(timezone.utc).isoformat()
@@ -142,6 +142,25 @@ def entry_expected(direction,gate_limit,okx_bid,okx_ask,mean):
         exec_basis=(okx_ask/gate_limit-1)*10000
         gross=mean-exec_basis
     return gross-ROUNDTRIP_FEE_BPS-EXTRA_BUFFER_BPS,exec_basis
+
+
+def funding_since(ex,sym,since_ms):
+    if not ex.has.get("fetchFundingRateHistory"):
+        return 0.0
+    try:
+        rr=ex.fetch_funding_rate_history(sym,since_ms,100)
+        return sum(float(x.get("fundingRate") or 0.0)
+                   for x in rr if int(x.get("timestamp") or 0)>since_ms)
+    except Exception:
+        return 0.0
+
+def funding_pnl_bps(pos,gate,gsym,okx,osym):
+    since=int(float(pos["opened_ts"])*1000)
+    gf=funding_since(gate,gsym,since)
+    of=funding_since(okx,osym,since)
+    if pos["direction"]=="LONG_GATE_SHORT_OKX":
+        return (-gf+of)*10000
+    return (gf-of)*10000
 
 def current_pnl(pos,gate_bid,gate_ask,okx_bid,okx_ask):
     if pos["direction"]=="LONG_GATE_SHORT_OKX":
@@ -253,12 +272,14 @@ def main():
                 else:
                     okx_exit=obid
                     raw=((1-p["gate_limit"]/pos["gate_entry"])+(okx_exit/pos["okx_entry"]-1))*10000
-                pnl=raw-ROUNDTRIP_FEE_BPS-EXTRA_BUFFER_BPS
+                funding_bps=funding_pnl_bps(pos,gate,gsym,okx,osym)
+                pnl=raw+funding_bps-ROUNDTRIP_FEE_BPS-EXTRA_BUFFER_BPS
                 event="CLOSE_FILLED"
                 append({"utc":utc(),"event":event,"direction":pos["direction"],
                         "gate_limit":p["gate_limit"],"gate_fill":p["gate_limit"],
                         "okx_hedge":okx_exit,"entry_z":pos["entry_z"],"exit_z":p["exit_z"],
                         "expected_net_bps":pos["expected_net_bps"],
+                        "funding_bps":funding_bps,
                         "realized_net_bps":pnl,"hold_sec":now-pos["opened_ts"],
                         "maker_wait_sec":wait,"reason":p["reason"]})
                 st={"phase":"FLAT","pending":None,"position":None}
