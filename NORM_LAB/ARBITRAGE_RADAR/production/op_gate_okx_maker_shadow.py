@@ -169,14 +169,19 @@ def maker_fill_evidence(side,limit_px,trades,target_qty):
     return {"filled":qty>=required and required>0,
             "through_qty":qty,"required_qty":required}
 
-def entry_expected(direction,gate_limit,okx_bid,okx_ask,mean):
+def entry_expected(direction,gate_limit,okx_bid,okx_ask,okx_mid,mean):
     if direction=="LONG_GATE_SHORT_OKX":
         exec_basis=(okx_bid/gate_limit-1)*10000
         gross=exec_basis-mean
+        # Future close requires buying back the OKX short with taker execution.
+        exit_hedge_cost=(okx_ask/okx_mid-1)*10000
     else:
         exec_basis=(okx_ask/gate_limit-1)*10000
         gross=mean-exec_basis
-    return gross-ROUNDTRIP_FEE_BPS-EXTRA_BUFFER_BPS,exec_basis
+        # Future close requires selling the OKX long with taker execution.
+        exit_hedge_cost=(1-okx_bid/okx_mid)*10000
+    return (gross-ROUNDTRIP_FEE_BPS-EXTRA_BUFFER_BPS-exit_hedge_cost,
+            exec_basis,exit_hedge_cost)
 
 
 def funding_since(ex,sym,since_ms):
@@ -243,7 +248,8 @@ def main():
                 direction=None
 
             if direction:
-                exp,exec_basis=entry_expected(direction,gate_limit,obid,oask,bl["mean"])
+                exp,exec_basis,exit_hedge_cost=entry_expected(
+                    direction,gate_limit,obid,oask,omid,bl["mean"])
                 if exp>=MIN_EXPECTED_NET_BPS:
                     st={"phase":"ENTRY_MAKER_WAIT",
                         "pending":{"direction":direction,"gate_side":gate_side,
@@ -251,12 +257,14 @@ def main():
                                    "placed_ms":nowms,"target_qty":NOTIONAL/gate_limit,
                                    "entry_z":z,
                                    "expected_net_bps":exp,
-                                   "entry_exec_basis_bps":exec_basis},
+                                   "entry_exec_basis_bps":exec_basis,
+                                   "exit_hedge_cost_bps":exit_hedge_cost},
                         "position":None}
                     event="ENTRY_MAKER_POSTED"
                     append({"utc":utc(),"event":event,"direction":direction,
                             "gate_limit":gate_limit,"entry_z":z,
-                            "expected_net_bps":exp,"reason":"Z_SIGNAL"})
+                            "expected_net_bps":exp,
+                            "reason":f"Z_SIGNAL exit_hedge_cost_bps={exit_hedge_cost:.4f}"})
 
         elif st["phase"]=="ENTRY_MAKER_WAIT":
             p=st["pending"]; wait=now-p["placed_ts"]
