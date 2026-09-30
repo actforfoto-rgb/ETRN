@@ -121,11 +121,21 @@ def choose_routes(cfg):
             score=(float(h.get("median_net_bps") or 0)
                    * math.sqrt(max(1,int(h.get("n") or 1))))
             rows.append((score,kind,key,r))
-    # Prefer routes that still pass after an additional +10 bps stress.
-    stress=[x for x in rows if bool(x[3].get("stress10_pass"))]
-    chosen=stress if stress else rows
-    chosen.sort(key=lambda x:x[0],reverse=True)
-    return chosen[:10]
+    # Always include priority_live routes (e.g. non-HTX 60d holdout winners),
+    # then fill capacity with the strongest stress-tested historical routes.
+    priority=[x for x in rows if bool(x[3].get("priority_live"))]
+    rest=[x for x in rows if not bool(x[3].get("priority_live"))]
+    priority.sort(key=lambda x:x[0],reverse=True)
+    rest.sort(key=lambda x:(1 if bool(x[3].get("stress10_pass")) else 0,x[0]),reverse=True)
+    seen=set()
+    chosen=[]
+    for x in priority+rest:
+        route_id=(x[1],x[2])
+        if route_id in seen:continue
+        seen.add(route_id)
+        chosen.append(x)
+        if len(chosen)>=12:break
+    return chosen
 
 def main():
     cfg=load_cfg()
