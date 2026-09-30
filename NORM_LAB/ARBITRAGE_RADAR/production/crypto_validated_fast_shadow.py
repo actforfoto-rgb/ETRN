@@ -82,10 +82,11 @@ def hist_basis(exa,sa,exb,sb):
         B=exb.fetch_ohlcv(sb,"1h",None,HIST_BARS)
     except Exception:
         return None
-    ad={int(x[0]):float(x[4]) for x in A if len(x)>=5}
-    bd={int(x[0]):float(x[4]) for x in B if len(x)>=5}
-    ts=sorted(set(ad)&set(bd))[-HIST_BARS:]
-    xs=[(bd[t]/ad[t]-1.0)*10000 for t in ts if ad[t]>0]
+    ad={int(x[0]):{"close":float(x[4]),"volume":float(x[5] or 0.0)} for x in A if len(x)>=6}
+    bd={int(x[0]):{"close":float(x[4]),"volume":float(x[5] or 0.0)} for x in B if len(x)>=6}
+    ts=[t for t in sorted(set(ad)&set(bd))
+        if ad[t]["volume"]>0 and bd[t]["volume"]>0][-HIST_BARS:]
+    xs=[(bd[t]["close"]/ad[t]["close"]-1.0)*10000 for t in ts if ad[t]["close"]>0]
     if len(xs)<20:return None
     sd=statistics.pstdev(xs)
     if sd<=1e-9:return None
