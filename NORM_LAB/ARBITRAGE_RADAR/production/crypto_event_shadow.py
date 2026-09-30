@@ -38,6 +38,13 @@ LEDGER_FIELDS=[
 
 def utc():return datetime.now(timezone.utc).isoformat()
 
+def load_validated_routes():
+ try:
+  j=json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
+  return j.get("crypto_perp") or {}
+ except Exception:
+  return {}
+
 def load_state():
  if STATE_FILE.exists():
   try:return json.loads(STATE_FILE.read_text(encoding="utf-8"))
@@ -131,6 +138,8 @@ def mark_pnl(pos,r):
 
 def main():
  state=load_state()
+ validated=load_validated_routes()
+ validated_only=bool(validated)
  snap,coverage,errors=snapshot()
  rels=[]
  for base in ASSETS:
@@ -170,8 +179,18 @@ def main():
   st,z=stat_before_update(state,r["key"],r["x"])
   mean=float(st["mean"]);sd=math.sqrt(max(float(st["var"]),0)) if st["var"]>0 else None
   expected=None;direction=None;longp=None;shortp=None;entry_exec=None
+  route_key="|".join([r["base"]]+sorted([r["a"],r["b"]]))
+  route_cfg=validated.get(route_key)
+  entry_z=float(route_cfg.get("entry_z",ENTRY_Z)) if route_cfg else ENTRY_Z
 
-  if z is not None and abs(z)>=ENTRY_Z and r["key"] not in state["positions"]:
+  if z is not None and abs(z)>=entry_z and r["key"] not in state["positions"]:
+   if validated_only and not route_cfg:
+    scans.append({"key":r["key"],"base":r["base"],"venue_a":r["a"],"venue_b":r["b"],
+                  "mid_basis_bps":r["x"],"baseline_mean_bps":mean,"baseline_sd_bps":sd,
+                  "z":z,"n":st["n"],"fee_rt_bps":r["fee_rt_bps"],
+                  "exit_spread_bps":r["exit_spread_bps"],"open":False,
+                  "validated":False})
+    continue
    costs=r["fee_rt_bps"]+r["exit_spread_bps"]+EXTRA_BUFFER_BPS
    if z>0:
     gross=r["hi"]-mean
@@ -200,10 +219,12 @@ def main():
   scans.append({"key":r["key"],"base":r["base"],"venue_a":r["a"],"venue_b":r["b"],
                 "mid_basis_bps":r["x"],"baseline_mean_bps":mean,"baseline_sd_bps":sd,
                 "z":z,"n":st["n"],"fee_rt_bps":r["fee_rt_bps"],
-                "exit_spread_bps":r["exit_spread_bps"],"open":r["key"] in state["positions"]})
+                "exit_spread_bps":r["exit_spread_bps"],"open":r["key"] in state["positions"],
+                "validated":bool(route_cfg),"entry_z_required":entry_z})
 
  save_state(state)
  report={"utc":utc(),"notional":NOTIONAL,"coverage":coverage,"errors":errors[:50],
+         "validated_only":validated_only,"validated_routes":len(validated),
          "relations":len(rels),"opened":opened,"closed":closed,"open_positions":state["positions"],
          "top_anomalies":sorted([x for x in scans if x["z"] is not None],
                                 key=lambda x:abs(x["z"]),reverse=True)[:40]}
