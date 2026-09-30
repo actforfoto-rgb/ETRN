@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-30T07:43:00Z",
+  "updated_at": "2026-09-30T10:15:00Z",
   "strategies": [
     {
       "id": "MOEX_IMOEX_PERP_CURVE",
@@ -67,8 +67,8 @@
     },
     {
       "id": "MOEX_SI_CALENDAR_EVENT",
-      "status": "SHADOW_PRIMARY",
-      "route": "SiZ6 ↔ SiH7 / direct Si-12.26-3.27 execution",
+      "status": "SHADOW_RESTART_V2",
+      "route": "SiZ6 ↔ SiH7 / calendar-spread relation",
       "mechanism": "transient calendar-spread dislocation and convergence",
       "evidence": {
         "methodology": "1-minute candles, only timestamps where both futures legs traded; chronological train/holdout",
@@ -92,7 +92,7 @@
         }
       },
       "caveat": "Historical evidence is minute candle-close plus conservative cost proxy. PAPER requires live bid/ask/depth/latency closed shadow cycles.",
-      "next_gate": "30+ closed direct bid/ask shadow cycles across >=3 days",
+      "next_gate": "30+ closed v2 executable shadow cycles across >=3 days",
       "live_execution": {
         "direct_spread": "Si-12.26-3.27",
         "latest_atomic_bid": 1555,
@@ -101,6 +101,24 @@
         "latest_synthetic_ask": 1557,
         "immediate_lock_net_rub": -11.94,
         "status": "WAITING_FOR_DIRECT_SPREAD_TRIGGER"
+      },
+      "v1_live_status": "DEPRECATED_DATA_REGIME",
+      "v1_live_evidence": {
+        "universe_closed_cycles": 1,
+        "universe_net_rub": -97.86,
+        "synthetic_fast_closed_cycles": 2,
+        "synthetic_fast_aggregate_rub": -61.72,
+        "page_closed_cycles": 2,
+        "page_aggregate_rub": -45.72,
+        "reason": "old rule treated extreme persistent z-score and asynchronous page/leg snapshots as tradeable mean-reversion"
+      },
+      "v2_rule": {
+        "max_entry_abs_z": 4,
+        "confirm_scans": 2,
+        "extreme_z_action": "reset baseline / quarantine, not trade",
+        "effective_spread": "best executable combination of explicit calendar quote and synthetic legs",
+        "live_baseline_points_min": 20,
+        "stale_or_crossed_snapshot_action": "reject"
       }
     },
     {
@@ -118,7 +136,7 @@
     },
     {
       "id": "CRYPTO_TRANSIENT_PERP_EVENT",
-      "status": "SHADOW_PRIMARY",
+      "status": "SHADOW_RESTRICTED_EXECUTION",
       "scope": "all supported USDT perpetuals across OKX/Bitget/Gate/MEXC/HTX",
       "mechanism": "temporary cross-venue perp basis dislocation and convergence",
       "evidence": {
@@ -149,7 +167,13 @@
         ]
       },
       "caveat": "Historical OHLCV closes are not executable fills. Promotion requires live order-book event ledger.",
-      "next_gate": "LIVE_ORDERBOOK_SHADOW"
+      "next_gate": "new route must pass live executable bid/ask shadow before PAPER",
+      "execution_audit": {
+        "historically_selected_routes_tested_fast": 9,
+        "fast_bidask_observations": 180,
+        "positive_executable_samples": 0,
+        "interpretation": "HTX-heavy OHLC edge does not survive current live spread; keep universe scanner, do not promote these routes."
+      }
     },
     {
       "id": "CRYPTO_PREFUNDED_SPOT_EVENT",
@@ -197,9 +221,9 @@
     },
     {
       "id": "CRYPTO_OP_GATE_OKX_EVENT",
-      "status": "SHADOW_PRIMARY",
+      "status": "SHADOW_PRIMARY_MAKER_V2",
       "route": "OP perpetual Gate ↔ OKX",
-      "mechanism": "transient cross-venue perpetual basis dislocation and convergence",
+      "mechanism": "transient cross-venue basis; Gate maker fill then immediate OKX taker hedge",
       "evidence": {
         "methodology": "60d hourly candles; both venues require positive volume; non-HTX; chronological 70/30 split; z selected on train only",
         "unique_events": 9,
@@ -227,7 +251,30 @@
         "note": "No entry-level anomaly occurred in the first two-minute fast window; current market was near baseline, so this is WAIT_EVENT rather than a rejection.",
         "status": "WAITING_FOR_LIVE_TRIGGER"
       },
-      "next_gate": "30+ closed executable order-book shadow cycles across >=3 days"
+      "next_gate": "30+ closed maker-fill shadow cycles across >=3 days with aggregate/median NET > 0",
+      "taker_taker_status": "EXECUTION_REJECT_CURRENT",
+      "taker_taker_evidence": {
+        "fast_samples": "multiple windows",
+        "positive_executable_samples": 0,
+        "reason": "current live spread plus taker fees materially exceeds historical 28 bps cost model"
+      },
+      "maker_taker_status": "SHADOW_RUNNING",
+      "maker_taker_rule": {
+        "entry_z": 3,
+        "maker_venue": "GATE",
+        "hedge_venue": "OKX",
+        "fill_rule": "public trade must trade through maker price",
+        "maker_wait_seconds": 900,
+        "roundtrip_fee_assumption_bps": 14,
+        "extra_buffer_bps": 8
+      }
+    },
+    {
+      "id": "MOEX_EVENT_UNIVERSE_V2",
+      "status": "SHADOW",
+      "mechanism": "guarded transient dislocation scanner over MOEX futures/calendar/spot/perp relations",
+      "rule": "validated-route only; extreme-z regime reset; 2-scan confirmation; fresh two-sided quotes",
+      "next_gate": "30+ closed v2 cycles across >=3 days"
     }
   ],
   "live_enabled": false,
