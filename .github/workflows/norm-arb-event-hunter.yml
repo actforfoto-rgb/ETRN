@@ -40,13 +40,22 @@ jobs:
       - name: Compile event hunters
         run: |
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/crypto_event_shadow.py
+          python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/crypto_spot_event_shadow.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/moex_event_shadow.py
+          python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/si_calendar_fast_shadow.py
 
       - name: Run crypto event universe
         run: python NORM_LAB/ARBITRAGE_RADAR/production/crypto_event_shadow.py
 
+      - name: Run crypto spot event universe
+        run: python NORM_LAB/ARBITRAGE_RADAR/production/crypto_spot_event_shadow.py
+
       - name: Run MOEX event universe
         run: python NORM_LAB/ARBITRAGE_RADAR/production/moex_event_shadow.py
+
+      - name: Run Si calendar fast shadow
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/production/si_calendar_fast_shadow.py
 
       - name: Run MOEX option parity event scan
         continue-on-error: true
