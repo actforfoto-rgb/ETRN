@@ -1,0 +1,79 @@
+name: NORM ARBITRAGE Fast Candidates
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'NORM_LAB/ARBITRAGE_RADAR/FAST_TRIGGER.txt'
+      - '.github/workflows/norm-arb-fast-candidates.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: norm-arb-fast-candidates
+  cancel-in-progress: false
+
+jobs:
+  fast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout ARB branch
+        uses: actions/checkout@v4
+        with:
+          ref: norm-arb-r01
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check --quiet ccxt requests beautifulsoup4
+
+      - name: Compile candidates
+        run: |
+          python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/crypto_maker_universe_shadow.py
+          python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/moex_calendar_page_fast_shadow.py
+
+      - name: Run crypto maker universe
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/production/crypto_maker_universe_shadow.py
+
+      - name: Run MOEX calendar page fast shadow
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/production/moex_calendar_page_fast_shadow.py
+
+      - name: Run promotion gatekeeper
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/production/gatekeeper.py
+
+      - name: Persist candidate state
+        if: always()
+        shell: bash
+        run: |
+          git config user.name "NORM LAB Fast Candidates"
+          git config user.email "actions@users.noreply.github.com"
+          git add NORM_LAB/ARBITRAGE_RADAR/production/event_state NORM_LAB/ARBITRAGE_RADAR/production/promotion_status.json || true
+          if git diff --cached --quiet; then
+            echo "No fast-candidate state changes"
+          else
+            git commit -m "ARB fast candidate state [skip ci]"
+            git fetch origin norm-arb-r01
+            git -c rebase.autoStash=true rebase origin/norm-arb-r01
+            git push origin HEAD:norm-arb-r01
+          fi
+
+      - name: Upload fast candidate state
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NORM_ARB_FAST_CANDIDATES
+          path: NORM_LAB/ARBITRAGE_RADAR/production/event_state
+          if-no-files-found: warn
