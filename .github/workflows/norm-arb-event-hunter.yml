@@ -45,6 +45,7 @@ jobs:
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/moex_calendar_universe_shadow.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/op_gate_okx_maker_shadow.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/si_calendar_page_shadow.py
+          python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/crypto_triangular_shadow.py
 
       - name: Run OP Gate-OKX maker-taker shadow
         continue-on-error: true
@@ -53,6 +54,10 @@ jobs:
       - name: Run Si effective-spread v2 shadow
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/production/si_calendar_page_shadow.py
+
+      - name: Run crypto triangular arbitrage scan
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/production/crypto_triangular_shadow.py
 
       - name: Run whole MOEX calendar universe
         continue-on-error: true
