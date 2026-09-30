@@ -120,7 +120,8 @@ def main():
   "note":"Futures-style option put-call parity screen. American exercise candidates require separate early-exercise/broker-margin validation before executable status.",
   "top":out[:100],"skipped":skipped
  }
- (OUT/"moex_option_parity_scan.json").write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding="utf-8")
+ if os.environ.get("NORM_ARB_EVENT_ONLY")!="1":
+  (OUT/"moex_option_parity_scan.json").write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding="utf-8")
  event_dir=ROOT/"production"/"event_state"
  event_dir.mkdir(parents=True,exist_ok=True)
  (event_dir/"moex_option_parity_last_scan.json").write_text(
