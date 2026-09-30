@@ -70,18 +70,23 @@ def vwap(levels,quote):
 
 def book(ex,sym):
     ob=ex.fetch_order_book(sym,50)
-    bid=vwap(ob.get("bids") or [],NOTIONAL)
-    ask=vwap(ob.get("asks") or [],NOTIONAL)
-    if bid is None or ask is None: raise RuntimeError("insufficient depth")
-    return bid,ask
+    bids=ob.get("bids") or []
+    asks=ob.get("asks") or []
+    if not bids or not asks: raise RuntimeError("empty book")
+    best_bid=float(bids[0][0]);best_ask=float(asks[0][0])
+    bid_vwap=vwap(bids,NOTIONAL)
+    ask_vwap=vwap(asks,NOTIONAL)
+    if bid_vwap is None or ask_vwap is None: raise RuntimeError("insufficient depth")
+    return {"best_bid":best_bid,"best_ask":best_ask,
+            "bid_vwap":bid_vwap,"ask_vwap":ask_vwap}
 
 
 def paired_books(gate,gsym,okx,osym):
     def timed(ex,sym):
         t0=int(time.time()*1000)
-        bid,ask=book(ex,sym)
+        b=book(ex,sym)
         t1=int(time.time()*1000)
-        return {"bid":bid,"ask":ask,"mid_ts":(t0+t1)//2,"latency_ms":t1-t0}
+        return {**b,"mid_ts":(t0+t1)//2,"latency_ms":t1-t0}
     with ThreadPoolExecutor(max_workers=2) as pool:
         fg=pool.submit(timed,gate,gsym)
         fo=pool.submit(timed,okx,osym)
@@ -209,15 +214,18 @@ def main():
     for sample_no in range(SAMPLES):
         now=time.time(); nowms=int(now*1000)
         gbook,obook,quote_gap_ms=paired_books(gate,gsym,okx,osym)
-        gbid,gask=gbook["bid"],gbook["ask"]
-        obid,oask=obook["bid"],obook["ask"]
+        # Gate is the maker venue: use top-of-book for passive limits.
+        gbid,gask=gbook["best_bid"],gbook["best_ask"]
+        # OKX is the hedge venue: use executable $NOTIONAL VWAP for taker fills.
+        obid,oask=obook["bid_vwap"],obook["ask_vwap"]
         if quote_gap_ms>MAX_QUOTE_GAP_MS:
             row={"utc":utc(),"sample":sample_no,"phase":st["phase"],
                  "quote_gap_ms":quote_gap_ms,"event":"REJECT_STALE_PAIR"}
             samples.append(row);append_ts(row);save_state(st)
             if sample_no<SAMPLES-1:time.sleep(SLEEP_SEC)
             continue
-        gmid=(gbid+gask)/2; omid=(obid+oask)/2
+        gmid=(gbook["best_bid"]+gbook["best_ask"])/2
+        omid=(obook["best_bid"]+obook["best_ask"])/2
         x=(omid/gmid-1)*10000
         z=(x-bl["mean"])/bl["sd"]
 
