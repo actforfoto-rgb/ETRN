@@ -11,10 +11,10 @@ from bs4 import BeautifulSoup
 ROOT=Path(__file__).resolve().parent
 STATE_DIR=ROOT/"event_state"
 STATE_DIR.mkdir(parents=True,exist_ok=True)
-STATE_FILE=STATE_DIR/"si_calendar_page_state.json"
-TS_FILE=STATE_DIR/"si_calendar_page_timeseries.csv"
-LEDGER_FILE=STATE_DIR/"si_calendar_page_ledger.csv"
-LAST_FILE=STATE_DIR/"si_calendar_page_last.json"
+STATE_FILE=STATE_DIR/"si_calendar_effective_v2_state.json"
+TS_FILE=STATE_DIR/"si_calendar_effective_v2_timeseries.csv"
+LEDGER_FILE=STATE_DIR/"si_calendar_effective_v2_ledger.csv"
+LAST_FILE=STATE_DIR/"si_calendar_effective_v2_last.json"
 
 PAGE="https://www.moex.com/ru/derivatives/spreads/calendar-spreads.aspx"
 ISS="https://iss.moex.com/iss"
