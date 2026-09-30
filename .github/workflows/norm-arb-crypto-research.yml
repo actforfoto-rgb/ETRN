@@ -65,6 +65,10 @@ jobs:
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/crypto_spot_inventory_backtest.py
 
+      - name: Run crypto event walk-forward
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/crypto_event_walkforward.py
+
       - name: Save results
         if: always()
         shell: bash
