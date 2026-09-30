@@ -62,12 +62,19 @@ def main():
                           "status":"REJECTED_TRANSFER_OR_IDENTITY_GATE"
                         }
                         continue
+                stress10_pass=(
+                    float(h.get("median_net_bps") or 0)>10.0
+                    and float(h.get("aggregate_net_bps") or 0)>10.0*int(h.get("n") or 0)
+                )
                 cfg[dest][key]={
                   "base":r["base"],"venue_a":r["venue_a"],"venue_b":r["venue_b"],
                   "entry_z":float(r["selected_entry_z"]),
                   "train_score":r.get("train_score"),
                   "holdout":h,
-                  "status":"VALIDATED_SHADOW"
+                  "stress10_pass":stress10_pass,
+                  "stress10_median_proxy_bps":float(h.get("median_net_bps") or 0)-10.0,
+                  "stress10_aggregate_proxy_bps":float(h.get("aggregate_net_bps") or 0)-10.0*int(h.get("n") or 0),
+                  "status":"VALIDATED_STRESS10" if stress10_pass else "VALIDATED_SHADOW"
                 }
 
     mp=RESULTS/"moex_intraday_event_walkforward.json"
