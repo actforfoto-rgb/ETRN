@@ -29,6 +29,12 @@ jobs:
           ref: norm-arb-r01
           fetch-depth: 0
 
+      - name: Sync working branch
+        shell: bash
+        run: |
+          git fetch origin norm-arb-r01
+          git reset --hard origin/norm-arb-r01
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
