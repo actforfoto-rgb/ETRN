@@ -113,8 +113,9 @@ def main():
     if not nm or not fm:raise RuntimeError("metadata missing")
     unit=nm["unit"]
     fqty=nm["unit"]/fm["unit"]
-    # Approximate exchange-listed calendar spread roundtrip using both legs' scalper fees.
-    atomic_roundtrip_fee=2*(nm["scalper_fee"]+fqty*fm["scalper_fee"])
+    # Conservative current production proxy: full BUYSELLFEE of both legs on
+    # entry and exit. Do not rely on expired marketing/scalper discounts.
+    atomic_roundtrip_fee=2*(nm["buy_sell_fee"]+fqty*fm["buy_sell_fee"])
     atomic_width_proxy=1.0*unit
     base_cost=atomic_roundtrip_fee+atomic_width_proxy+EXTRA_RUB
 
