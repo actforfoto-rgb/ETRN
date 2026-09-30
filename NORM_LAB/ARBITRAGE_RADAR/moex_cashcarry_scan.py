@@ -48,7 +48,10 @@ def num(v):
     except:return None
 
 def spot_snapshot(secid):
-    j=get(f"{BASE}/engines/stock/markets/shares/boards/TQBR/securities/{secid}.json",{"iss.meta":"off"})
+    try:
+        j=get(f"{BASE}/engines/stock/markets/shares/boards/TQBR/securities/{secid}.json",{"iss.meta":"off"})
+    except Exception:
+        return None
     s=rows(j,"securities");m=rows(j,"marketdata")
     if not s or not m:return None
     sr=s[0];mr=m[0]
