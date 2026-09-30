@@ -70,6 +70,9 @@ jobs:
       - name: Backtest expiry-cycle SwapRate signals
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_expiry_cycle_backtest.py
 
+      - name: Backtest transient intraday dislocations
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_intraday_event_backtest.py
+
       - name: Select MOEX walk-forward thresholds
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_walkforward_selector.py
 
