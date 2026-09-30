@@ -114,7 +114,7 @@ jobs:
           else
             git commit -m "ARB MOEX research results [skip ci]"
             git fetch origin norm-arb-r01
-            git rebase origin/norm-arb-r01
+            git -c rebase.autoStash=true rebase origin/norm-arb-r01
             git push origin HEAD:norm-arb-r01
           fi
 
