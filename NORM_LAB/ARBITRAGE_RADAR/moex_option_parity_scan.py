@@ -121,6 +121,10 @@ def main():
   "top":out[:100],"skipped":skipped
  }
  (OUT/"moex_option_parity_scan.json").write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding="utf-8")
+ event_dir=ROOT/"production"/"event_state"
+ event_dir.mkdir(parents=True,exist_ok=True)
+ (event_dir/"moex_option_parity_last_scan.json").write_text(
+   json.dumps(summary,ensure_ascii=False,indent=2),encoding="utf-8")
  print(json.dumps({"paired":len(out),"positive":len(positive),"top":out[:20]},ensure_ascii=False,indent=2))
 
 if __name__=="__main__":main()
