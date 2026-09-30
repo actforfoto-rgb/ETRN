@@ -38,42 +38,59 @@ jobs:
         run: python -m pip install --disable-pip-version-check --quiet requests beautifulsoup4
 
       - name: Probe and resolve MOEX instruments
+        continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_m01_probe.py
 
       - name: Probe MOEX options market
+        continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_options_probe.py
 
+      - name: Scan option put-call parity
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_option_parity_scan.py
+
       - name: Probe IMOEX dividend adjustment
+        continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_dividend_probe.py
 
       - name: Scan equity futures universe
+        continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_equity_universe.py
 
       - name: Scan stock cash-and-carry
+        continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_cashcarry_scan.py
 
       - name: Backtest equity perpetual pairs
+        continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_perpetual_backtest.py
 
       - name: Current quarterly-perpetual screen
+        continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_quarterly_perpetual.py
 
       - name: Backtest quarterly-perpetual equity pairs
+        continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_quarterly_perpetual_backtest.py
 
       - name: Current perpetual curve universe
+        continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_perp_curve_universe.py
 
       - name: Backtest currency and index perpetual curves
+        continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_curve_backtest.py
 
       - name: Backtest expiry-cycle SwapRate signals
+        continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_expiry_cycle_backtest.py
 
       - name: Backtest transient intraday dislocations
+        continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_intraday_event_backtest.py
 
       - name: Select MOEX walk-forward thresholds
+        continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_walkforward_selector.py
 
       - name: Save results
@@ -89,8 +106,8 @@ jobs:
           else
             git commit -m "ARB MOEX research results [skip ci]"
             git fetch origin norm-arb-r01
-          git rebase origin/norm-arb-r01
-          git push origin HEAD:norm-arb-r01
+            git rebase origin/norm-arb-r01
+            git push origin HEAD:norm-arb-r01
           fi
 
       - name: Upload artifact
