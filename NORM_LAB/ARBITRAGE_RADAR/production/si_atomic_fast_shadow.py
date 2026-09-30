@@ -15,7 +15,7 @@ LEDGER_FILE=STATE_DIR/"si_atomic_ledger.csv"
 
 BASE="https://iss.moex.com/iss"
 S=requests.Session();S.headers.update({"User-Agent":"NORM-LAB-SI-ATOMIC-SHADOW/1.0"})
-SECID="SiZ6SiH7"
+SECID="SIZ6SIH7"
 
 HIST_BARS=90
 ENTRY_Z=2.5
