@@ -35,6 +35,7 @@ SAMPLES=2
 SLEEP_SEC=15
 EXTRA_RUB=2.0
 MIN_EXPECTED_NET_RUB=5.0
+CROSS_SOURCE_EXECUTION_DISABLED=True
 
 TS_FIELDS=[
  "utc","atomic_bid","atomic_ask","atomic_mid","last","volume_contracts","volume_rub","trades",
@@ -214,7 +215,9 @@ def once(st,mean,sd,nbase):
     )
 
     pos=st.get("position")
-    if crossed:
+    if crossed or CROSS_SOURCE_EXECUTION_DISABLED:
+        # Public MOEX web-page quote and ISS leg quote are not guaranteed to be
+        # synchronized. Never create/maintain a trading shadow from mixed sources.
         pos=None
         st["position"]=None
     if pos and z is not None:
@@ -237,7 +240,8 @@ def once(st,mean,sd,nbase):
               "realized_net_rub":pnl,"hold_min":hold,"reason":reason
             })
             st["position"]=None
-    elif not pos and z is not None and len(valid_hist)>=MIN_LIVE_BASELINE:
+    elif (not CROSS_SOURCE_EXECUTION_DISABLED
+          and not pos and z is not None and len(valid_hist)>=MIN_LIVE_BASELINE):
         if z>=ENTRY_Z and expected_sell is not None and expected_sell>=MIN_EXPECTED_NET_RUB:
             st["position"]={"direction":"SELL","opened_ts":time.time(),"entry_z":z,
                             "entry_price":pr["bid"],"expected_net_rub":expected_sell}
@@ -268,6 +272,7 @@ def once(st,mean,sd,nbase):
       "effective_bid":effective_bid,"effective_ask":effective_ask,
       "effective_mid":effective_mid,"crossed_snapshot":crossed,
       "live_baseline_points":len(valid_hist),
+      "execution_status":"DIAGNOSTIC_ONLY_BROKER_FEED_REQUIRED",
       "position":st.get("position")
     }
     if not crossed and effective_mid is not None:
