@@ -41,6 +41,7 @@ jobs:
         run: |
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/crypto_maker_universe_shadow.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/crypto_maker_fill_calibration.py
+          python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/crypto_maker_calibration_summary.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/moex_calendar_page_fast_shadow.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/moex_direct_synthetic_arb_shadow.py
 
@@ -51,6 +52,10 @@ jobs:
       - name: Run maker fill calibration
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/production/crypto_maker_fill_calibration.py
+
+      - name: Summarize maker execution calibration
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/production/crypto_maker_calibration_summary.py
 
       - name: Run MOEX calendar page fast shadow
         continue-on-error: true
