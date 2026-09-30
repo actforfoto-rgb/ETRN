@@ -97,6 +97,10 @@ jobs:
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_si_calendar_30d.py
 
+      - name: Run Si atomic threshold walk-forward
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_si_atomic_threshold_walkforward.py
+
       - name: Select MOEX walk-forward thresholds
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_walkforward_selector.py
