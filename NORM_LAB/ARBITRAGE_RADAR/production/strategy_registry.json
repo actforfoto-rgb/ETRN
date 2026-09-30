@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-30T07:10:00+03:00",
+  "updated_at": "2026-09-30T07:38:00+03:00",
   "strategies": [
     {
       "id": "MOEX_IMOEX_PERP_CURVE",
@@ -64,6 +64,37 @@
       "scope": "all supported symbols x venues x MOEX structures",
       "rule": "Enter only transient dislocations where executable NET edge exceeds threshold; no requirement that the same pair works every day.",
       "next_gate": "SHADOW_EVENT_LEDGER"
+    },
+    {
+      "id": "MOEX_SI_CALENDAR_EVENT",
+      "status": "SHADOW_CANDIDATE",
+      "route": "SiZ6 ↔ SiH7",
+      "mechanism": "transient calendar-spread dislocation and convergence",
+      "evidence": {
+        "source": "1-minute ISS candle event backtest; current conservative cost proxy",
+        "bars": 1481,
+        "events": 20,
+        "positive_pct": 90,
+        "median_net_rub": 13.14,
+        "aggregate_net_rub": 202.8,
+        "worst_net_rub": -30.86,
+        "best_net_rub": 24.14
+      },
+      "caveat": "Candle-close backtest is not executable evidence. Requires live bid/ask event ledger, depth and latency before PAPER.",
+      "next_gate": "SHADOW_EVENT_LEDGER"
+    },
+    {
+      "id": "MOEX_GAZP_PERP_FIXED_EVENT",
+      "status": "RESEARCH_CANDIDATE",
+      "route": "GAZPF ↔ GZZ6",
+      "mechanism": "transient perpetual-vs-fixed dislocation and convergence",
+      "evidence": {
+        "events": 3,
+        "positive_pct": 66.6667,
+        "median_net_rub": 31.12,
+        "aggregate_net_rub": 59.36
+      },
+      "caveat": "Sample too small; requires more events and executable live bid/ask validation."
     }
   ],
   "live_enabled": false,
