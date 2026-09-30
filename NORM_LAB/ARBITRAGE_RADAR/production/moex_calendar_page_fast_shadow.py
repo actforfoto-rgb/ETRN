@@ -12,6 +12,7 @@ RESULTS=ROOT.parent/"results"
 STATE_DIR=ROOT/"event_state";STATE_DIR.mkdir(parents=True,exist_ok=True)
 
 CFG=RESULTS/"moex_calendar_event_universe_walkforward.json"
+RISK_CFG=RESULTS/"moex_calendar_risk_shortlist.json"
 STATE_FILE=STATE_DIR/"moex_calendar_page_fast_state.json"
 LAST_FILE=STATE_DIR/"moex_calendar_page_fast_last.json"
 TS_FILE=STATE_DIR/"moex_calendar_page_fast_timeseries.csv"
@@ -99,17 +100,23 @@ def fut_unit(secid):
     return sp/ms
 
 def prep():
-    raw=json.loads(CFG.read_text(encoding="utf-8"))
     cand=[]
-    for r in raw.get("routes",[]):
-        h=r.get("holdout") or {}
-        if not r.get("holdout_pass"):continue
-        if int(h.get("n") or 0)<MIN_HOLDOUT_N:continue
-        if float(h.get("positive_pct") or 0)<MIN_HOLDOUT_POSITIVE:continue
-        if float(r.get("current_trades") or 0)<MIN_CURRENT_TRADES:continue
-        if float(h.get("median_net_rub") or 0)<=0:continue
-        score=float(h["median_net_rub"])*math.sqrt(int(h["n"]))*float(h["positive_pct"])/100
-        cand.append((score,r))
+    if RISK_CFG.exists():
+        rr=json.loads(RISK_CFG.read_text(encoding="utf-8"))
+        for r in rr.get("robust_routes",[]):
+            score=float((r.get("risk") or {}).get("risk_adjusted_score") or 0)
+            cand.append((score,r))
+    else:
+        raw=json.loads(CFG.read_text(encoding="utf-8"))
+        for r in raw.get("routes",[]):
+            h=r.get("holdout") or {}
+            if not r.get("holdout_pass"):continue
+            if int(h.get("n") or 0)<MIN_HOLDOUT_N:continue
+            if float(h.get("positive_pct") or 0)<MIN_HOLDOUT_POSITIVE:continue
+            if float(r.get("current_trades") or 0)<MIN_CURRENT_TRADES:continue
+            if float(h.get("median_net_rub") or 0)<=0:continue
+            score=float(h["median_net_rub"])*math.sqrt(int(h["n"]))*float(h["positive_pct"])/100
+            cand.append((score,r))
     cand.sort(key=lambda x:x[0],reverse=True)
     out=[]
     cache={}
