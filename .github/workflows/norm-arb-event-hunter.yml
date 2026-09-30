@@ -35,7 +35,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: python -m pip install --disable-pip-version-check --quiet ccxt requests
+        run: python -m pip install --disable-pip-version-check --quiet ccxt requests beautifulsoup4
 
       - name: Compile event hunters
         run: |
@@ -44,6 +44,7 @@ jobs:
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/moex_event_shadow.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/si_calendar_fast_shadow.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/si_atomic_fast_shadow.py
+          python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/si_calendar_page_shadow.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/crypto_validated_fast_shadow.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/crypto_live_execution_gate.py
 
@@ -62,6 +63,10 @@ jobs:
       - name: Run Si atomic fast shadow
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/production/si_atomic_fast_shadow.py
+
+      - name: Run official Si calendar page shadow
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/production/si_calendar_page_shadow.py
 
       - name: Run crypto event universe
         run: python NORM_LAB/ARBITRAGE_RADAR/production/crypto_event_shadow.py
