@@ -73,6 +73,10 @@ jobs:
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/crypto_spot_identity_audit.py
 
+      - name: Build validated event route config
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/build_event_route_config.py
+
       - name: Save results
         if: always()
         shell: bash
@@ -80,7 +84,7 @@ jobs:
           printf "DONE\n" > NORM_LAB/ARBITRAGE_RADAR/RUN_C02.flag
           git config user.name "NORM LAB Crypto Research"
           git config user.email "actions@users.noreply.github.com"
-          git add NORM_LAB/ARBITRAGE_RADAR/results NORM_LAB/ARBITRAGE_RADAR/RUN_C02.flag || true
+          git add NORM_LAB/ARBITRAGE_RADAR/results NORM_LAB/ARBITRAGE_RADAR/production/event_route_config.json NORM_LAB/ARBITRAGE_RADAR/RUN_C02.flag || true
           if git diff --cached --quiet; then
             echo "No crypto result changes"
           else
