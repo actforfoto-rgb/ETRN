@@ -82,7 +82,7 @@ def snapshot():
     try:
      lim=20 if name=="HTX" else 50
      ob=ex.fetch_order_book(sym,lim)
-     if name=="MEXC": time.sleep(0.12)
+     if name=="MEXC": time.sleep(0.40)
      ask=vwap(ob.get("asks") or [],NOTIONAL)
      bid=vwap(ob.get("bids") or [],NOTIONAL)
      if ask and bid:
