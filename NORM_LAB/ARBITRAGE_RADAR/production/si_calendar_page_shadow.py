@@ -107,8 +107,7 @@ def page_row():
               "raw":vals
             }
     # Fallback: search text line around code.
-    text=soup.get_text("
-",strip=True)
+    text=soup.get_text("\\n",strip=True)
     pos=text.find(CODE)
     if pos<0:
         raise RuntimeError(f"{CODE} not found on MOEX calendar spreads page")
