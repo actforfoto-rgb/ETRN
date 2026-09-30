@@ -26,6 +26,7 @@ S=requests.Session()
 S.headers.update({"User-Agent":"NORM-LAB-SI-CALENDAR-PAGE/1.0"})
 
 LOOKBACK=60
+MIN_LIVE_BASELINE=20
 ENTRY_Z=3.0
 EXIT_Z=0.5
 STOP_Z=5.0
@@ -174,6 +175,16 @@ def once(st,mean,sd,nbase):
     atomic_mid=(pr["bid"]+pr["ask"])/2
     dislocation=atomic_mid-synthetic_mid
 
+    # MOEX synthetic matching means a calendar-spread order can execute against
+    # the spread book OR against the two leg books. Effective executable quotes
+    # therefore use the better of the explicit and synthetic prices.
+    effective_bid=max(pr["bid"],synthetic_bid)
+    effective_ask=min(pr["ask"],synthetic_ask)
+
+    # If asynchronously fetched sources create a crossed effective book, the
+    # snapshot is not time-consistent and must never generate a signal.
+    crossed=effective_bid>effective_ask
+
     # Conservative production assumption: do not rely on marketing/scalper discounts.
     # Charge full BUYSELLFEE of both futures on entry and exit.
     leg_fee=(n["fee"]+f["fee"])
@@ -182,15 +193,26 @@ def once(st,mean,sd,nbase):
     lock_b=(synthetic_bid-pr["ask"])*n["unit"]-lock_cost
 
     history=st.setdefault("history",[])
-    z=(atomic_mid-mean)/sd if sd and sd>1e-12 else 0.0
+    valid_hist=[float(x["effective_mid"]) for x in history if x.get("effective_mid") is not None]
+    live_mean=statistics.fmean(valid_hist[-LOOKBACK:]) if len(valid_hist)>=MIN_LIVE_BASELINE else None
+    live_sd=statistics.pstdev(valid_hist[-LOOKBACK:]) if len(valid_hist)>=MIN_LIVE_BASELINE else None
+    effective_mid=(effective_bid+effective_ask)/2 if not crossed else None
+    z=((effective_mid-live_mean)/live_sd
+       if effective_mid is not None and live_mean is not None and live_sd and live_sd>1e-12
+       else None)
 
-    atomic_width=(pr["ask"]-pr["bid"])*n["unit"]
+    effective_width=((effective_ask-effective_bid)*n["unit"]) if not crossed else None
     atomic_rt_fee=2*leg_fee
-    meanrev_cost=atomic_width+atomic_rt_fee+EXTRA_RUB
-    expected_sell=((pr["bid"]-mean)*n["unit"]-meanrev_cost) if mean is not None else None
-    expected_buy=((mean-pr["ask"])*n["unit"]-meanrev_cost) if mean is not None else None
+    meanrev_cost=(effective_width+atomic_rt_fee+EXTRA_RUB) if effective_width is not None else None
+    expected_sell=((effective_bid-live_mean)*n["unit"]-meanrev_cost)
+                   if live_mean is not None and meanrev_cost is not None else None
+    expected_buy=((live_mean-effective_ask)*n["unit"]-meanrev_cost)
+                  if live_mean is not None and meanrev_cost is not None else None
 
     pos=st.get("position")
+    if crossed:
+        pos=None
+        st["position"]=None
     if pos and z is not None:
         hold=(time.time()-pos["opened_ts"])/60
         if pos["direction"]=="SELL":
@@ -211,7 +233,7 @@ def once(st,mean,sd,nbase):
               "realized_net_rub":pnl,"hold_min":hold,"reason":reason
             })
             st["position"]=None
-    elif not pos and z is not None:
+    elif not pos and z is not None and len(valid_hist)>=MIN_LIVE_BASELINE:
         if z>=ENTRY_Z and expected_sell is not None and expected_sell>=MIN_EXPECTED_NET_RUB:
             st["position"]={"direction":"SELL","opened_ts":time.time(),"entry_z":z,
                             "entry_price":pr["bid"],"expected_net_rub":expected_sell}
@@ -236,13 +258,20 @@ def once(st,mean,sd,nbase):
       "synthetic_mid":synthetic_mid,"atomic_minus_synth_mid":dislocation,
       "lock_sell_atomic_buy_synth_rub":lock_a,
       "lock_sell_synth_buy_atomic_rub":lock_b,
-      "baseline_mean":mean,"baseline_sd":sd,"z":z,
+      "baseline_mean":live_mean,"baseline_sd":live_sd,"z":z,
       "expected_meanrev_sell_rub":expected_sell,
       "expected_meanrev_buy_rub":expected_buy,
+      "effective_bid":effective_bid,"effective_ask":effective_ask,
+      "effective_mid":effective_mid,"crossed_snapshot":crossed,
+      "live_baseline_points":len(valid_hist),
       "position":st.get("position")
     }
-    history.append({"utc":row["utc"],"atomic_mid":atomic_mid,
-                    "atomic_bid":pr["bid"],"atomic_ask":pr["ask"]})
+    if not crossed and effective_mid is not None:
+        history.append({"utc":row["utc"],"atomic_mid":atomic_mid,
+                        "atomic_bid":pr["bid"],"atomic_ask":pr["ask"],
+                        "synthetic_mid":synthetic_mid,
+                        "effective_bid":effective_bid,"effective_ask":effective_ask,
+                        "effective_mid":effective_mid})
     return row
 
 def main():
@@ -257,7 +286,10 @@ def main():
             save_state(st)
         if i<SAMPLES-1:time.sleep(SLEEP_SEC)
     report={"utc":utc(),"code":CODE,
-            "baseline":{"source":"active-minute synthetic SiH7-SiZ6","mean":mean,"sd":sd,"bars":nbase},
+            "baseline":{"source":"LIVE_EFFECTIVE_SPREAD_HISTORY_REQUIRED",
+                        "synthetic_reference_mean":mean,"synthetic_reference_sd":sd,
+                        "synthetic_reference_bars":nbase,
+                        "min_live_points":MIN_LIVE_BASELINE},
             "samples":samples,"position":st.get("position"),
             "history_points":len(st.get("history",[]))}
     LAST_FILE.write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
