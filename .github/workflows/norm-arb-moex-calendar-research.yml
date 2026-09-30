@@ -1,0 +1,84 @@
+name: NORM ARBITRAGE MOEX Calendar Research
+
+on:
+  schedule:
+    - cron: '20 * * * *'
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'NORM_LAB/ARBITRAGE_RADAR/MOEX_CAL_TRIGGER.txt'
+      - '.github/workflows/norm-arb-moex-calendar-research.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: norm-arb-moex-calendar-research
+  cancel-in-progress: false
+
+jobs:
+  calendar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: norm-arb-r01
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: python -m pip install --disable-pip-version-check --quiet requests beautifulsoup4
+
+      - name: Calendar universe walk-forward
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_calendar_event_universe_backtest.py
+
+      - name: Risk shortlist
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_calendar_risk_shortlist.py
+
+      - name: Capital economics
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_calendar_capital_economics.py
+
+      - name: Capital constrained portfolio holdout
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_calendar_portfolio_holdout.py
+
+      - name: Save calendar research
+        if: always()
+        shell: bash
+        run: |
+          git config user.name "NORM LAB MOEX Calendar"
+          git config user.email "actions@users.noreply.github.com"
+          git add NORM_LAB/ARBITRAGE_RADAR/results || true
+          if git diff --cached --quiet; then
+            echo "No calendar research changes"
+          else
+            git commit -m "ARB MOEX calendar research [skip ci]"
+            pushed=0
+            for attempt in 1 2 3 4; do
+              git fetch origin norm-arb-r01
+              if ! git merge --no-edit -X ours origin/norm-arb-r01; then
+                git merge --abort || true
+                sleep 2
+                continue
+              fi
+              if git push origin HEAD:norm-arb-r01; then
+                pushed=1
+                break
+              fi
+              sleep 2
+            done
+            test "$pushed" -eq 1
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: NORM_ARB_MOEX_CALENDAR_RESEARCH
+          path: NORM_LAB/ARBITRAGE_RADAR/results
+          if-no-files-found: warn
