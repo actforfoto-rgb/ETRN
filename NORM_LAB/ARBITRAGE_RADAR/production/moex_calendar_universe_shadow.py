@@ -147,7 +147,9 @@ def main():
         # B) sell synthetic, buy atomic
         edge_b=(synth_bid-pr["ask"])*nu-fee_buf
         best=max(edge_a,edge_b)
-        status="LOCK_CANDIDATE" if best>0 else "NO_LOCK"
+        # Page quote and ISS leg quote are cross-source and may not be time-aligned.
+        # Positive arithmetic is discovery evidence only, never executable evidence.
+        status="CROSS_SOURCE_POSITIVE_DIAGNOSTIC" if best>0 else "NO_LOCK"
 
         row={
           "utc":utc(),"spread":pr["code"],"near_secid":nid,"far_secid":fid,
@@ -162,7 +164,9 @@ def main():
         }
         report.append(row)
         append(TS,row)
-        if status=="LOCK_CANDIDATE" and (pr["trades"] or 0)>=MIN_TRADES and (pr["volume_contracts"] or 0)>=MIN_VOLUME:
+        # Do not promote or alert as executable until a single synchronized broker/
+        # exchange feed provides both calendar-spread and leg books.
+        if False:
             append(ALERTS,row)
 
     report.sort(key=lambda r:max(r["sell_atomic_buy_synth_rub"],r["sell_synth_buy_atomic_rub"]),reverse=True)
@@ -170,7 +174,8 @@ def main():
       "utc":utc(),
       "page_spreads":len(page_rows),
       "resolved_live_spreads":len(report),
-      "positive_lock_candidates":sum(r["status"]=="LOCK_CANDIDATE" for r in report),
+      "positive_cross_source_diagnostics":sum(r["status"]=="CROSS_SOURCE_POSITIVE_DIAGNOSTIC" for r in report),
+      "positive_lock_candidates":0,
       "top":report[:100]
     }
     LAST.write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding="utf-8")
