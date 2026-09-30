@@ -43,6 +43,7 @@ jobs:
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/crypto_spot_event_shadow.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/moex_event_shadow.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/si_calendar_fast_shadow.py
+          python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/si_atomic_fast_shadow.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/crypto_validated_fast_shadow.py
 
       - name: Run validated crypto fast shadow
@@ -52,6 +53,10 @@ jobs:
       - name: Run Si calendar fast shadow
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/production/si_calendar_fast_shadow.py
+
+      - name: Run Si atomic fast shadow
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/production/si_atomic_fast_shadow.py
 
       - name: Run crypto event universe
         run: python NORM_LAB/ARBITRAGE_RADAR/production/crypto_event_shadow.py
