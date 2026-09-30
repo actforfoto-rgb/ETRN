@@ -5,6 +5,7 @@ from pathlib import Path
 
 ROOT=Path(__file__).resolve().parent
 STATE=ROOT/"shadow_state"
+EVENT_STATE=ROOT/"event_state"
 OUT=ROOT/"promotion_status.json"
 REGISTRY=ROOT/"strategy_registry.json"
 
@@ -27,6 +28,75 @@ def read_csv(path):
     if not path.exists():return []
     with path.open("r",encoding="utf-8",newline="") as f:
         return list(csv.DictReader(f))
+
+
+EVENT_MIN_CLOSED=30
+EVENT_MIN_DAYS=3
+EVENT_MIN_POSITIVE_RATE=0.55
+EVENT_MAX_SINGLE_WIN_SHARE=0.50
+
+def event_ledger_gate(path,net_field,units):
+    rows=read_csv(path)
+    closes=[r for r in rows if r.get("event")=="CLOSE"]
+    vals=[]
+    dates=set()
+    for r in closes:
+        try:
+            x=float(r.get(net_field) or 0)
+        except Exception:
+            continue
+        vals.append(x)
+        d=(r.get("utc") or "")[:10]
+        if d:dates.add(d)
+    if not vals:
+        return {
+          "status":"SHADOW","closed_cycles":0,"calendar_days":0,
+          "reason":"No closed event-shadow cycles yet",
+          "units":units
+        }
+    total=sum(vals)
+    med=statistics.median(vals)
+    pos=sum(x>0 for x in vals)/len(vals)
+    positive_vals=[x for x in vals if x>0]
+    max_win=max(positive_vals) if positive_vals else 0.0
+    positive_sum=sum(positive_vals)
+    single_win_share=(max_win/positive_sum) if positive_sum>0 else 1.0
+    eligible=(
+      len(vals)>=EVENT_MIN_CLOSED
+      and len(dates)>=EVENT_MIN_DAYS
+      and total>0 and med>0
+      and pos>=EVENT_MIN_POSITIVE_RATE
+      and single_win_share<=EVENT_MAX_SINGLE_WIN_SHARE
+    )
+    return {
+      "status":"PAPER_ELIGIBLE" if eligible else "SHADOW",
+      "closed_cycles":len(vals),"calendar_days":len(dates),
+      "aggregate_net":total,"median_net":med,
+      "positive_cycles_pct":100*pos,
+      "worst_cycle":min(vals),"best_cycle":max(vals),
+      "largest_win_share_of_positive_pnl":single_win_share,
+      "units":units,
+      "requirements":{
+        "closed_cycles_gte":EVENT_MIN_CLOSED,
+        "calendar_days_gte":EVENT_MIN_DAYS,
+        "aggregate_net_gt":0,
+        "median_net_gt":0,
+        "positive_cycles_pct_gte":100*EVENT_MIN_POSITIVE_RATE,
+        "largest_win_share_lte":EVENT_MAX_SINGLE_WIN_SHARE
+      }
+    }
+
+def event_gates():
+    return {
+      "crypto_perp":event_ledger_gate(
+          EVENT_STATE/"crypto_event_ledger.csv","realized_net_bps","bps"),
+      "crypto_spot":event_ledger_gate(
+          EVENT_STATE/"crypto_spot_event_ledger.csv","realized_net_bps","bps"),
+      "moex_universe":event_ledger_gate(
+          EVENT_STATE/"moex_event_ledger.csv","realized_net_rub","RUB"),
+      "moex_si_fast":event_ledger_gate(
+          EVENT_STATE/"si_calendar_fast_ledger.csv","realized_net_rub","RUB")
+    }
 
 def crypto_gate():
     rows=read_csv(STATE/"crypto_ledger.csv")
@@ -130,8 +200,9 @@ def moex_gate():
     return out
 
 def main():
-    result={"crypto":crypto_gate(),"moex":moex_gate(),
-            "rule":"Eligibility is not permission for real-money trading. PAPER and MICRO_LIVE require separate enablement."}
+    result={"event_driven":event_gates(),
+            "legacy_crypto":crypto_gate(),"legacy_moex":moex_gate(),
+            "rule":"PAPER_ELIGIBLE is evidence status only. It never enables MICRO_LIVE or LIVE orders."}
     OUT.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8")
     print(json.dumps(result,ensure_ascii=False,indent=2))
 
