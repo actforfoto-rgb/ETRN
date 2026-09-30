@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-30T09:35:00+03:00",
+  "updated_at": "2026-09-30T09:55:00+03:00",
   "strategies": [
     {
       "id": "MOEX_IMOEX_PERP_CURVE",
@@ -145,7 +145,7 @@
     },
     {
       "id": "CRYPTO_PREFUNDED_SPOT_EVENT",
-      "status": "SHADOW_CANDIDATE",
+      "status": "SHADOW_RESTRICTED",
       "mechanism": "prefunded buy-low/sell-high inventory rotation with later reverse rebalance",
       "evidence": {
         "train_selected_routes": 14,
@@ -174,8 +174,18 @@
           }
         ]
       },
-      "caveat": "Some spot gaps are extremely large (especially OP/HBAR vs HTX). Instrument/network identity and live transfer/trading status must be audited before promotion.",
-      "next_gate": "IDENTITY_AND_LIVE_ORDERBOOK_AUDIT"
+      "caveat": "Historical holdout remains promising, but only transferable/identity-verified routes may enter validated shadow.",
+      "next_gate": "IDENTITY_AND_LIVE_ORDERBOOK_AUDIT",
+      "operational_gate": {
+        "validated_routes": [
+          "ICP GATE↔HTX"
+        ],
+        "rejected_or_unverified": [
+          "OP HTX routes: HTX OP deposit=false, withdraw=false",
+          "HBAR HTX routes: HTX HBAR deposit=false, withdraw=false",
+          "MEXC/OKX spot routes with unavailable public currency metadata remain unverified"
+        ]
+      }
     }
   ],
   "live_enabled": false,
