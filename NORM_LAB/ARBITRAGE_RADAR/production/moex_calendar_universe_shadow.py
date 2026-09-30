@@ -22,7 +22,7 @@ S.headers.update({"User-Agent":"NORM-LAB-MOEX-CALENDAR-UNIVERSE/1.0"})
 MIN_TRADES=1
 MIN_VOLUME=1
 EXTRA_BUFFER_RUB=2.0
-DISPLAY_RE=re.compile(r"^(.+)-(d{1,2}.d{2})-(d{1,2}.d{2})$")
+DISPLAY_RE=re.compile(r"^(.+)-(\\d{1,2}\\.\\d{2})-(\\d{1,2}\\.\\d{2})$")
 
 TS_FIELDS=[
  "utc","spread","near_secid","far_secid","atomic_bid","atomic_ask",
