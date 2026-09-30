@@ -103,6 +103,10 @@ jobs:
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_calendar_event_universe_backtest.py
 
+      - name: Build risk-adjusted calendar shortlist
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_calendar_risk_shortlist.py
+
       - name: Run MOEX intraday event walk-forward
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_intraday_event_walkforward.py
