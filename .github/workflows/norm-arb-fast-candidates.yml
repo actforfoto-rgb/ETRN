@@ -42,6 +42,7 @@ jobs:
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/crypto_maker_universe_shadow.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/crypto_maker_fill_calibration.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/moex_calendar_page_fast_shadow.py
+          python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/moex_direct_synthetic_arb_shadow.py
 
       - name: Run crypto maker universe
         continue-on-error: true
@@ -54,6 +55,10 @@ jobs:
       - name: Run MOEX calendar page fast shadow
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/production/moex_calendar_page_fast_shadow.py
+
+      - name: Run pure MOEX direct-vs-synthetic arbitrage
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/production/moex_direct_synthetic_arb_shadow.py
 
       - name: Run promotion gatekeeper
         continue-on-error: true
