@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-30T14:02:00+03:00",
+  "updated_at": "2026-09-30T14:28:00+03:00",
   "strategies": [
     {
       "id": "MOEX_IMOEX_PERP_CURVE",
@@ -221,7 +221,7 @@
     },
     {
       "id": "CRYPTO_OP_GATE_OKX_EVENT",
-      "status": "SHADOW_PRIMARY_MAKER_V2",
+      "status": "SHADOW_EXECUTION_CALIBRATION_ONLY",
       "route": "OP perpetual Gate ↔ OKX",
       "mechanism": "transient cross-venue basis; Gate maker fill then immediate OKX taker hedge",
       "evidence": {
@@ -251,7 +251,7 @@
         "note": "No entry-level anomaly occurred in the first two-minute fast window; current market was near baseline, so this is WAIT_EVENT rather than a rejection.",
         "status": "WAITING_FOR_LIVE_TRIGGER"
       },
-      "next_gate": "30+ closed maker-fill shadow cycles across >=3 days with aggregate/median NET > 0",
+      "next_gate": "minute-resolution fill/hedge validation + live maker fill calibration; only then closed executable shadow cycles",
       "taker_taker_status": "EXECUTION_REJECT_CURRENT",
       "taker_taker_evidence": {
         "fast_samples": "multiple windows",
@@ -267,6 +267,18 @@
         "maker_wait_seconds": 900,
         "roundtrip_fee_assumption_bps": 14,
         "extra_buffer_bps": 8
+      },
+      "conservative_fill_audit": {
+        "model": "180d; signal at hourly close; maker fills only after later-hour trade-through; immediate hedge/exit represented by adverse hourly extremes",
+        "selected_scenario": null,
+        "result": "0 positive trades across all tested scenarios under this intentionally harsh execution proxy",
+        "example_z3_holdout": {
+          "n": 12,
+          "positive_pct": 0,
+          "median_net_bps": -261.6670098007935,
+          "aggregate_net_bps": -3547.6366426766326
+        },
+        "interpretation": "Prior OHLC maker profitability is not valid execution evidence. Hourly adverse-extreme model may over-penalize a seconds-level hedge, so minute/live fill validation is required."
       }
     },
     {
@@ -330,12 +342,12 @@
     },
     {
       "id": "CRYPTO_MAKER_EVENT_UNIVERSE",
-      "status": "SHADOW_PENDING_CONSERVATIVE_FILL_VALIDATION",
+      "status": "SHADOW_EXECUTION_CALIBRATION_ONLY",
       "mechanism": "maker entry on selected non-HTX venue, immediate taker hedge after evidenced fill, taker/taker convergence exit",
       "historical_source": "crypto_maker_taker_180d.json",
       "live_shadow": "production/crypto_maker_universe_shadow.py",
-      "caveat": "OHLC maker-taker result does not prove maker fill probability. Conservative trade-through/adverse-hour backtest and live fill-evidence ledger are mandatory.",
-      "next_gate": "conservative fill-model holdout pass + 30 closed live shadow cycles across >=3 days",
+      "caveat": "Historical maker-taker OHLC results are hypothesis generation only. OP Gate→OKX failed the deliberately conservative hourly fill/hedge audit; generic maker routes cannot be promoted without minute/live fill evidence.",
+      "next_gate": "route-level minute execution validation + live trade-through calibration before evidence-gated shadow promotion",
       "live_enabled": false
     }
   ],
