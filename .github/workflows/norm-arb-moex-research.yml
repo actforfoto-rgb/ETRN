@@ -101,6 +101,10 @@ jobs:
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_si_atomic_threshold_walkforward.py
 
+      - name: Validate official Si atomic history
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_si_atomic_daily_validation.py
+
       - name: Select MOEX walk-forward thresholds
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_walkforward_selector.py
