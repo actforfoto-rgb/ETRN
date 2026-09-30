@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv, json, statistics, time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
 import ccxt
@@ -29,6 +30,7 @@ MAX_HOLD_SEC=12*3600
 MAX_MAKER_WAIT_SEC=15*60
 EXTRA_BUFFER_BPS=8.0
 MIN_EXPECTED_NET_BPS=5.0
+MAX_QUOTE_GAP_MS=750
 
 HIST_BARS=72
 SAMPLES=20
@@ -66,6 +68,20 @@ def book(ex,sym):
     ask=vwap(ob.get("asks") or [],NOTIONAL)
     if bid is None or ask is None: raise RuntimeError("insufficient depth")
     return bid,ask
+
+
+def paired_books(gate,gsym,okx,osym):
+    def timed(ex,sym):
+        t0=int(time.time()*1000)
+        bid,ask=book(ex,sym)
+        t1=int(time.time()*1000)
+        return {"bid":bid,"ask":ask,"mid_ts":(t0+t1)//2,"latency_ms":t1-t0}
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        fg=pool.submit(timed,gate,gsym)
+        fo=pool.submit(timed,okx,osym)
+        g=fg.result();o=fo.result()
+    gap=abs(g["mid_ts"]-o["mid_ts"])
+    return g,o,gap
 
 def hist(ex,sym):
     since=int((time.time()-10*86400)*1000)
@@ -178,8 +194,15 @@ def main():
 
     for sample_no in range(SAMPLES):
         now=time.time(); nowms=int(now*1000)
-        gbid,gask=book(gate,gsym)
-        obid,oask=book(okx,osym)
+        gbook,obook,quote_gap_ms=paired_books(gate,gsym,okx,osym)
+        gbid,gask=gbook["bid"],gbook["ask"]
+        obid,oask=obook["bid"],obook["ask"]
+        if quote_gap_ms>MAX_QUOTE_GAP_MS:
+            row={"utc":utc(),"sample":sample_no,"phase":st["phase"],
+                 "quote_gap_ms":quote_gap_ms,"event":"REJECT_STALE_PAIR"}
+            samples.append(row);append_ts(row);save_state(st)
+            if sample_no<SAMPLES-1:time.sleep(SLEEP_SEC)
+            continue
         gmid=(gbid+gask)/2; omid=(obid+oask)/2
         x=(omid/gmid-1)*10000
         z=(x-bl["mean"])/bl["sd"]
@@ -297,7 +320,9 @@ def main():
         row={"utc":utc(),"sample":sample_no,"phase":st["phase"],
              "gate_bid":gbid,"gate_ask":gask,"okx_bid":obid,"okx_ask":oask,
              "mid_basis_bps":x,"z":z,"baseline_mean_bps":bl["mean"],
-             "baseline_sd_bps":bl["sd"],"event":event or ""}
+             "baseline_sd_bps":bl["sd"],"quote_gap_ms":quote_gap_ms,
+             "gate_latency_ms":gbook["latency_ms"],"okx_latency_ms":obook["latency_ms"],
+             "event":event or ""}
         samples.append(row); append_ts(row); save_state(st)
         if sample_no<SAMPLES-1: time.sleep(SLEEP_SEC)
 
