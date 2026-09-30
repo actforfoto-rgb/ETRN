@@ -30,6 +30,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Build MOEX event walk-forward
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_intraday_event_walkforward.py
+
       - name: Build config
         run: python NORM_LAB/ARBITRAGE_RADAR/build_event_route_config.py
       - name: Persist config
@@ -37,7 +40,7 @@ jobs:
         run: |
           git config user.name "NORM LAB Route Config"
           git config user.email "actions@users.noreply.github.com"
-          git add NORM_LAB/ARBITRAGE_RADAR/production/event_route_config.json
+          git add NORM_LAB/ARBITRAGE_RADAR/results/moex_intraday_event_walkforward.json NORM_LAB/ARBITRAGE_RADAR/production/event_route_config.json
           if git diff --cached --quiet; then
             echo "No config changes"
           else
