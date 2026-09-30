@@ -15,7 +15,7 @@ LAST_FILE=STATE_DIR/"crypto_validated_fast_last.json"
 TS_FILE=STATE_DIR/"crypto_validated_fast_timeseries.csv"
 
 NOTIONAL=1000.0
-SAMPLES=6
+SAMPLES=3
 SLEEP_SEC=10
 HIST_BARS=72
 EXIT_Z=0.5
