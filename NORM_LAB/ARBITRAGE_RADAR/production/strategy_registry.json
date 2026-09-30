@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-30T07:38:00+03:00",
+  "updated_at": "2026-09-30T09:35:00+03:00",
   "strategies": [
     {
       "id": "MOEX_IMOEX_PERP_CURVE",
@@ -67,21 +67,33 @@
     },
     {
       "id": "MOEX_SI_CALENDAR_EVENT",
-      "status": "SHADOW_CANDIDATE",
+      "status": "SHADOW_PRIMARY",
       "route": "SiZ6 ↔ SiH7",
       "mechanism": "transient calendar-spread dislocation and convergence",
       "evidence": {
-        "source": "1-minute ISS candle event backtest; current conservative cost proxy",
-        "bars": 1481,
-        "events": 20,
-        "positive_pct": 90,
-        "median_net_rub": 13.14,
-        "aggregate_net_rub": 202.8,
-        "worst_net_rub": -30.86,
-        "best_net_rub": 24.14
+        "full_events": 20,
+        "full_positive_pct": 90,
+        "full_median_net_rub": 13.14,
+        "full_aggregate_net_rub": 202.8,
+        "train": {
+          "n": 11,
+          "positive_pct": 100,
+          "median_net_rub": 13.14,
+          "aggregate_net_rub": 144.54,
+          "worst_net_rub": 4.14,
+          "best_net_rub": 24.14
+        },
+        "holdout": {
+          "n": 9,
+          "positive_pct": 77.7778,
+          "median_net_rub": 11.14,
+          "aggregate_net_rub": 58.26,
+          "worst_net_rub": -30.86,
+          "best_net_rub": 22.14
+        }
       },
-      "caveat": "Candle-close backtest is not executable evidence. Requires live bid/ask event ledger, depth and latency before PAPER.",
-      "next_gate": "SHADOW_EVENT_LEDGER"
+      "caveat": "Historical evidence is minute candle-close plus conservative cost proxy. PAPER requires live bid/ask/depth/latency closed shadow cycles.",
+      "next_gate": "LIVE_BIDASK_SHADOW"
     },
     {
       "id": "MOEX_GAZP_PERP_FIXED_EVENT",
@@ -95,6 +107,75 @@
         "aggregate_net_rub": 59.36
       },
       "caveat": "Sample too small; requires more events and executable live bid/ask validation."
+    },
+    {
+      "id": "CRYPTO_TRANSIENT_PERP_EVENT",
+      "status": "SHADOW_PRIMARY",
+      "scope": "all supported USDT perpetuals across OKX/Bitget/Gate/MEXC/HTX",
+      "mechanism": "temporary cross-venue perp basis dislocation and convergence",
+      "evidence": {
+        "train_selected_routes": 20,
+        "holdout_pass_routes": 17,
+        "examples": [
+          {
+            "route": "APT Gate↔HTX z2.5",
+            "holdout_n": 4,
+            "positive_pct": 100,
+            "median_net_bps": 22.72,
+            "aggregate_net_bps": 96.58
+          },
+          {
+            "route": "ICP Gate↔HTX z2.5",
+            "holdout_n": 5,
+            "positive_pct": 100,
+            "median_net_bps": 15.84,
+            "aggregate_net_bps": 86.2
+          },
+          {
+            "route": "DOT Gate↔HTX z2.5",
+            "holdout_n": 4,
+            "positive_pct": 100,
+            "median_net_bps": 19.47,
+            "aggregate_net_bps": 91.33
+          }
+        ]
+      },
+      "caveat": "Historical OHLCV closes are not executable fills. Promotion requires live order-book event ledger.",
+      "next_gate": "LIVE_ORDERBOOK_SHADOW"
+    },
+    {
+      "id": "CRYPTO_PREFUNDED_SPOT_EVENT",
+      "status": "SHADOW_CANDIDATE",
+      "mechanism": "prefunded buy-low/sell-high inventory rotation with later reverse rebalance",
+      "evidence": {
+        "train_selected_routes": 14,
+        "holdout_pass_routes": 12,
+        "examples": [
+          {
+            "route": "HBAR Gate↔HTX z3",
+            "holdout_n": 5,
+            "positive_pct": 100,
+            "median_net_bps": 55.83,
+            "aggregate_net_bps": 291.61
+          },
+          {
+            "route": "APT HTX↔MEXC z3",
+            "holdout_n": 3,
+            "positive_pct": 100,
+            "median_net_bps": 45.93,
+            "aggregate_net_bps": 131.28
+          },
+          {
+            "route": "ICP HTX↔MEXC z3",
+            "holdout_n": 6,
+            "positive_pct": 100,
+            "median_net_bps": 19.59,
+            "aggregate_net_bps": 143.55
+          }
+        ]
+      },
+      "caveat": "Some spot gaps are extremely large (especially OP/HBAR vs HTX). Instrument/network identity and live transfer/trading status must be audited before promotion.",
+      "next_gate": "IDENTITY_AND_LIVE_ORDERBOOK_AUDIT"
     }
   ],
   "live_enabled": false,
