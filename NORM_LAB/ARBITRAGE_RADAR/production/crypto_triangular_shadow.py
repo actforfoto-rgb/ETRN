@@ -83,6 +83,66 @@ def append(rows):
         if new:w.writeheader()
         for r in rows:w.writerow({k:r.get(k,"") for k in FIELDS})
 
+
+def scan_usdc_triangles(name,ex,fee):
+    out=[]
+    usdc_usdt=find(ex,"USDC","USDT")
+    if not usdc_usdt:return out
+    ubook=book(ex,usdc_usdt,name)
+    if not ubook:return out
+
+    for asset in ("BTC","ETH"):
+        ausdt=find(ex,asset,"USDT")
+        ausdc=find(ex,asset,"USDC")
+        if not ausdt or not ausdc:continue
+        busdt=book(ex,ausdt,name)
+        busdc=book(ex,ausdc,name)
+        if not busdt or not busdc:continue
+
+        for cap in CAPITALS:
+            # USDT -> USDC -> ASSET -> USDT
+            usdc_qty,p1=vwap_quote_to_base(ubook["asks"],cap)
+            if usdc_qty:
+                usdc_after=usdc_qty*(1-fee)
+                asset_qty,p2=vwap_quote_to_base(busdc["asks"],usdc_after)
+                if asset_qty:
+                    asset_after=asset_qty*(1-fee)
+                    final,p3=vwap_base_to_quote(busdt["bids"],asset_after)
+                    if final:
+                        final*=1-fee
+                        gross=(final/cap-1)*10000
+                        net=gross-EXTRA_BUFFER_BPS
+                        out.append({
+                          "utc":utc(),"venue":name,"anchor":"USDC","asset":asset,
+                          "direction":"USDT->USDC->ASSET->USDT","capital_usdt":cap,
+                          "gross_bps":gross,"fee_bps":3*fee*10000,
+                          "buffer_bps":EXTRA_BUFFER_BPS,"net_bps":net,
+                          "leg1_price":p1,"leg2_price":p2,"leg3_price":p3,
+                          "status":"EXECUTABLE_CANDIDATE" if net>=MIN_NET_BPS else "REJECT"
+                        })
+
+            # USDT -> ASSET -> USDC -> USDT
+            asset_qty,p1=vwap_quote_to_base(busdt["asks"],cap)
+            if asset_qty:
+                asset_after=asset_qty*(1-fee)
+                usdc_quote,p2=vwap_base_to_quote(busdc["bids"],asset_after)
+                if usdc_quote:
+                    usdc_after=usdc_quote*(1-fee)
+                    final,p3=vwap_base_to_quote(ubook["bids"],usdc_after)
+                    if final:
+                        final*=1-fee
+                        gross=(final/cap-1)*10000
+                        net=gross-EXTRA_BUFFER_BPS
+                        out.append({
+                          "utc":utc(),"venue":name,"anchor":"USDC","asset":asset,
+                          "direction":"USDT->ASSET->USDC->USDT","capital_usdt":cap,
+                          "gross_bps":gross,"fee_bps":3*fee*10000,
+                          "buffer_bps":EXTRA_BUFFER_BPS,"net_bps":net,
+                          "leg1_price":p1,"leg2_price":p2,"leg3_price":p3,
+                          "status":"EXECUTABLE_CANDIDATE" if net>=MIN_NET_BPS else "REJECT"
+                        })
+    return out
+
 def scan_venue(name,ex):
     fee=TAKER[name]
     out=[];errors=[]
@@ -156,6 +216,7 @@ def scan_venue(name,ex):
                           "leg1_price":p1,"leg2_price":p2,"leg3_price":p3,
                           "status":"EXECUTABLE_CANDIDATE" if net>=MIN_NET_BPS else "REJECT"
                         })
+    out.extend(scan_usdc_triangles(name,ex,fee))
     out.sort(key=lambda r:r["net_bps"],reverse=True)
     return out,errors
 
