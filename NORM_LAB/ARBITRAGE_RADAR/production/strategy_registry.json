@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-30T10:15:00Z",
+  "updated_at": "2026-09-30T14:02:00+03:00",
   "strategies": [
     {
       "id": "MOEX_IMOEX_PERP_CURVE",
@@ -275,6 +275,68 @@
       "mechanism": "guarded transient dislocation scanner over MOEX futures/calendar/spot/perp relations",
       "rule": "validated-route only; extreme-z regime reset; 2-scan confirmation; fresh two-sided quotes",
       "next_gate": "30+ closed v2 cycles across >=3 days"
+    },
+    {
+      "id": "MOEX_CALENDAR_EVENT_UNIVERSE",
+      "status": "SHADOW_PRIMARY_DIRECT_PAGE",
+      "mechanism": "transient mean-reversion in exchange calendar spreads; route changes event by event",
+      "evidence": {
+        "discovery_candidates": 50,
+        "tested_routes": 28,
+        "holdout_pass_routes": 22,
+        "top": [
+          {
+            "route": "MIX-12.26-3.27",
+            "holdout_n": 10,
+            "positive_pct": 100,
+            "median_net_rub": 161.8,
+            "aggregate_net_rub": 1768,
+            "worst_net_rub": 11.8
+          },
+          {
+            "route": "RTS-12.26-3.27",
+            "holdout_n": 3,
+            "positive_pct": 100,
+            "median_net_rub": 112.17094,
+            "aggregate_net_rub": 420.94112
+          },
+          {
+            "route": "Si-12.26-3.27",
+            "holdout_n": 32,
+            "positive_pct": 90.625,
+            "median_net_rub": 12.64,
+            "aggregate_net_rub": 246.48
+          },
+          {
+            "route": "MXI-12.26-3.27",
+            "holdout_n": 13,
+            "positive_pct": 100,
+            "median_net_rub": 12.88,
+            "aggregate_net_rub": 168.94
+          },
+          {
+            "route": "WHEAT-10.26-11.26",
+            "holdout_n": 9,
+            "positive_pct": 88.8889,
+            "median_net_rub": 21.3,
+            "aggregate_net_rub": 211.7
+          }
+        ]
+      },
+      "live_shadow": "production/moex_calendar_page_universe_shadow.py",
+      "caveat": "Historical signal uses synchronized active 1-minute leg candles plus conservative cost proxy. Direct MOEX page bid/ask shadow is required; broker/API executable feed is required before PAPER.",
+      "next_gate": "30+ closed direct-spread shadow cycles across >=3 trading days; aggregate and median NET >0; largest-win share <=50%",
+      "live_enabled": false
+    },
+    {
+      "id": "CRYPTO_MAKER_EVENT_UNIVERSE",
+      "status": "SHADOW_PENDING_CONSERVATIVE_FILL_VALIDATION",
+      "mechanism": "maker entry on selected non-HTX venue, immediate taker hedge after evidenced fill, taker/taker convergence exit",
+      "historical_source": "crypto_maker_taker_180d.json",
+      "live_shadow": "production/crypto_maker_universe_shadow.py",
+      "caveat": "OHLC maker-taker result does not prove maker fill probability. Conservative trade-through/adverse-hour backtest and live fill-evidence ledger are mandatory.",
+      "next_gate": "conservative fill-model holdout pass + 30 closed live shadow cycles across >=3 days",
+      "live_enabled": false
     }
   ],
   "live_enabled": false,
