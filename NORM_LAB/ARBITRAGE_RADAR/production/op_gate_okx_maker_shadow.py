@@ -28,6 +28,7 @@ EXIT_Z=0.5
 STOP_Z=5.0
 MAX_HOLD_SEC=12*3600
 MAX_MAKER_WAIT_SEC=15*60
+MAKER_FILL_COVERAGE_MULT=2.0
 EXTRA_BUFFER_BPS=8.0
 MIN_EXPECTED_NET_BPS=5.0
 MAX_QUOTE_GAP_MS=750
@@ -143,16 +144,25 @@ def recent_trades(ex,sym,since_ms):
     out=[]
     for x in rr:
         try:
-            out.append({"ts":int(x.get("timestamp") or 0),"price":float(x.get("price"))})
+            out.append({"ts":int(x.get("timestamp") or 0),
+                        "price":float(x.get("price")),
+                        "amount":float(x.get("amount") or 0.0)})
         except:pass
     return out
 
-def maker_filled(side,limit_px,trades):
-    # Conservative shadow fill: require a public trade THROUGH our price.
-    # Merely touching best bid/ask is not treated as a fill.
+def maker_fill_evidence(side,limit_px,trades,target_qty):
+    # Conservative shadow fill:
+    # 1) require trades THROUGH our maker price (not just touch);
+    # 2) require cumulative public traded quantity through the price to exceed
+    #    a multiple of our own modeled quantity. This is a queue-depth proxy.
     if side=="BUY":
-        return any(t["price"] < limit_px for t in trades)
-    return any(t["price"] > limit_px for t in trades)
+        eligible=[t for t in trades if t["price"] < limit_px]
+    else:
+        eligible=[t for t in trades if t["price"] > limit_px]
+    qty=sum(max(0.0,float(t.get("amount") or 0.0)) for t in eligible)
+    required=max(0.0,target_qty)*MAKER_FILL_COVERAGE_MULT
+    return {"filled":qty>=required and required>0,
+            "through_qty":qty,"required_qty":required}
 
 def entry_expected(direction,gate_limit,okx_bid,okx_ask,mean):
     if direction=="LONG_GATE_SHORT_OKX":
@@ -230,7 +240,8 @@ def main():
                     st={"phase":"ENTRY_MAKER_WAIT",
                         "pending":{"direction":direction,"gate_side":gate_side,
                                    "gate_limit":gate_limit,"placed_ts":now,
-                                   "placed_ms":nowms,"entry_z":z,
+                                   "placed_ms":nowms,"target_qty":NOTIONAL/gate_limit,
+                                   "entry_z":z,
                                    "expected_net_bps":exp,
                                    "entry_exec_basis_bps":exec_basis},
                         "position":None}
@@ -242,20 +253,23 @@ def main():
         elif st["phase"]=="ENTRY_MAKER_WAIT":
             p=st["pending"]; wait=now-p["placed_ts"]
             trades=recent_trades(gate,gsym,p["placed_ms"])
-            if maker_filled(p["gate_side"],p["gate_limit"],trades):
+            fill=maker_fill_evidence(p["gate_side"],p["gate_limit"],trades,p["target_qty"])
+            if fill["filled"]:
                 # Hedge immediately at current OKX taker price.
                 okx_hedge=obid if p["direction"]=="LONG_GATE_SHORT_OKX" else oask
                 st={"phase":"HEDGED","pending":None,
                     "position":{"direction":p["direction"],"opened_ts":now,
                                 "gate_entry":p["gate_limit"],"okx_entry":okx_hedge,
                                 "entry_z":p["entry_z"],
-                                "expected_net_bps":p["expected_net_bps"]}}
+                                "expected_net_bps":p["expected_net_bps"],
+                                "target_qty":p["target_qty"]}}
                 event="ENTRY_FILLED_HEDGED"
                 append({"utc":utc(),"event":event,"direction":p["direction"],
                         "gate_limit":p["gate_limit"],"gate_fill":p["gate_limit"],
                         "okx_hedge":okx_hedge,"entry_z":p["entry_z"],
                         "expected_net_bps":p["expected_net_bps"],
-                        "maker_wait_sec":wait,"reason":"TRADE_THROUGH_FILL"})
+                        "maker_wait_sec":wait,
+                        "reason":f"TRADE_THROUGH_FILL qty={fill['through_qty']:.8f} req={fill['required_qty']:.8f}"})
             elif wait>=MAX_MAKER_WAIT_SEC or abs(z)<ENTRY_Z*0.75:
                 event="ENTRY_MAKER_CANCEL"
                 append({"utc":utc(),"event":event,"direction":p["direction"],
@@ -279,6 +293,7 @@ def main():
                 st={"phase":"EXIT_MAKER_WAIT",
                     "pending":{"direction":p["direction"],"gate_side":side,
                                "gate_limit":limit_px,"placed_ts":now,"placed_ms":nowms,
+                               "target_qty":p.get("target_qty",NOTIONAL/max(limit_px,1e-12)),
                                "exit_z":z,"reason":reason,
                                "position":p},
                     "position":p}
@@ -291,7 +306,8 @@ def main():
         elif st["phase"]=="EXIT_MAKER_WAIT":
             p=st["pending"]; wait=now-p["placed_ts"]; pos=p["position"]
             trades=recent_trades(gate,gsym,p["placed_ms"])
-            if maker_filled(p["gate_side"],p["gate_limit"],trades):
+            fill=maker_fill_evidence(p["gate_side"],p["gate_limit"],trades,p["target_qty"])
+            if fill["filled"]:
                 # Gate close filled; immediately flatten OKX at taker.
                 if pos["direction"]=="LONG_GATE_SHORT_OKX":
                     okx_exit=oask
@@ -308,7 +324,8 @@ def main():
                         "expected_net_bps":pos["expected_net_bps"],
                         "funding_bps":funding_bps,
                         "realized_net_bps":pnl,"hold_sec":now-pos["opened_ts"],
-                        "maker_wait_sec":wait,"reason":p["reason"]})
+                        "maker_wait_sec":wait,
+                        "reason":f"{p['reason']} fill_qty={fill['through_qty']:.8f} req={fill['required_qty']:.8f}"})
                 st={"phase":"FLAT","pending":None,"position":None}
             elif wait>=MAX_MAKER_WAIT_SEC:
                 # Shadow safety: do not assume maker exit. Record unresolved; real engine would
