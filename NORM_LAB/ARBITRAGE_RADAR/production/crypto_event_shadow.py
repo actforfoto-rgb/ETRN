@@ -227,7 +227,9 @@ def main():
          "validated_only":validated_only,"validated_routes":len(validated),
          "relations":len(rels),"opened":opened,"closed":closed,"open_positions":state["positions"],
          "top_anomalies":sorted([x for x in scans if x["z"] is not None],
-                                key=lambda x:abs(x["z"]),reverse=True)[:40]}
+                                key=lambda x:abs(x["z"]),reverse=True)[:40],
+         "top_executable":sorted([x for x in scans if x.get("best_expected_net_bps") is not None],
+                                 key=lambda x:x["best_expected_net_bps"],reverse=True)[:40]}
  SCAN_FILE.write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
  print(json.dumps({"relations":len(rels),"opened":len(opened),"closed":closed,
                    "top":report["top_anomalies"][:10]},ensure_ascii=False,indent=2))
