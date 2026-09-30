@@ -29,6 +29,12 @@ jobs:
           ref: norm-arb-r01
           fetch-depth: 0
 
+      - name: Sync working branch
+        shell: bash
+        run: |
+          git fetch origin norm-arb-r01
+          git reset --hard origin/norm-arb-r01
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -136,7 +142,11 @@ jobs:
             pushed=0
             for attempt in 1 2 3 4; do
               git fetch origin norm-arb-r01
-              git -c rebase.autoStash=true rebase origin/norm-arb-r01 || { git rebase --abort || true; sleep 2; continue; }
+              if ! git merge --no-edit -X ours origin/norm-arb-r01; then
+                git merge --abort || true
+                sleep 2
+                continue
+              fi
               if git push origin HEAD:norm-arb-r01; then
                 pushed=1
                 break
