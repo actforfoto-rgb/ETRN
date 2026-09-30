@@ -120,9 +120,11 @@ def choose_routes(cfg):
             score=(float(h.get("median_net_bps") or 0)
                    * math.sqrt(max(1,int(h.get("n") or 1))))
             rows.append((score,kind,key,r))
-    # enough breadth but keeps each run fast
-    rows.sort(key=lambda x:x[0],reverse=True)
-    return rows[:10]
+    # Prefer routes that still pass after an additional +10 bps stress.
+    stress=[x for x in rows if bool(x[3].get("stress10_pass"))]
+    chosen=stress if stress else rows
+    chosen.sort(key=lambda x:x[0],reverse=True)
+    return chosen[:10]
 
 def main():
     cfg=load_cfg()
