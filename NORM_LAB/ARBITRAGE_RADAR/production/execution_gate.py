@@ -77,16 +77,42 @@ def op_gate_okx():
     else:x["status"]="WAITING_FOR_EVENT"
     return x
 
+def tight_crypto_gate():
+    rows=read_csv(STATE/"crypto_tight_fast_timeseries.csv")
+    by={}
+    for r in rows:
+        key=r.get("route")
+        if not key:continue
+        z=abs(fnum(r,"z",0.0) or 0.0)
+        best=max(fnum(r,"expected_high_bps",-1e9),fnum(r,"expected_low_bps",-1e9))
+        x=by.setdefault(key,{"samples":0,"trigger_obs":0,"positive_exec_obs":0,
+                             "max_expected_net_bps":-1e99,"entry_z":3.0})
+        x["samples"]+=1
+        x["max_expected_net_bps"]=max(x["max_expected_net_bps"],best)
+        if z>=3.0:
+            x["trigger_obs"]+=1
+            if best>0:x["positive_exec_obs"]+=1
+    out={}
+    for key,x in by.items():
+        if x["positive_exec_obs"]>=MIN_POSITIVE_EXEC_OBS:
+            status="EXECUTION_CONFIRMED_SHADOW"
+        elif x["trigger_obs"]>=MIN_TRIGGER_OBS_FAIL and x["positive_exec_obs"]==0:
+            status="EXECUTION_FAIL"
+        else:
+            status="WAITING_FOR_EVENT"
+        out[key]={**x,"status":status}
+    return out
+
 def si_gate():
     rows=read_csv(STATE/"si_calendar_fast_timeseries.csv")
     x={"samples":0,"trigger_obs":0,"positive_exec_obs":0,
-       "max_expected_net_rub":None,"entry_z":2.5}
+       "max_expected_net_rub":None,"entry_z":3.0}
     bests=[]
     for r in rows:
         z=abs(fnum(r,"z",0.0) or 0.0)
         best=max(fnum(r,"expected_high_rub",-1e99),fnum(r,"expected_low_rub",-1e99))
         x["samples"]+=1;bests.append(best)
-        if z>=2.5:
+        if z>=3.0:
             x["trigger_obs"]+=1
             if best>0:x["positive_exec_obs"]+=1
     x["max_expected_net_rub"]=max(bests) if bests else None
@@ -112,6 +138,7 @@ def main():
     result={
       "crypto_historical_whitelist_execution":crypto_validated(),
       "crypto_op_gate_okx_60d_candidate":op_gate_okx(),
+      "crypto_tight_venues":tight_crypto_gate(),
       "moex_si_calendar":si_gate(),
       "rule":"Historical edge alone never promotes. A route must survive live executable bid/ask/VWAP observations."
     }
