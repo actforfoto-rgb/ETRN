@@ -1,0 +1,50 @@
+name: NORM ARBITRAGE Spot Identity Audit
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'NORM_LAB/ARBITRAGE_RADAR/IDENTITY_TRIGGER.txt'
+      - '.github/workflows/norm-arb-identity-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: norm-arb-identity-audit
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout ARB branch
+        uses: actions/checkout@v4
+        with:
+          ref: norm-arb-r01
+          fetch-depth: 0
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install ccxt
+        run: python -m pip install --disable-pip-version-check --quiet ccxt
+      - name: Run identity audit
+        run: python NORM_LAB/ARBITRAGE_RADAR/crypto_spot_identity_audit.py
+      - name: Persist audit
+        shell: bash
+        run: |
+          git config user.name "NORM LAB Identity Audit"
+          git config user.email "actions@users.noreply.github.com"
+          git add NORM_LAB/ARBITRAGE_RADAR/results/crypto_spot_identity_audit.json
+          if git diff --cached --quiet; then
+            echo "No audit changes"
+          else
+            git commit -m "ARB spot identity audit [skip ci]"
+            git fetch origin norm-arb-r01
+            git -c rebase.autoStash=true rebase origin/norm-arb-r01
+            git push origin HEAD:norm-arb-r01
+          fi
