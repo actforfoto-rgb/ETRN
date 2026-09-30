@@ -18,7 +18,7 @@ MSK=ZoneInfo("Europe/Moscow")
 S=requests.Session();S.headers.update({"User-Agent":"NORM-LAB-ARBITRAGE-EVENT-HUNTER/1.0"})
 
 ALPHA=0.12
-MIN_BASELINE_SCANS=12
+MIN_BASELINE_SCANS=8
 ENTRY_Z=2.5
 EXIT_Z=0.5
 STOP_Z=5.0
