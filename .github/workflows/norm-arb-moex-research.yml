@@ -41,6 +41,10 @@ jobs:
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_m01_probe.py
 
+      - name: Discover Si calendar ISS route
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_spread_iss_discovery.py
+
       - name: Probe MOEX options market
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_options_probe.py
