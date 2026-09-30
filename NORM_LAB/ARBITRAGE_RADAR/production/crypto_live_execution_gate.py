@@ -78,9 +78,6 @@ def main():
               "max_abs_z":max(g["z"]) if g["z"] else None,
               "live_status":live_status
             }
-            meta["live_execution"]=audit[key]
-
-    CFG.write_text(json.dumps(cfg,ensure_ascii=False,indent=2),encoding="utf-8")
     OUT.write_text(json.dumps(audit,ensure_ascii=False,indent=2),encoding="utf-8")
     print(json.dumps({
       "routes":len(audit),
