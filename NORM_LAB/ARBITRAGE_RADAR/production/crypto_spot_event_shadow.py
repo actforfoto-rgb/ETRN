@@ -6,6 +6,7 @@ from pathlib import Path
 import ccxt
 
 ROOT=Path(__file__).resolve().parent
+CONFIG_FILE=ROOT/"event_route_config.json"
 STATE_DIR=ROOT/"event_state"
 STATE_DIR.mkdir(parents=True,exist_ok=True)
 STATE_FILE=STATE_DIR/"crypto_spot_event_state.json"
@@ -34,6 +35,13 @@ LEDGER_FIELDS=[
 ]
 
 def utc(): return datetime.now(timezone.utc).isoformat()
+
+def load_validated_routes():
+    try:
+        j=json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
+        return j.get("crypto_spot") or {}
+    except Exception:
+        return {}
 
 def load_state():
     if STATE_FILE.exists():
@@ -125,6 +133,8 @@ def mark_pnl(pos,r):
 
 def main():
     state=load_state()
+    validated=load_validated_routes()
+    validated_only=bool(validated)
     snap,coverage,errors=snapshot()
     rels=[]
     for base in ASSETS:
@@ -162,7 +172,12 @@ def main():
         st,z=stat_before_update(state,r["key"],r["x"])
         mean=float(st["mean"]);sd=math.sqrt(max(float(st["var"]),0)) if st["var"]>0 else None
 
-        if z is not None and abs(z)>=ENTRY_Z and r["key"] not in state["positions"]:
+        route_key="|".join([r["base"]]+sorted([r["a"],r["b"]]))
+        route_cfg=validated.get(route_key)
+        entry_z=float(route_cfg.get("entry_z",ENTRY_Z)) if route_cfg else ENTRY_Z
+        if z is not None and abs(z)>=entry_z and r["key"] not in state["positions"]:
+            if validated_only and not route_cfg:
+                continue
             costs=r["fee_bps"]+r["exit_spread_bps"]+EXTRA_BUFFER_BPS
             direction=None;expected=None;buy=None;sell=None;exec_spread=None
             if z>0:
@@ -196,6 +211,7 @@ def main():
 
     save_state(state)
     report={"utc":utc(),"notional":NOTIONAL,"coverage":coverage,"errors":errors[:50],
+            "validated_only":validated_only,"validated_routes":len(validated),
             "relations":len(rels),"opened":opened,"closed":closed,"open_positions":state["positions"],
             "top_anomalies":sorted([x for x in scans if x["z"] is not None],
                                    key=lambda x:abs(x["z"]),reverse=True)[:40]}
