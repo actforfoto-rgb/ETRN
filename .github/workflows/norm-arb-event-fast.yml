@@ -39,10 +39,15 @@ jobs:
 
       - name: Compile fast hunters
         run: |
+          python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/op_gate_okx_fast_shadow.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/crypto_validated_fast_shadow.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/crypto_live_execution_gate.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/si_calendar_fast_shadow.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/si_calendar_page_shadow.py
+
+      - name: Run dedicated OP Gate-OKX fast shadow
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/production/op_gate_okx_fast_shadow.py
 
       - name: Run validated crypto fast shadow
         continue-on-error: true
