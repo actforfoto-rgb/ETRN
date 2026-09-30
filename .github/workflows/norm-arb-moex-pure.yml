@@ -1,0 +1,76 @@
+name: NORM ARBITRAGE MOEX Pure Arb
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'NORM_LAB/ARBITRAGE_RADAR/PURE_ARB_TRIGGER.txt'
+      - '.github/workflows/norm-arb-moex-pure.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: norm-arb-moex-pure
+  cancel-in-progress: false
+
+jobs:
+  pure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: norm-arb-r01
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: python -m pip install --disable-pip-version-check --quiet requests beautifulsoup4
+
+      - name: Compile pure arbitrage scanner
+        run: python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/moex_direct_synthetic_arb_shadow.py
+
+      - name: Scan direct versus synthetic calendar arbitrage
+        run: python NORM_LAB/ARBITRAGE_RADAR/production/moex_direct_synthetic_arb_shadow.py
+
+      - name: Persist pure arbitrage state
+        if: always()
+        shell: bash
+        run: |
+          git config user.name "NORM LAB Pure Arb"
+          git config user.email "actions@users.noreply.github.com"
+          git add NORM_LAB/ARBITRAGE_RADAR/production/event_state || true
+          if git diff --cached --quiet; then
+            echo "No pure-arb changes"
+          else
+            git commit -m "ARB MOEX pure direct-synthetic state [skip ci]"
+            pushed=0
+            for attempt in 1 2 3 4; do
+              git fetch origin norm-arb-r01
+              if ! git merge --no-edit -X ours origin/norm-arb-r01; then
+                git merge --abort || true
+                sleep 2
+                continue
+              fi
+              if git push origin HEAD:norm-arb-r01; then
+                pushed=1
+                break
+              fi
+              sleep 2
+            done
+            test "$pushed" -eq 1
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: NORM_ARB_MOEX_PURE
+          path: NORM_LAB/ARBITRAGE_RADAR/production/event_state
+          if-no-files-found: warn
