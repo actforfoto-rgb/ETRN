@@ -134,7 +134,8 @@ def prep():
         out.append({"spread":r["spread"],"near":r["near"],"far":r["far"],
                     "entry_z":float(r["selected_entry_z"]),"mean":statistics.fmean(xs),"sd":sd,
                     "unit":u,"cost":float(r.get("cost_proxy_rub") or 0)+EXTRA_COST_STRESS_RUB,
-                    "holdout":h})
+                    "holdout":r.get("holdout") or {},
+                    "risk":r.get("risk") or {}})
     return out
 
 def load_state():
@@ -154,6 +155,11 @@ def append(path,fields,row):
 
 def main():
     routes=prep();st=load_state();samples=[]
+    allowed={r["spread"] for r in routes}
+    # Remove stale routes from earlier broader shortlists, but preserve any open
+    # position defensively until it is explicitly closed.
+    st["routes"]={k:v for k,v in (st.get("routes") or {}).items()
+                  if k in allowed or (v.get("position") is not None)}
     for r in routes:
         st["routes"].setdefault(r["spread"],{"phase":"FLAT","position":None,"last_sig":None,"last_change_ts":0})
 
