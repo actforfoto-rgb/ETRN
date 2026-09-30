@@ -8,11 +8,24 @@ RESULTS=ROOT/"results"
 PROD=ROOT/"production"
 OUT=PROD/"event_route_config.json"
 
+def transfer_ok(audit,venue,base):
+    try:
+        cur=audit["venues"][venue][base]["currency"]
+    except Exception:
+        return False
+    if not cur or not cur.get("available"):
+        return False
+    if cur.get("deposit") is not True or cur.get("withdraw") is not True:
+        return False
+    nets=cur.get("networks") or []
+    return any(n.get("deposit") is True and n.get("withdraw") is True for n in nets)
+
 def main():
     cfg={
       "updated_from_research":True,
       "crypto_perp":{},
       "crypto_spot":{},
+      "crypto_spot_rejected_operational":{},
       "moex":{},
       "notes":[
         "Universe remains fully scanned.",
@@ -20,6 +33,12 @@ def main():
         "This file never enables real-money trading."
       ]
     }
+
+    audit_path=RESULTS/"crypto_spot_identity_audit.json"
+    try:
+        identity=json.loads(audit_path.read_text(encoding="utf-8")) if audit_path.exists() else {}
+    except Exception:
+        identity={}
 
     cp=RESULTS/"crypto_event_walkforward.json"
     if cp.exists():
@@ -34,6 +53,15 @@ def main():
                 if h.get("n",0)<2 or h.get("aggregate_net_bps",0)<=0:continue
                 va,vb=sorted([r["venue_a"],r["venue_b"]])
                 key=f"{r['base']}|{va}|{vb}"
+                if dest=="crypto_spot":
+                    operational=transfer_ok(identity,r["venue_a"],r["base"]) and transfer_ok(identity,r["venue_b"],r["base"])
+                    if not operational:
+                        cfg["crypto_spot_rejected_operational"][key]={
+                          "base":r["base"],"venue_a":r["venue_a"],"venue_b":r["venue_b"],
+                          "entry_z":float(r["selected_entry_z"]),"holdout":h,
+                          "status":"REJECTED_TRANSFER_OR_IDENTITY_GATE"
+                        }
+                        continue
                 cfg[dest][key]={
                   "base":r["base"],"venue_a":r["venue_a"],"venue_b":r["venue_b"],
                   "entry_z":float(r["selected_entry_z"]),
@@ -59,6 +87,7 @@ def main():
     print(json.dumps({
       "crypto_perp":len(cfg["crypto_perp"]),
       "crypto_spot":len(cfg["crypto_spot"]),
+      "crypto_spot_rejected_operational":len(cfg["crypto_spot_rejected_operational"]),
       "moex":len(cfg["moex"])
     },ensure_ascii=False,indent=2))
 
