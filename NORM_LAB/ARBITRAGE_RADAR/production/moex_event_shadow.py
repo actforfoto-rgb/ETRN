@@ -270,6 +270,14 @@ def build_relations():
   r=relation_cash_future(tag,cfg["secid"],cfg["fixed"],fsecs,fmd,"CASH_FIXED")
   if r:rel.append(r)
 
+ for spot,perp in (("SBER","SBERF"),("GAZP","GAZPF")):
+  r=relation_spot_fixed(spot,perp,ssecs,smd,fsecs,fmd)
+  if r:
+   r["key"]=f"SP:{spot}:{perp}"
+   r["type"]="SPOT_PERP"
+   r["label"]=f"{spot}↔{perp}"
+   rel.append(r)
+
  groups={}
  today=datetime.now(MSK).date()
  for sid,s in fsecs.items():
@@ -354,9 +362,9 @@ def main():
    if z>0:
     gross=(r["hi"]-mean)*r["unit_rub"]
     if gross>costs:
-     direction="LONG_A_SHORT_B" if r["type"] not in ("SPOT_FIXED","CASH_PERP","CASH_FIXED") else "LONG_SPOT_SHORT_FUT"
+     direction="LONG_A_SHORT_B" if r["type"] not in ("SPOT_FIXED","SPOT_PERP","CASH_PERP","CASH_FIXED") else "LONG_SPOT_SHORT_FUT"
      entry_spread=r["hi"];expected=gross-costs
-   elif z<0 and r["type"] not in ("SPOT_FIXED","CASH_PERP","CASH_FIXED"):
+   elif z<0 and r["type"] not in ("SPOT_FIXED","SPOT_PERP","CASH_PERP","CASH_FIXED"):
     gross=(mean-r["lo"])*r["unit_rub"]
     if gross>costs:
      direction="SHORT_A_LONG_B";entry_spread=r["lo"];expected=gross-costs
