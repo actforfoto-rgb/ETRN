@@ -26,7 +26,7 @@ S=requests.Session()
 S.headers.update({"User-Agent":"NORM-LAB-SI-CALENDAR-PAGE/1.0"})
 
 LOOKBACK=60
-ENTRY_Z=2.5
+ENTRY_Z=3.0
 EXIT_Z=0.5
 STOP_Z=5.0
 MAX_HOLD_MIN=360
