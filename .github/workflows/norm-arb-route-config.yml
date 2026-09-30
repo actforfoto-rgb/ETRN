@@ -1,0 +1,48 @@
+name: NORM ARBITRAGE Route Config
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'NORM_LAB/ARBITRAGE_RADAR/ROUTE_CONFIG_TRIGGER.txt'
+      - '.github/workflows/norm-arb-route-config.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: norm-arb-route-config
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout ARB branch
+        uses: actions/checkout@v4
+        with:
+          ref: norm-arb-r01
+          fetch-depth: 0
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build config
+        run: python NORM_LAB/ARBITRAGE_RADAR/build_event_route_config.py
+      - name: Persist config
+        shell: bash
+        run: |
+          git config user.name "NORM LAB Route Config"
+          git config user.email "actions@users.noreply.github.com"
+          git add NORM_LAB/ARBITRAGE_RADAR/production/event_route_config.json
+          if git diff --cached --quiet; then
+            echo "No config changes"
+          else
+            git commit -m "ARB validated event route config [skip ci]"
+            git fetch origin norm-arb-r01
+            git -c rebase.autoStash=true rebase origin/norm-arb-r01
+            git push origin HEAD:norm-arb-r01
+          fi
