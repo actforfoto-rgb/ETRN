@@ -204,10 +204,14 @@ def once(st,mean,sd,nbase):
     effective_width=((effective_ask-effective_bid)*n["unit"]) if not crossed else None
     atomic_rt_fee=2*leg_fee
     meanrev_cost=(effective_width+atomic_rt_fee+EXTRA_RUB) if effective_width is not None else None
-    expected_sell=((effective_bid-live_mean)*n["unit"]-meanrev_cost)
-                   if live_mean is not None and meanrev_cost is not None else None
-    expected_buy=((live_mean-effective_ask)*n["unit"]-meanrev_cost)
-                  if live_mean is not None and meanrev_cost is not None else None
+    expected_sell=(
+        (effective_bid-live_mean)*n["unit"]-meanrev_cost
+        if live_mean is not None and meanrev_cost is not None else None
+    )
+    expected_buy=(
+        (live_mean-effective_ask)*n["unit"]-meanrev_cost
+        if live_mean is not None and meanrev_cost is not None else None
+    )
 
     pos=st.get("position")
     if crossed:
