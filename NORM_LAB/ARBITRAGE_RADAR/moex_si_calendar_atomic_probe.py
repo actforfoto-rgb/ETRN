@@ -11,7 +11,7 @@ BASE="https://iss.moex.com/iss"
 S=requests.Session()
 S.headers.update({"User-Agent":"NORM-LAB-SI-CALENDAR-SPREAD/1.0"})
 
-SPREAD="SiZ6SiH7"
+SPREAD="SIZ6SIH7"
 NEAR="SiZ6"
 FAR="SiH7"
 
