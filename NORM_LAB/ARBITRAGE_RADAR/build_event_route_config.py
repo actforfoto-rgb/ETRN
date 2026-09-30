@@ -32,7 +32,8 @@ def main():
                 if not r.get("holdout_pass"):continue
                 h=r.get("holdout") or {}
                 if h.get("n",0)<2 or h.get("aggregate_net_bps",0)<=0:continue
-                key=f"{r['base']}|{r['venue_a']}|{r['venue_b']}"
+                va,vb=sorted([r["venue_a"],r["venue_b"]])
+                key=f"{r['base']}|{va}|{vb}"
                 cfg[dest][key]={
                   "base":r["base"],"venue_a":r["venue_a"],"venue_b":r["venue_b"],
                   "entry_z":float(r["selected_entry_z"]),
