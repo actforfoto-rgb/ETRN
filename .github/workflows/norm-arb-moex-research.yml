@@ -93,6 +93,10 @@ jobs:
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_intraday_event_walkforward.py
 
+      - name: Build validated event route config
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/build_event_route_config.py
+
       - name: Select MOEX walk-forward thresholds
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_walkforward_selector.py
@@ -104,7 +108,7 @@ jobs:
           printf "DONE\n" > NORM_LAB/ARBITRAGE_RADAR/RUN_M01.flag
           git config user.name "NORM LAB MOEX Research"
           git config user.email "actions@users.noreply.github.com"
-          git add NORM_LAB/ARBITRAGE_RADAR/results NORM_LAB/ARBITRAGE_RADAR/RUN_M01.flag || true
+          git add NORM_LAB/ARBITRAGE_RADAR/results NORM_LAB/ARBITRAGE_RADAR/production/event_route_config.json NORM_LAB/ARBITRAGE_RADAR/RUN_M01.flag || true
           if git diff --cached --quiet; then
             echo "No MOEX result changes"
           else
