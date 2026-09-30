@@ -80,7 +80,10 @@ def candles(secid,kind,frm,till):
   if len(rr)<500:break
   start+=len(rr)
   if start>12000:break
- return {r.get("begin"):num(r.get("close")) for r in out if r.get("begin") and num(r.get("close")) is not None}
+ return {
+  r.get("begin"):{"close":num(r.get("close")),"volume":num(r.get("volume")) or 0.0}
+  for r in out if r.get("begin") and num(r.get("close")) is not None
+ }
 
 def infer_scale(a,b):
  c=[0.0001,0.001,0.01,0.1,1,10,100,1000,10000]
@@ -157,10 +160,11 @@ def build_spec(key):
  return None
 
 def relation_value(spec,pa,pb):
- return pb/spec["scale"]-pa
+ return pb["close"]/spec["scale"]-pa["close"]
 
 def simulate(spec,A,B):
- ts=sorted(set(A)&set(B))
+ ts=[t for t in sorted(set(A)&set(B))
+     if float(A[t].get("volume") or 0)>0 and float(B[t].get("volume") or 0)>0]
  hist=deque(maxlen=LOOKBACK)
  pos=None;trades=[]
  for t in ts:
