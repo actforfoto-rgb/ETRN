@@ -41,13 +41,14 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: python -m pip install --disable-pip-version-check --quiet ccxt requests beautifulsoup4
+        run: python -m pip install --disable-pip-version-check --quiet ccxt requests beautifulsoup4 beautifulsoup4
 
       - name: Compile event hunters
         run: |
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/crypto_event_shadow.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/crypto_spot_event_shadow.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/moex_event_shadow.py
+          python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/moex_calendar_page_universe_shadow.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/moex_calendar_universe_shadow.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/op_gate_okx_maker_shadow.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/si_calendar_page_shadow.py
@@ -79,6 +80,10 @@ jobs:
 
       - name: Run crypto spot event universe
         run: python NORM_LAB/ARBITRAGE_RADAR/production/crypto_spot_event_shadow.py
+
+      - name: Run MOEX validated calendar page universe
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/production/moex_calendar_page_universe_shadow.py
 
       - name: Run MOEX event universe
         run: python NORM_LAB/ARBITRAGE_RADAR/production/moex_event_shadow.py
