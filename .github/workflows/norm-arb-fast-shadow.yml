@@ -54,6 +54,9 @@ jobs:
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/production/si_calendar_page_shadow.py
 
+      - name: Run live execution gate
+        run: python NORM_LAB/ARBITRAGE_RADAR/production/execution_gate.py
+
       - name: Run promotion gatekeeper
         run: python NORM_LAB/ARBITRAGE_RADAR/production/gatekeeper.py
 
@@ -63,7 +66,7 @@ jobs:
         run: |
           git config user.name "NORM LAB Fast Shadow"
           git config user.email "actions@users.noreply.github.com"
-          git add NORM_LAB/ARBITRAGE_RADAR/production/event_state NORM_LAB/ARBITRAGE_RADAR/production/promotion_status.json || true
+          git add NORM_LAB/ARBITRAGE_RADAR/production/event_state NORM_LAB/ARBITRAGE_RADAR/production/promotion_status.json NORM_LAB/ARBITRAGE_RADAR/production/execution_gate_status.json || true
           if git diff --cached --quiet; then
             echo "No fast-state changes"
           else
