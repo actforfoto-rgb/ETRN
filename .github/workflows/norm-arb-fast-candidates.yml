@@ -40,11 +40,16 @@ jobs:
       - name: Compile candidates
         run: |
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/crypto_maker_universe_shadow.py
+          python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/crypto_maker_fill_calibration.py
           python -m py_compile NORM_LAB/ARBITRAGE_RADAR/production/moex_calendar_page_fast_shadow.py
 
       - name: Run crypto maker universe
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/production/crypto_maker_universe_shadow.py
+
+      - name: Run maker fill calibration
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/production/crypto_maker_fill_calibration.py
 
       - name: Run MOEX calendar page fast shadow
         continue-on-error: true
