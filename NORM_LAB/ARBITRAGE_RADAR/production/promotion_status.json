@@ -1,11 +1,48 @@
 {
-  "crypto": {
+  "event_driven": {
+    "crypto_perp": {
+      "status": "SHADOW",
+      "closed_cycles": 0,
+      "calendar_days": 0,
+      "reason": "No closed event-shadow cycles yet",
+      "units": "bps"
+    },
+    "crypto_spot": {
+      "status": "SHADOW",
+      "closed_cycles": 0,
+      "calendar_days": 0,
+      "reason": "No closed event-shadow cycles yet",
+      "units": "bps"
+    },
+    "crypto_validated_fast": {
+      "status": "SHADOW",
+      "closed_cycles": 0,
+      "calendar_days": 0,
+      "reason": "No closed event-shadow cycles yet",
+      "units": "bps"
+    },
+    "moex_universe": {
+      "status": "SHADOW",
+      "closed_cycles": 0,
+      "calendar_days": 0,
+      "reason": "No closed event-shadow cycles yet",
+      "units": "RUB"
+    },
+    "moex_si_fast": {
+      "status": "SHADOW",
+      "closed_cycles": 0,
+      "calendar_days": 0,
+      "reason": "No closed event-shadow cycles yet",
+      "units": "RUB"
+    }
+  },
+  "legacy_crypto": {
     "status": "SHADOW",
     "closed_cycles": 0,
     "calendar_days": 0,
     "reason": "No closed shadow cycles yet"
   },
-  "moex": {
+  "legacy_moex": {
     "CNY": {
       "status": "SHADOW",
       "research_status": "REJECTED_ALWAYS_ON",
@@ -70,5 +107,5 @@
       }
     }
   },
-  "rule": "Eligibility is not permission for real-money trading. PAPER and MICRO_LIVE require separate enablement."
+  "rule": "PAPER_ELIGIBLE is evidence status only. It never enables MICRO_LIVE or LIVE orders."
 }
