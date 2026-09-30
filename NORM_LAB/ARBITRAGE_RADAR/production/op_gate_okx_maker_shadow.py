@@ -10,10 +10,10 @@ ROOT=Path(__file__).resolve().parent
 STATE_DIR=ROOT/"event_state"
 STATE_DIR.mkdir(parents=True,exist_ok=True)
 
-STATE_FILE=STATE_DIR/"op_gate_okx_maker_state.json"
-LAST_FILE=STATE_DIR/"op_gate_okx_maker_last.json"
-LEDGER_FILE=STATE_DIR/"op_gate_okx_maker_ledger.csv"
-TS_FILE=STATE_DIR/"op_gate_okx_maker_timeseries.csv"
+STATE_FILE=STATE_DIR/"op_gate_okx_maker_v2_state.json"
+LAST_FILE=STATE_DIR/"op_gate_okx_maker_v2_last.json"
+LEDGER_FILE=STATE_DIR/"op_gate_okx_maker_v2_ledger.csv"
+TS_FILE=STATE_DIR/"op_gate_okx_maker_v2_timeseries.csv"
 
 BASE="OP"
 NOTIONAL=1000.0
@@ -39,6 +39,11 @@ SLEEP_SEC=5
 LEDGER_FIELDS=[
  "utc","event","direction","gate_limit","gate_fill","okx_hedge","entry_z","exit_z",
  "expected_net_bps","funding_bps","realized_net_bps","hold_sec","maker_wait_sec","reason"
+]
+TS_FIELDS=[
+ "utc","sample","phase","gate_bid","gate_ask","okx_bid","okx_ask",
+ "mid_basis_bps","z","baseline_mean_bps","baseline_sd_bps",
+ "quote_gap_ms","gate_latency_ms","okx_latency_ms","event"
 ]
 
 def utc(): return datetime.now(timezone.utc).isoformat()
@@ -124,12 +129,11 @@ def append(row):
         w.writerow({k:row.get(k,"") for k in LEDGER_FIELDS})
 
 def append_ts(row):
-    fields=list(row.keys())
     new=not TS_FILE.exists()
     with TS_FILE.open("a",newline="",encoding="utf-8") as f:
-        w=csv.DictWriter(f,fieldnames=fields)
+        w=csv.DictWriter(f,fieldnames=TS_FIELDS)
         if new:w.writeheader()
-        w.writerow(row)
+        w.writerow({k:row.get(k,"") for k in TS_FIELDS})
 
 def recent_trades(ex,sym,since_ms):
     try:
