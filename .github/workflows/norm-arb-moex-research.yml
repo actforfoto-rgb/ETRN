@@ -111,6 +111,10 @@ jobs:
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_calendar_capital_economics.py
 
+      - name: Run no-overlap calendar portfolio holdout
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_calendar_portfolio_holdout.py
+
       - name: Run MOEX intraday event walk-forward
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_intraday_event_walkforward.py
