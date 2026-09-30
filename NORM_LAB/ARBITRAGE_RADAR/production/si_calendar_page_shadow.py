@@ -174,10 +174,10 @@ def once(st,mean,sd,nbase):
     atomic_mid=(pr["bid"]+pr["ask"])/2
     dislocation=atomic_mid-synthetic_mid
 
-    # Conservative cost for crossing both atomic and synthetic constructions:
-    # treat atomic as if it incurred both leg scalper fees, plus synthetic leg fees.
-    leg_scalper=(n["scalper_fee"]+f["scalper_fee"])
-    lock_cost=2*leg_scalper+EXTRA_RUB
+    # Conservative production assumption: do not rely on marketing/scalper discounts.
+    # Charge full BUYSELLFEE of both futures on entry and exit.
+    leg_fee=(n["fee"]+f["fee"])
+    lock_cost=2*leg_fee+EXTRA_RUB
     lock_a=(pr["bid"]-synthetic_ask)*n["unit"]-lock_cost
     lock_b=(synthetic_bid-pr["ask"])*n["unit"]-lock_cost
 
@@ -185,7 +185,7 @@ def once(st,mean,sd,nbase):
     z=(atomic_mid-mean)/sd if sd and sd>1e-12 else 0.0
 
     atomic_width=(pr["ask"]-pr["bid"])*n["unit"]
-    atomic_rt_fee=2*leg_scalper
+    atomic_rt_fee=2*leg_fee
     meanrev_cost=atomic_width+atomic_rt_fee+EXTRA_RUB
     expected_sell=((pr["bid"]-mean)*n["unit"]-meanrev_cost) if mean is not None else None
     expected_buy=((mean-pr["ask"])*n["unit"]-meanrev_cost) if mean is not None else None
