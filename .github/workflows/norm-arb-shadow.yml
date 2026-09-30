@@ -66,9 +66,17 @@ jobs:
             echo "No shadow-state changes"
           else
             git commit -m "ARB shadow state [skip ci]"
+            pushed=0
+          for attempt in 1 2 3 4; do
             git fetch origin norm-arb-r01
-          git rebase origin/norm-arb-r01
-          git push origin HEAD:norm-arb-r01
+            git -c rebase.autoStash=true rebase origin/norm-arb-r01 || { git rebase --abort || true; sleep 2; continue; }
+            if git push origin HEAD:norm-arb-r01; then
+              pushed=1
+              break
+            fi
+            sleep 2
+          done
+          test "$pushed" -eq 1
           fi
 
       - name: Upload shadow artifact
