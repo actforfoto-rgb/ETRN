@@ -92,6 +92,8 @@ def event_gates():
           EVENT_STATE/"crypto_event_ledger.csv","realized_net_bps","bps"),
       "crypto_spot":event_ledger_gate(
           EVENT_STATE/"crypto_spot_event_ledger.csv","realized_net_bps","bps"),
+      "crypto_validated_fast":event_ledger_gate(
+          EVENT_STATE/"crypto_validated_fast_ledger.csv","realized_net_bps","bps"),
       "moex_universe":event_ledger_gate(
           EVENT_STATE/"moex_event_ledger.csv","realized_net_rub","RUB"),
       "moex_si_fast":event_ledger_gate(
