@@ -48,6 +48,10 @@ jobs:
       - name: Run MOEX event universe
         run: python NORM_LAB/ARBITRAGE_RADAR/production/moex_event_shadow.py
 
+      - name: Run MOEX option parity event scan
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_option_parity_scan.py
+
       - name: Persist event state
         if: always()
         shell: bash
