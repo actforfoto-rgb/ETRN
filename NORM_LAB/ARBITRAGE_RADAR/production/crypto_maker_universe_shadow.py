@@ -210,13 +210,18 @@ def main():
                 x=(hmid/mmid-1)*10000
                 z=(x-r["baseline"]["mean"])/r["baseline"]["sd"]
                 cost=r["cost_bps"]
+                mmid=(M["best_bid"]+M["best_ask"])/2
+                hmid=(H["best_bid"]+H["best_ask"])/2
+                # Conservative current taker-exit friction at $NOTIONAL.
+                exit_long_cost=((1-M["bid_vwap"]/mmid)+(H["ask_vwap"]/hmid-1))*10000
+                exit_short_cost=((M["ask_vwap"]/mmid-1)+(1-H["bid_vwap"]/hmid))*10000
                 # Passive maker entry at current top of maker book; hedge uses $1000 VWAP.
                 # High basis: long maker venue at maker bid, short hedge venue taker bid.
                 long_exec=(H["bid_vwap"]/M["best_bid"]-1)*10000
-                exp_long=long_exec-r["baseline"]["mean"]-cost
+                exp_long=long_exec-r["baseline"]["mean"]-cost-exit_long_cost
                 # Low basis: short maker venue at maker ask, long hedge venue taker ask.
                 short_exec=(H["ask_vwap"]/M["best_ask"]-1)*10000
-                exp_short=r["baseline"]["mean"]-short_exec-cost
+                exp_short=r["baseline"]["mean"]-short_exec-cost-exit_short_cost
                 event=""
 
                 if rs["phase"]=="FLAT":
