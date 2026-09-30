@@ -20,7 +20,7 @@ DAYS=180
 FEE_A=0.0005
 FEE_B=0.0005
 BASE_COST_BPS=2*(FEE_A+FEE_B)*10000+8.0
-STRESS_EXTRA=[0.0,5.0,10.0,15.0]
+STRESS_EXTRA=[0.0,5.0,10.0,15.0,20.0,25.0,30.0]
 
 def build(exid):
     ex=getattr(ccxt,exid)({"enableRateLimit":True,"timeout":20000})
