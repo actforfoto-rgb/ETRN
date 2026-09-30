@@ -61,6 +61,10 @@ jobs:
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/crypto_dislocation_backtest.py
 
+      - name: Run prefunded spot inventory event backtest
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/crypto_spot_inventory_backtest.py
+
       - name: Save results
         if: always()
         shell: bash
