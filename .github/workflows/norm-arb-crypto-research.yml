@@ -69,6 +69,10 @@ jobs:
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/crypto_event_walkforward.py
 
+      - name: Run 180-day maker-taker universe
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/crypto_maker_taker_180d.py
+
       - name: Run 60-day tight-venue dislocation backtest
         continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/crypto_tight_venues_60d.py
