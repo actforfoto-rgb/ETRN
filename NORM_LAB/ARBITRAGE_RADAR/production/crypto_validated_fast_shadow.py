@@ -13,6 +13,7 @@ STATE_FILE=STATE_DIR/"crypto_validated_fast_state.json"
 LEDGER_FILE=STATE_DIR/"crypto_validated_fast_ledger.csv"
 LAST_FILE=STATE_DIR/"crypto_validated_fast_last.json"
 TS_FILE=STATE_DIR/"crypto_validated_fast_timeseries.csv"
+AUDIT_FILE=STATE_DIR/"crypto_live_execution_audit.json"
 
 NOTIONAL=1000.0
 SAMPLES=3
@@ -113,6 +114,10 @@ def mark(pos,A,B):
     return ret*10000-pos["fee_bps"]-EXTRA_BUFFER_BPS
 
 def choose_routes(cfg):
+    try:
+        audit=json.loads(AUDIT_FILE.read_text(encoding="utf-8")) if AUDIT_FILE.exists() else {}
+    except Exception:
+        audit={}
     rows=[]
     for kind,section in (("PERP",cfg.get("crypto_perp") or {}),
                          ("SPOT",cfg.get("crypto_spot") or {})):
@@ -120,6 +125,9 @@ def choose_routes(cfg):
             h=r.get("holdout") or {}
             score=(float(h.get("median_net_bps") or 0)
                    * math.sqrt(max(1,int(h.get("n") or 1))))
+            live=audit.get(key) or {}
+            if live.get("live_status")=="LIVE_TRIGGER_NOT_EXECUTABLE" and int(live.get("trigger_samples") or 0)>=6:
+                continue
             rows.append((score,kind,key,r))
     # Always include priority_live routes (e.g. non-HTX 60d holdout winners),
     # then fill capacity with the strongest stress-tested historical routes.
