@@ -37,6 +37,10 @@ jobs:
       - name: Conservative OP maker fill validation
         run: python NORM_LAB/ARBITRAGE_RADAR/crypto_op_gate_okx_maker_fill_180d.py
 
+      - name: Run 1-minute maker execution validation
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/crypto_op_gate_okx_maker_1m_30d.py
+
       - name: Save maker research
         if: always()
         shell: bash
