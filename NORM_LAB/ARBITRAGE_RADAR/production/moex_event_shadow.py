@@ -27,7 +27,15 @@ MIN_TRADES=20
 MIN_NET_RUB=2.0
 MIN_NET_ON_IM_BPS=5.0
 STOCK_ROUNDTRIP_FEE_BPS=10.0
+CASH_ROUNDTRIP_FEE_BPS=8.0
 EXTRA_SLIPPAGE_RUB=2.0
+
+CASH_SPOT={
+ "CNY":{"secid":"CNYRUB_TOM","perp":"CNYRUBF","fixed":"CRZ6"},
+ "USD":{"secid":"USD000UTSTOM","perp":"USDRUBF","fixed":"SiZ6"},
+ "EUR":{"secid":"EUR_RUB__TOM","perp":"EURRUBF","fixed":"EuZ6"},
+ "GLD":{"secid":"GLDRUB_TOM","perp":"GLDRUBF","fixed":"GLZ6"}
+}
 
 PERP_FIXED={
  "CNYRUBF":"CRZ6","USDRUBF":"SiZ6","EURRUBF":"EuZ6","IMOEXF":"MMZ6","RGBIF":"RBZ6",
@@ -132,6 +140,27 @@ def stock_snapshot():
  md={r.get("SECID"):r for r in rows(j,"marketdata")}
  return secs,md
 
+def cash_meta(secid):
+ try:
+  j=get(f"{BASE}/engines/currency/markets/selt/securities/{secid}.json",{"iss.meta":"off"})
+  sec=rows(j,"securities");md=rows(j,"marketdata")
+  if not sec or not md:return None
+  candidates=[]
+  for s in sec:
+   for m in md:
+    if m.get("BOARDID")!=s.get("BOARDID"):continue
+    bid=num(m.get("BID"));ask=num(m.get("OFFER"))
+    if bid is not None and ask is not None:
+     candidates.append((fresh(m),num(m.get("NUMTRADES")) or 0,s,m))
+  if not candidates:return None
+  candidates.sort(key=lambda x:(x[0],x[1]),reverse=True)
+  fr,tr,s,m=candidates[0]
+  return {"bid":num(m.get("BID")),"ask":num(m.get("OFFER")),
+          "trades":tr,"fresh":fr,"board":s.get("BOARDID"),
+          "lot":num(s.get("LOTSIZE") or s.get("LOTVOLUME")) or 1.0}
+ except Exception:
+  return None
+
 def valid_future(sid,secs,md):
  s=secs.get(sid);m=md.get(sid)
  if not s or not m or not fresh(m):return False
@@ -203,12 +232,42 @@ def relation_spot_fixed(spot,fixed,ssecs,smd,fsecs,fmd):
   "a_unit":exposure,"b_unit":fu,"b_qty":1.0
  }
 
+
+def relation_cash_future(tag,spot,deriv,secs,md,kind):
+ cm=cash_meta(spot)
+ if not cm or not cm["fresh"] or cm["trades"]<MIN_TRADES:return None
+ if not valid_future(deriv,secs,md):return None
+ ds=secs[deriv];dm=md[deriv]
+ sb,sa=cm["bid"],cm["ask"];db,da=num(dm["BID"]),num(dm["OFFER"])
+ scale=infer_scale((sb+sa)/2,(db+da)/2)
+ du=unit(ds)
+ exposure=du*scale
+ if exposure<=0:return None
+ x=(db+da)/(2*scale)-(sb+sa)/2
+ hi=db/scale-sa
+ cash_notional=sa*exposure
+ fee_rt=cash_notional*CASH_ROUNDTRIP_FEE_BPS/10000+2*(num(ds.get("BUYSELLFEE")) or 0)
+ exit_spread=(sa-sb)*exposure+(da-db)*du
+ return {
+  "key":f"{kind}:{spot}:{deriv}","type":kind,"label":f"{tag} {spot}↔{deriv}",
+  "x":x,"hi":hi,"lo":None,"unit_rub":exposure,"fee_rt":fee_rt,"exit_spread_rub":exit_spread,
+  "im":cash_notional+(num(ds.get("INITIALMARGIN")) or 0),
+  "a_bid":sb,"a_ask":sa,"b_bid":db,"b_ask":da,"b_scale":scale,
+  "a_unit":exposure,"b_unit":du,"b_qty":1.0
+ }
+
 def build_relations():
  fsecs,fmd=futures_snapshot();ssecs,smd=stock_snapshot()
  rel=[]
 
  for p,q in PERP_FIXED.items():
   r=relation_perp_fixed(p,q,fsecs,fmd)
+  if r:rel.append(r)
+
+ for tag,cfg in CASH_SPOT.items():
+  r=relation_cash_future(tag,cfg["secid"],cfg["perp"],fsecs,fmd,"CASH_PERP")
+  if r:rel.append(r)
+  r=relation_cash_future(tag,cfg["secid"],cfg["fixed"],fsecs,fmd,"CASH_FIXED")
   if r:rel.append(r)
 
  groups={}
@@ -295,9 +354,9 @@ def main():
    if z>0:
     gross=(r["hi"]-mean)*r["unit_rub"]
     if gross>costs:
-     direction="LONG_A_SHORT_B" if r["type"]!="SPOT_FIXED" else "LONG_SPOT_SHORT_FUT"
+     direction="LONG_A_SHORT_B" if r["type"] not in ("SPOT_FIXED","CASH_PERP","CASH_FIXED") else "LONG_SPOT_SHORT_FUT"
      entry_spread=r["hi"];expected=gross-costs
-   elif z<0 and r["type"]!="SPOT_FIXED":
+   elif z<0 and r["type"] not in ("SPOT_FIXED","CASH_PERP","CASH_FIXED"):
     gross=(mean-r["lo"])*r["unit_rub"]
     if gross>costs:
      direction="SHORT_A_LONG_B";entry_spread=r["lo"];expected=gross-costs
