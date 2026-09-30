@@ -44,14 +44,16 @@ def ohlcv(ex,sym,since):
   if mx<=cursor:break
   cursor=mx+3600000
   if cursor>=int(time.time()*1000)-3600000:break
- return {int(x[0]):float(x[4]) for x in out if len(x)>=5}
+ return {int(x[0]):{"close":float(x[4]),"volume":float(x[5] or 0.0)}
+         for x in out if len(x)>=6}
 
 def simulate(A,B,cost_bps,entry_z):
- ts=sorted(set(A)&set(B))
+ ts=[t for t in sorted(set(A)&set(B))
+     if float(A[t].get("volume") or 0)>0 and float(B[t].get("volume") or 0)>0]
  hist=deque(maxlen=LOOKBACK)
  pos=None;tr=[]
  for t in ts:
-  x=(B[t]/A[t]-1)*10000
+  x=(B[t]["close"]/A[t]["close"]-1)*10000
   if len(hist)<LOOKBACK:
    hist.append(x);continue
   mean=statistics.fmean(hist);sd=statistics.pstdev(hist)
@@ -59,9 +61,9 @@ def simulate(A,B,cost_bps,entry_z):
   if pos:
    pos["bars"]+=1
    if pos["dir"]=="HIGH":
-    pnl=((A[t]/pos["a0"]-1)+(1-B[t]/pos["b0"]))*10000-cost_bps
+    pnl=((A[t]["close"]/pos["a0"]-1)+(1-B[t]["close"]/pos["b0"]))*10000-cost_bps
    else:
-    pnl=((1-A[t]/pos["a0"])+(B[t]/pos["b0"]-1))*10000-cost_bps
+    pnl=((1-A[t]["close"]/pos["a0"])+(B[t]["close"]/pos["b0"]-1))*10000-cost_bps
    reason=None
    if abs(z)<=EXIT_Z:reason="CONVERGENCE"
    elif abs(z)>=STOP_Z:reason="Z_STOP"
@@ -74,13 +76,13 @@ def simulate(A,B,cost_bps,entry_z):
     gross=x-mean
     expected=gross-cost_bps
     if expected>0:
-     pos={"entry_ts":t,"entry_z":z,"dir":"HIGH","a0":A[t],"b0":B[t],
+     pos={"entry_ts":t,"entry_z":z,"dir":"HIGH","a0":A[t]["close"],"b0":B[t]["close"],
           "expected_net_bps":expected,"bars":0}
    elif z<=-entry_z:
     gross=mean-x
     expected=gross-cost_bps
     if expected>0:
-     pos={"entry_ts":t,"entry_z":z,"dir":"LOW","a0":A[t],"b0":B[t],
+     pos={"entry_ts":t,"entry_z":z,"dir":"LOW","a0":A[t]["close"],"b0":B[t]["close"],
           "expected_net_bps":expected,"bars":0}
   hist.append(x)
  return tr,len(ts)
