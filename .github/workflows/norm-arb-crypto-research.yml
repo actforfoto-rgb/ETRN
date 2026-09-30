@@ -38,19 +38,28 @@ jobs:
         run: python -m pip install --disable-pip-version-check --quiet ccxt requests
 
       - name: Run C02 live screen
+        continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/crypto_c02.py --minutes 1
 
       - name: Run broad funding radar
+        continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/crypto_funding_radar.py
 
       - name: Run funding persistence history
+        continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/crypto_funding_history.py
 
       - name: Run pair basis-funding backtest
+        continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/crypto_pair_backtest.py
 
       - name: Run executable pre-funding signal backtest
+        continue-on-error: true
         run: python NORM_LAB/ARBITRAGE_RADAR/crypto_event_signal_backtest.py
+
+      - name: Run transient dislocation backtest
+        continue-on-error: true
+        run: python NORM_LAB/ARBITRAGE_RADAR/crypto_dislocation_backtest.py
 
       - name: Save results
         if: always()
