@@ -40,6 +40,9 @@ jobs:
       - name: Probe and resolve MOEX instruments
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_m01_probe.py
 
+      - name: Probe MOEX options market
+        run: python NORM_LAB/ARBITRAGE_RADAR/moex_options_probe.py
+
       - name: Probe IMOEX dividend adjustment
         run: python NORM_LAB/ARBITRAGE_RADAR/moex_dividend_probe.py
 
