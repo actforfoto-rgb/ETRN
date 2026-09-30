@@ -97,7 +97,7 @@ def event_gates():
       "crypto_op_gate_okx_taker_v1":event_ledger_gate(
           EVENT_STATE/"op_gate_okx_ledger.csv","realized_net_bps","bps"),
       "crypto_op_gate_okx_maker_v2":event_ledger_gate(
-          EVENT_STATE/"op_gate_okx_maker_ledger.csv","realized_net_bps","bps"),
+          EVENT_STATE/"op_gate_okx_maker_v2_ledger.csv","realized_net_bps","bps"),
       "moex_universe_v1_deprecated":event_ledger_gate(
           EVENT_STATE/"moex_event_ledger.csv","realized_net_rub","RUB"),
       "moex_universe_v2_guarded":event_ledger_gate(
