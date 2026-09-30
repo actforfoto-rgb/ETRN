@@ -6,6 +6,7 @@ from pathlib import Path
 import ccxt
 
 ROOT=Path(__file__).resolve().parent
+CONFIG_FILE=ROOT/"event_route_config.json"
 STATE_DIR=ROOT/"event_state"
 STATE_DIR.mkdir(parents=True,exist_ok=True)
 STATE_FILE=STATE_DIR/"crypto_event_state.json"
