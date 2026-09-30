@@ -94,14 +94,20 @@ def event_gates():
           EVENT_STATE/"crypto_spot_event_ledger.csv","realized_net_bps","bps"),
       "crypto_validated_fast":event_ledger_gate(
           EVENT_STATE/"crypto_validated_fast_ledger.csv","realized_net_bps","bps"),
-      "crypto_op_gate_okx":event_ledger_gate(
+      "crypto_op_gate_okx_taker_v1":event_ledger_gate(
           EVENT_STATE/"op_gate_okx_ledger.csv","realized_net_bps","bps"),
-      "moex_universe":event_ledger_gate(
+      "crypto_op_gate_okx_maker_v2":event_ledger_gate(
+          EVENT_STATE/"op_gate_okx_maker_ledger.csv","realized_net_bps","bps"),
+      "moex_universe_v1_deprecated":event_ledger_gate(
           EVENT_STATE/"moex_event_ledger.csv","realized_net_rub","RUB"),
-      "moex_si_synthetic_fast":event_ledger_gate(
+      "moex_universe_v2_guarded":event_ledger_gate(
+          EVENT_STATE/"moex_event_v2_ledger.csv","realized_net_rub","RUB"),
+      "moex_si_synthetic_v1_deprecated":event_ledger_gate(
           EVENT_STATE/"si_calendar_fast_ledger.csv","realized_net_rub","RUB"),
-      "moex_si_atomic_page":event_ledger_gate(
-          EVENT_STATE/"si_calendar_page_ledger.csv","realized_net_rub","RUB")
+      "moex_si_page_v1_deprecated":event_ledger_gate(
+          EVENT_STATE/"si_calendar_page_ledger.csv","realized_net_rub","RUB"),
+      "moex_si_effective_v2":event_ledger_gate(
+          EVENT_STATE/"si_calendar_effective_v2_ledger.csv","realized_net_rub","RUB")
     }
 
 def crypto_gate():
