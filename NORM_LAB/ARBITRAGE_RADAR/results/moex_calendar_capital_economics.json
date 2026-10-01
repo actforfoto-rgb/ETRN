@@ -1,6 +1,42 @@
 {
   "routes": [
     {
+      "spread": "WHEAT-10.26-11.26",
+      "near": {
+        "secid": "W4V6",
+        "initialmargin": 1421.14,
+        "buysellfee": 1.52,
+        "scalperfee": 0.76,
+        "stepprice": 10.0,
+        "minstep": 10.0,
+        "volume": 3500.0,
+        "trades": 1065.0,
+        "oi": 43678.0
+      },
+      "far": {
+        "secid": "W4X6",
+        "initialmargin": 1558.12,
+        "buysellfee": 1.74,
+        "scalperfee": 0.87,
+        "stepprice": 10.0,
+        "minstep": 10.0,
+        "volume": 904.0,
+        "trades": 533.0,
+        "oi": 14118.0
+      },
+      "conservative_sum_leg_im_rub": 2979.26,
+      "holdout_events": 5,
+      "holdout_positive_pct": 80.0,
+      "median_net_rub": 11.480000000000004,
+      "aggregate_net_rub": 47.40000000000002,
+      "worst_net_rub": -18.519999999999996,
+      "median_event_return_on_sum_im_pct": 0.38533058544739307,
+      "aggregate_holdout_return_on_sum_im_pct": 1.5909991071608391,
+      "worst_event_return_on_sum_im_pct": -0.6216308747809857,
+      "risk_adjusted_score": 9.819574974366734,
+      "note": "Capital denominator is conservative sum of current leg IM; actual exchange calendar-spread margin may differ and is not assumed."
+    },
+    {
       "spread": "MIX-12.26-3.27",
       "near": {
         "secid": "MXZ6",
@@ -9,9 +45,9 @@
         "scalperfee": 7.58,
         "stepprice": 25.0,
         "minstep": 25.0,
-        "volume": 57327.0,
-        "trades": 21593.0,
-        "oi": 341562.0
+        "volume": 66971.0,
+        "trades": 25592.0,
+        "oi": 344180.0
       },
       "far": {
         "secid": "MXH7",
@@ -20,56 +56,20 @@
         "scalperfee": 7.75,
         "stepprice": 25.0,
         "minstep": 25.0,
-        "volume": 157.0,
-        "trades": 136.0,
-        "oi": 4038.0
+        "volume": 186.0,
+        "trades": 164.0,
+        "oi": 4042.0
       },
       "conservative_sum_leg_im_rub": 57720.41,
       "holdout_events": 9,
       "holdout_positive_pct": 100.0,
-      "median_net_rub": 161.72,
-      "aggregate_net_rub": 1480.48,
-      "worst_net_rub": 36.72,
-      "median_event_return_on_sum_im_pct": 0.28017819000246186,
-      "aggregate_holdout_return_on_sum_im_pct": 2.5649159456767547,
-      "worst_event_return_on_sum_im_pct": 0.06361701172947316,
-      "risk_adjusted_score": 588.041764846383,
-      "note": "Capital denominator is conservative sum of current leg IM; actual exchange calendar-spread margin may differ and is not assumed."
-    },
-    {
-      "spread": "SILV-12.26-3.27",
-      "near": {
-        "secid": "SVZ6",
-        "initialmargin": 11503.58,
-        "buysellfee": 6.76,
-        "scalperfee": 3.38,
-        "stepprice": 8.35588,
-        "minstep": 0.01,
-        "volume": 54237.0,
-        "trades": 8698.0,
-        "oi": 486138.0
-      },
-      "far": {
-        "secid": "SVH7",
-        "initialmargin": 12369.57,
-        "buysellfee": 6.94,
-        "scalperfee": 3.47,
-        "stepprice": 8.35588,
-        "minstep": 0.01,
-        "volume": 210.0,
-        "trades": 140.0,
-        "oi": 6684.0
-      },
-      "conservative_sum_leg_im_rub": 23873.15,
-      "holdout_events": 11,
-      "holdout_positive_pct": 100.0,
-      "median_net_rub": 45.802919999996924,
-      "aggregate_net_rub": 545.6115199999638,
-      "worst_net_rub": 4.023519999993361,
-      "median_event_return_on_sum_im_pct": 0.19185955770393484,
-      "aggregate_holdout_return_on_sum_im_pct": 2.2854609467119493,
-      "worst_event_return_on_sum_im_pct": 0.016853745735243824,
-      "risk_adjusted_score": 183.765490598337,
+      "median_net_rub": 136.72,
+      "aggregate_net_rub": 1255.48,
+      "worst_net_rub": 11.719999999999999,
+      "median_event_return_on_sum_im_pct": 0.2368659543478641,
+      "aggregate_holdout_return_on_sum_im_pct": 2.175105824785375,
+      "worst_event_return_on_sum_im_pct": 0.02030477607487542,
+      "risk_adjusted_score": 509.41690498005585,
       "note": "Capital denominator is conservative sum of current leg IM; actual exchange calendar-spread margin may differ and is not assumed."
     },
     {
@@ -81,9 +81,9 @@
         "scalperfee": 0.76,
         "stepprice": 0.5,
         "minstep": 0.05,
-        "volume": 77399.0,
-        "trades": 18586.0,
-        "oi": 393632.0
+        "volume": 90996.0,
+        "trades": 21593.0,
+        "oi": 396626.0
       },
       "far": {
         "secid": "MMH7",
@@ -92,22 +92,58 @@
         "scalperfee": 0.78,
         "stepprice": 0.5,
         "minstep": 0.05,
-        "volume": 366.0,
-        "trades": 219.0,
-        "oi": 8370.0
+        "volume": 425.0,
+        "trades": 253.0,
+        "oi": 8432.0
       },
       "conservative_sum_leg_im_rub": 5771.860000000001,
-      "holdout_events": 14,
+      "holdout_events": 13,
       "holdout_positive_pct": 100.0,
-      "median_net_rub": 10.37999999999909,
-      "aggregate_net_rub": 174.31999999997453,
-      "worst_net_rub": 5.3799999999990895,
-      "median_event_return_on_sum_im_pct": 0.17983804180973012,
-      "aggregate_holdout_return_on_sum_im_pct": 3.020170274399838,
-      "worst_event_return_on_sum_im_pct": 0.093210854040103,
-      "risk_adjusted_score": 47.90504938942422,
+      "median_net_rub": 8.380000000000908,
+      "aggregate_net_rub": 142.9399999999991,
+      "worst_net_rub": 3.3800000000009085,
+      "median_event_return_on_sum_im_pct": 0.14518716670191079,
+      "aggregate_holdout_return_on_sum_im_pct": 2.476498043958084,
+      "worst_event_return_on_sum_im_pct": 0.05855997893228367,
+      "risk_adjusted_score": 37.82010619020628,
+      "note": "Capital denominator is conservative sum of current leg IM; actual exchange calendar-spread margin may differ and is not assumed."
+    },
+    {
+      "spread": "SILV-12.26-3.27",
+      "near": {
+        "secid": "SVZ6",
+        "initialmargin": 11503.58,
+        "buysellfee": 6.76,
+        "scalperfee": 3.38,
+        "stepprice": 8.35588,
+        "minstep": 0.01,
+        "volume": 67941.0,
+        "trades": 10153.0,
+        "oi": 490772.0
+      },
+      "far": {
+        "secid": "SVH7",
+        "initialmargin": 12369.57,
+        "buysellfee": 6.94,
+        "scalperfee": 3.47,
+        "stepprice": 8.35588,
+        "minstep": 0.01,
+        "volume": 219.0,
+        "trades": 149.0,
+        "oi": 6692.0
+      },
+      "conservative_sum_leg_im_rub": 23873.15,
+      "holdout_events": 13,
+      "holdout_positive_pct": 84.61538461538461,
+      "median_net_rub": 20.735279999995974,
+      "aggregate_net_rub": 436.6762399999203,
+      "worst_net_rub": -4.332360000004982,
+      "median_event_return_on_sum_im_pct": 0.08685607052272522,
+      "aggregate_holdout_return_on_sum_im_pct": 1.8291521646700175,
+      "worst_event_return_on_sum_im_pct": -0.018147416658484457,
+      "risk_adjusted_score": 63.44070224852817,
       "note": "Capital denominator is conservative sum of current leg IM; actual exchange calendar-spread margin may differ and is not assumed."
     }
   ],
-  "count": 3
+  "count": 4
 }
