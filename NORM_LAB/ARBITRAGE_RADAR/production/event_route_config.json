@@ -435,7 +435,7 @@
       "base": "OP",
       "venue_a": "BITGET",
       "venue_b": "GATE",
-      "entry_z": 3.0,
+      "entry_z": 2.0,
       "train_score": 15.105550311988717,
       "train": {
         "n": 5,
@@ -555,12 +555,12 @@
       "venue_b": "MEXC",
       "entry_z": 3.0,
       "holdout": {
-        "n": 5,
+        "n": 4,
         "positive_pct": 100.0,
-        "median_net_bps": 26.6952526799396,
-        "mean_net_bps": 28.101903963152314,
-        "aggregate_net_bps": 140.50951981576156,
-        "worst_net_bps": 8.546718366220716,
+        "median_net_bps": 33.826231710342654,
+        "mean_net_bps": 32.99070036238521,
+        "aggregate_net_bps": 131.96280144954085,
+        "worst_net_bps": 12.483920754469636,
         "best_net_bps": 51.8264172743859
       },
       "status": "REJECTED_TRANSFER_OR_IDENTITY_GATE"
@@ -597,19 +597,19 @@
       },
       "status": "REJECTED_TRANSFER_OR_IDENTITY_GATE"
     },
-    "OP|BITGET|MEXC": {
-      "base": "OP",
-      "venue_a": "BITGET",
+    "ARB|HTX|MEXC": {
+      "base": "ARB",
+      "venue_a": "HTX",
       "venue_b": "MEXC",
-      "entry_z": 3.0,
+      "entry_z": 2.0,
       "holdout": {
-        "n": 3,
-        "positive_pct": 66.66666666666667,
-        "median_net_bps": 10.859703700481425,
-        "mean_net_bps": 12.656823534980463,
-        "aggregate_net_bps": 37.97047060494139,
-        "worst_net_bps": -0.37012807302124884,
-        "best_net_bps": 27.480894977481213
+        "n": 4,
+        "positive_pct": 75.0,
+        "median_net_bps": 11.494915542195557,
+        "mean_net_bps": 12.458238360588897,
+        "aggregate_net_bps": 49.83295344235559,
+        "worst_net_bps": -0.902222289825346,
+        "best_net_bps": 27.74534464778982
       },
       "status": "REJECTED_TRANSFER_OR_IDENTITY_GATE"
     },
@@ -629,22 +629,6 @@
       },
       "status": "REJECTED_TRANSFER_OR_IDENTITY_GATE"
     },
-    "ARB|HTX|MEXC": {
-      "base": "ARB",
-      "venue_a": "HTX",
-      "venue_b": "MEXC",
-      "entry_z": 2.0,
-      "holdout": {
-        "n": 3,
-        "positive_pct": 66.66666666666667,
-        "median_net_bps": 6.244630037042725,
-        "mean_net_bps": 7.3625362648552555,
-        "aggregate_net_bps": 22.087608794565767,
-        "worst_net_bps": -0.902222289825346,
-        "best_net_bps": 16.745201047348388
-      },
-      "status": "REJECTED_TRANSFER_OR_IDENTITY_GATE"
-    },
     "ARB|BITGET|HTX": {
       "base": "ARB",
       "venue_a": "BITGET",
@@ -660,9 +644,49 @@
         "best_net_bps": 12.579979517059414
       },
       "status": "REJECTED_TRANSFER_OR_IDENTITY_GATE"
+    },
+    "OP|BITGET|MEXC": {
+      "base": "OP",
+      "venue_a": "BITGET",
+      "venue_b": "MEXC",
+      "entry_z": 3.0,
+      "holdout": {
+        "n": 2,
+        "positive_pct": 50.0,
+        "median_net_bps": 5.244787813730088,
+        "mean_net_bps": 5.244787813730088,
+        "aggregate_net_bps": 10.489575627460177,
+        "worst_net_bps": -0.37012807302124884,
+        "best_net_bps": 10.859703700481425
+      },
+      "status": "REJECTED_TRANSFER_OR_IDENTITY_GATE"
     }
   },
-  "moex": {},
+  "moex": {
+    "FF:CCX6:CCG7": {
+      "key": "FF:CCX6:CCG7",
+      "type": "FF",
+      "train": {
+        "n": 12,
+        "positive_pct": 66.66666666666667,
+        "median_net_rub": 0.5600000000014216,
+        "mean_net_rub": 0.6433333333347265,
+        "aggregate_net_rub": 7.720000000016718,
+        "worst_net_rub": -4.439999999998294,
+        "best_net_rub": 4.560000000002047
+      },
+      "holdout": {
+        "n": 9,
+        "positive_pct": 88.88888888888889,
+        "median_net_rub": 1.5600000000013647,
+        "mean_net_rub": 1.0044444444456198,
+        "aggregate_net_rub": 9.040000000010577,
+        "worst_net_rub": -4.439999999998294,
+        "best_net_rub": 3.5600000000006826
+      },
+      "status": "VALIDATED_SHADOW"
+    }
+  },
   "notes": [
     "Universe remains fully scanned.",
     "Only holdout-passing routes are eligible for validated shadow entries.",
