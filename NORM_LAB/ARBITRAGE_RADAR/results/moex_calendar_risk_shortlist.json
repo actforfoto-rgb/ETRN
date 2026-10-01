@@ -6,42 +6,78 @@
     "min_median_rub": 3.0,
     "max_loss_to_median": 2.0
   },
-  "robust_count": 3,
-  "watch_count": 10,
+  "robust_count": 6,
+  "watch_count": 11,
   "robust_routes": [
+    {
+      "spread": "MIX-12.26-3.27",
+      "near": "MXZ6",
+      "far": "MXH7",
+      "current_trades": 663.0,
+      "current_volume": 1590.0,
+      "cost_proxy_rub": 163.28,
+      "selected_entry_z": 3.0,
+      "train_score": 378.4771088253052,
+      "train": {
+        "n": 21,
+        "positive_pct": 95.23809523809524,
+        "median_net_rub": 86.72,
+        "mean_net_rub": 168.86285714285714,
+        "aggregate_net_rub": 3546.12,
+        "worst_net_rub": -13.280000000000001,
+        "best_net_rub": 761.72
+      },
+      "holdout": {
+        "n": 10,
+        "positive_pct": 100.0,
+        "median_net_rub": 124.22,
+        "mean_net_rub": 136.72,
+        "aggregate_net_rub": 1367.2,
+        "worst_net_rub": 11.719999999999999,
+        "best_net_rub": 361.72
+      },
+      "cutoff_epoch": 1790617500,
+      "holdout_pass": true,
+      "risk": {
+        "loss_to_median_ratio": 0.0,
+        "risk_adjusted_score": 503.65229801283056,
+        "holdout_worst_rub": 11.719999999999999
+      },
+      "risk_status": "ROBUST_SHADOW"
+    },
     {
       "spread": "Eu-12.26-3.27",
       "near": "EuZ6",
       "far": "EuH7",
-      "current_trades": 512.0,
-      "current_volume": 1220.0,
-      "cost_proxy_rub": 43.82,
+      "current_trades": 569.0,
+      "current_volume": 1346.0,
+      "cost_proxy_rub": 41.82,
       "selected_entry_z": 3.0,
-      "train_score": 109.6677892546394,
+      "train_score": 115.99234457497616,
       "train": {
         "n": 10,
         "positive_pct": 100.0,
-        "median_net_rub": 34.68,
-        "mean_net_rub": 45.08,
-        "aggregate_net_rub": 450.8,
-        "worst_net_rub": 5.18,
-        "best_net_rub": 157.18
+        "median_net_rub": 36.68,
+        "mean_net_rub": 47.08,
+        "aggregate_net_rub": 470.8,
+        "worst_net_rub": 7.18,
+        "best_net_rub": 159.18
       },
       "holdout": {
         "n": 5,
         "positive_pct": 100.0,
-        "median_net_rub": 61.18,
-        "mean_net_rub": 49.78,
-        "aggregate_net_rub": 248.9,
-        "worst_net_rub": 5.18,
-        "best_net_rub": 72.18
+        "median_net_rub": 63.18,
+        "mean_net_rub": 51.78000000000001,
+        "aggregate_net_rub": 258.90000000000003,
+        "worst_net_rub": 7.18,
+        "best_net_rub": 74.18
       },
       "cutoff_epoch": 1790692980,
       "holdout_pass": true,
       "risk": {
         "loss_to_median_ratio": 0.0,
-        "risk_adjusted_score": 173.86616686893066,
-        "holdout_worst_rub": 5.18
+        "risk_adjusted_score": 180.19756132188436,
+        "holdout_worst_rub": 7.18
       },
       "risk_status": "ROBUST_SHADOW"
     },
@@ -49,34 +85,34 @@
       "spread": "SILV-12.26-3.27",
       "near": "SVZ6",
       "far": "SVH7",
-      "current_trades": 366.0,
-      "current_volume": 1552.0,
-      "cost_proxy_rub": 62.82351999999929,
-      "selected_entry_z": 2.0,
-      "train_score": 53.36174102186156,
+      "current_trades": 398.0,
+      "current_volume": 1622.0,
+      "cost_proxy_rub": 54.467639999995015,
+      "selected_entry_z": 2.5,
+      "train_score": 97.96498972377171,
       "train": {
-        "n": 31,
-        "positive_pct": 77.41935483870968,
-        "median_net_rub": 12.37940000000357,
-        "mean_net_rub": 14.80530064516131,
-        "aggregate_net_rub": 458.9643200000006,
-        "worst_net_rub": -29.40000000000594,
-        "best_net_rub": 121.00583999999384
+        "n": 28,
+        "positive_pct": 89.28571428571429,
+        "median_net_rub": 20.735280000007847,
+        "mean_net_rub": 24.017947142860727,
+        "aggregate_net_rub": 672.5025200001004,
+        "worst_net_rub": -21.044120000001662,
+        "best_net_rub": 129.36171999999812
       },
       "holdout": {
-        "n": 14,
-        "positive_pct": 85.71428571428571,
-        "median_net_rub": 24.913220000001076,
-        "mean_net_rub": 29.688008571428274,
-        "aggregate_net_rub": 415.63211999999584,
+        "n": 13,
+        "positive_pct": 84.61538461538461,
+        "median_net_rub": 20.735280000007847,
+        "mean_net_rub": 31.662200000002933,
+        "aggregate_net_rub": 411.6086000000381,
         "worst_net_rub": -4.332359999999049,
-        "best_net_rub": 87.5823200000005
+        "best_net_rub": 95.93820000000477
       },
-      "cutoff_epoch": 1790671080,
+      "cutoff_epoch": 1790693280,
       "holdout_pass": true,
       "risk": {
-        "loss_to_median_ratio": 0.1738980348585555,
-        "risk_adjusted_score": 85.51192949853393,
+        "loss_to_median_ratio": 0.20893665289291533,
+        "risk_adjusted_score": 65.93164070413036,
         "holdout_worst_rub": -4.332359999999049
       },
       "risk_status": "ROBUST_SHADOW"
@@ -85,73 +121,145 @@
       "spread": "MXI-12.26-3.27",
       "near": "MMZ6",
       "far": "MMH7",
-      "current_trades": 763.0,
-      "current_volume": 2664.0,
-      "cost_proxy_rub": 11.620000000003639,
+      "current_trades": 792.0,
+      "current_volume": 2744.0,
+      "cost_proxy_rub": 10.12000000000273,
       "selected_entry_z": 3.0,
-      "train_score": 66.14504063039533,
+      "train_score": 73.32343767510665,
       "train": {
-        "n": 31,
-        "positive_pct": 100.0,
-        "median_net_rub": 11.879999999995452,
-        "mean_net_rub": 12.68645161289897,
-        "aggregate_net_rub": 393.2799999998681,
-        "worst_net_rub": 0.879999999996361,
-        "best_net_rub": 49.379999999999995
+        "n": 32,
+        "positive_pct": 96.875,
+        "median_net_rub": 13.379999999994087,
+        "mean_net_rub": 13.739374999996816,
+        "aggregate_net_rub": 439.6599999998981,
+        "worst_net_rub": -0.119999999998182,
+        "best_net_rub": 50.880000000000905
       },
       "holdout": {
         "n": 14,
         "positive_pct": 100.0,
-        "median_net_rub": 9.379999999997725,
-        "mean_net_rub": 11.308571428568374,
-        "aggregate_net_rub": 158.31999999995725,
-        "worst_net_rub": 3.87999999999818,
-        "best_net_rub": 22.37999999999727
+        "median_net_rub": 10.879999999998635,
+        "mean_net_rub": 12.808571428569284,
+        "aggregate_net_rub": 179.31999999996998,
+        "worst_net_rub": 5.3799999999990895,
+        "best_net_rub": 23.87999999999818
       },
       "cutoff_epoch": 1790676660,
       "holdout_pass": true,
       "risk": {
         "loss_to_median_ratio": 0.0,
-        "risk_adjusted_score": 45.21346952566488,
-        "holdout_worst_rub": 3.87999999999818
+        "risk_adjusted_score": 52.50972006695299,
+        "holdout_worst_rub": 5.3799999999990895
+      },
+      "risk_status": "ROBUST_SHADOW"
+    },
+    {
+      "spread": "GAZR-12.26-3.27",
+      "near": "GZZ6",
+      "far": "GZH7",
+      "current_trades": 344.0,
+      "current_volume": 2948.0,
+      "cost_proxy_rub": 15.14,
+      "selected_entry_z": 2.0,
+      "train_score": 13.53599054373192,
+      "train": {
+        "n": 35,
+        "positive_pct": 80.0,
+        "median_net_rub": 2.8599999999999994,
+        "mean_net_rub": 3.545714285714285,
+        "aggregate_net_rub": 124.09999999999998,
+        "worst_net_rub": -3.1400000000000006,
+        "best_net_rub": 15.86
+      },
+      "holdout": {
+        "n": 15,
+        "positive_pct": 93.33333333333333,
+        "median_net_rub": 4.859999999999999,
+        "mean_net_rub": 22.06,
+        "aggregate_net_rub": 330.9,
+        "worst_net_rub": -1.1400000000000006,
+        "best_net_rub": 222.86
+      },
+      "cutoff_epoch": 1790607780,
+      "holdout_pass": true,
+      "risk": {
+        "loss_to_median_ratio": 0.23456790123456805,
+        "risk_adjusted_score": 17.839473133468438,
+        "holdout_worst_rub": -1.1400000000000006
+      },
+      "risk_status": "ROBUST_SHADOW"
+    },
+    {
+      "spread": "WHEAT-10.26-11.26",
+      "near": "W4V6",
+      "far": "W4X6",
+      "current_trades": 613.0,
+      "current_volume": 1852.0,
+      "cost_proxy_rub": 38.519999999999996,
+      "selected_entry_z": 2.5,
+      "train_score": 64.76463681530365,
+      "train": {
+        "n": 11,
+        "positive_pct": 90.9090909090909,
+        "median_net_rub": 21.480000000000004,
+        "mean_net_rub": 24.20727272727273,
+        "aggregate_net_rub": 266.28000000000003,
+        "worst_net_rub": -18.519999999999996,
+        "best_net_rub": 91.48
+      },
+      "holdout": {
+        "n": 5,
+        "positive_pct": 80.0,
+        "median_net_rub": 11.480000000000004,
+        "mean_net_rub": 11.480000000000004,
+        "aggregate_net_rub": 57.40000000000002,
+        "worst_net_rub": -18.519999999999996,
+        "best_net_rub": 31.480000000000004
+      },
+      "cutoff_epoch": 1790766420,
+      "holdout_pass": true,
+      "risk": {
+        "loss_to_median_ratio": 1.613240418118466,
+        "risk_adjusted_score": 10.048976136556245,
+        "holdout_worst_rub": -18.519999999999996
       },
       "risk_status": "ROBUST_SHADOW"
     }
   ],
   "watch_routes": [
     {
-      "spread": "MIX-12.26-3.27",
-      "near": "MXZ6",
-      "far": "MXH7",
-      "current_trades": 623.0,
-      "current_volume": 1494.0,
-      "cost_proxy_rub": 138.28,
-      "selected_entry_z": 2.5,
-      "train_score": 520.5101406970099,
+      "spread": "WHEAT-11.26-12.26",
+      "near": "W4X6",
+      "far": "W4Z6",
+      "current_trades": 356.0,
+      "current_volume": 964.0,
+      "cost_proxy_rub": 29.3,
+      "selected_entry_z": 2.0,
+      "train_score": 185.8276620958247,
       "train": {
-        "n": 38,
-        "positive_pct": 97.36842105263158,
-        "median_net_rub": 86.72,
-        "mean_net_rub": 135.40421052631578,
-        "aggregate_net_rub": 5145.36,
-        "worst_net_rub": -13.280000000000001,
-        "best_net_rub": 786.72
+        "n": 8,
+        "positive_pct": 100.0,
+        "median_net_rub": 65.7,
+        "mean_net_rub": 54.45,
+        "aggregate_net_rub": 435.6,
+        "worst_net_rub": 20.7,
+        "best_net_rub": 70.7
       },
       "holdout": {
-        "n": 17,
-        "positive_pct": 94.11764705882354,
-        "median_net_rub": 61.72,
-        "mean_net_rub": 63.190588235294115,
-        "aggregate_net_rub": 1074.24,
-        "worst_net_rub": -438.28,
-        "best_net_rub": 236.72
+        "n": 4,
+        "positive_pct": 100.0,
+        "median_net_rub": 40.7,
+        "mean_net_rub": 50.7,
+        "aggregate_net_rub": 202.8,
+        "worst_net_rub": 30.7,
+        "best_net_rub": 90.7
       },
-      "cutoff_epoch": 1790680860,
+      "cutoff_epoch": 1790848260,
       "holdout_pass": true,
       "risk": {
-        "loss_to_median_ratio": 7.101101749837977,
-        "risk_adjusted_score": 37.826857666836055,
-        "holdout_worst_rub": -438.28
+        "loss_to_median_ratio": 0.0,
+        "risk_adjusted_score": 102.16880298349922,
+        "holdout_worst_rub": 30.7
       },
       "risk_status": "WATCH"
     },
@@ -159,8 +267,8 @@
       "spread": "SBRF-12.26-3.27",
       "near": "SRZ6",
       "far": "SRH7",
-      "current_trades": 358.0,
-      "current_volume": 2156.0,
+      "current_trades": 583.0,
+      "current_volume": 3210.0,
       "cost_proxy_rub": 27.78,
       "selected_entry_z": 3.0,
       "train_score": 19.25333333333333,
@@ -186,116 +294,80 @@
       "holdout_pass": true,
       "risk": {
         "loss_to_median_ratio": 0.0,
-        "risk_adjusted_score": 18.127807090473752,
+        "risk_adjusted_score": 18.433625393072017,
         "holdout_worst_rub": 1.2199999999999989
       },
       "risk_status": "WATCH"
     },
     {
-      "spread": "BR-11.26-12.26",
-      "near": "BRX6",
-      "far": "BRZ6",
-      "current_trades": 9009.0,
-      "current_volume": 33810.0,
-      "cost_proxy_rub": 78.38351999999335,
+      "spread": "SILVM-12.26-3.27",
+      "near": "S1Z6",
+      "far": "S1H7",
+      "current_trades": 445.0,
+      "current_volume": 1614.0,
+      "cost_proxy_rub": 7.2667700000006885,
       "selected_entry_z": 3.0,
-      "train_score": 221.97616868328336,
+      "train_score": 9.590410422620591,
       "train": {
-        "n": 43,
-        "positive_pct": 72.09302325581395,
-        "median_net_rub": 46.95468000002329,
-        "mean_net_rub": 22.664331162797687,
-        "aggregate_net_rub": 974.5662400003006,
-        "worst_net_rub": -596.4480799999853,
-        "best_net_rub": 247.49579999999528
+        "n": 14,
+        "positive_pct": 92.85714285714286,
+        "median_net_rub": 2.7603099999993947,
+        "mean_net_rub": 2.5812549999991754,
+        "aggregate_net_rub": 36.13756999998846,
+        "worst_net_rub": -0.5820500000008311,
+        "best_net_rub": 6.938259999998266
       },
       "holdout": {
-        "n": 19,
-        "positive_pct": 73.6842105263158,
-        "median_net_rub": 21.887040000010458,
-        "mean_net_rub": 0.7774484210579121,
-        "aggregate_net_rub": 14.771520000100331,
-        "worst_net_rub": -362.4834399999962,
-        "best_net_rub": 80.37819999999289
-      },
-      "cutoff_epoch": 1790725560,
-      "holdout_pass": true,
-      "risk": {
-        "loss_to_median_ratio": 16.561556062392313,
-        "risk_adjusted_score": 5.585924328786631,
-        "holdout_worst_rub": -362.4834399999962
-      },
-      "risk_status": "WATCH"
-    },
-    {
-      "spread": "WHEAT-11.26-12.26",
-      "near": "W4X6",
-      "far": "W4Z6",
-      "current_trades": 341.0,
-      "current_volume": 928.0,
-      "cost_proxy_rub": 89.3,
-      "selected_entry_z": 2.0,
-      "train_score": 23.92592735924776,
-      "train": {
-        "n": 5,
+        "n": 6,
         "positive_pct": 100.0,
-        "median_net_rub": 10.700000000000003,
-        "mean_net_rub": 6.700000000000003,
-        "aggregate_net_rub": 33.500000000000014,
-        "worst_net_rub": 0.7000000000000028,
-        "best_net_rub": 10.700000000000003
+        "median_net_rub": 1.0891299999988364,
+        "mean_net_rub": 1.6461899999990222,
+        "aggregate_net_rub": 9.877139999994133,
+        "worst_net_rub": 0.2535399999990027,
+        "best_net_rub": 5.267079999999192
       },
-      "holdout": {
-        "n": 3,
-        "positive_pct": 66.66666666666667,
-        "median_net_rub": 10.700000000000003,
-        "mean_net_rub": 4.033333333333336,
-        "aggregate_net_rub": 12.100000000000009,
-        "worst_net_rub": -29.299999999999997,
-        "best_net_rub": 30.700000000000003
-      },
-      "cutoff_epoch": 1790767920,
+      "cutoff_epoch": 1790793240,
       "holdout_pass": true,
       "risk": {
-        "loss_to_median_ratio": 2.738317757009345,
-        "risk_adjusted_score": 4.142127478537583,
-        "holdout_worst_rub": -29.299999999999997
+        "loss_to_median_ratio": 0.0,
+        "risk_adjusted_score": 3.374345627532843,
+        "holdout_worst_rub": 0.2535399999990027
       },
       "risk_status": "WATCH"
     },
     {
-      "spread": "GAZR-12.26-3.27",
-      "near": "GZZ6",
-      "far": "GZH7",
-      "current_trades": 321.0,
-      "current_volume": 2744.0,
-      "cost_proxy_rub": 13.14,
-      "selected_entry_z": 2.5,
-      "train_score": 24.914907435108,
+      "spread": "BRM-11.26-12.26",
+      "near": "BMX6",
+      "far": "BMZ6",
+      "current_trades": 3453.0,
+      "current_volume": 17738.0,
+      "cost_proxy_rub": 11.313540000000192,
+      "selected_entry_z": 3.0,
+      "train_score": 12.047874999999797,
       "train": {
-        "n": 32,
-        "positive_pct": 90.625,
-        "median_net_rub": 4.859999999999999,
-        "mean_net_rub": 5.859999999999999,
-        "aggregate_net_rub": 187.51999999999998,
-        "worst_net_rub": -1.1400000000000006,
-        "best_net_rub": 17.86
+        "n": 36,
+        "positive_pct": 69.44444444444444,
+        "median_net_rub": 2.8914899999999513,
+        "mean_net_rub": 0.7328824999996707,
+        "aggregate_net_rub": 26.383769999988147,
+        "worst_net_rub": -47.24390999999957,
+        "best_net_rub": 50.52011999999819
       },
       "holdout": {
-        "n": 15,
-        "positive_pct": 93.33333333333333,
-        "median_net_rub": 4.859999999999999,
-        "mean_net_rub": 19.66,
-        "aggregate_net_rub": 294.9,
-        "worst_net_rub": -30.14,
-        "best_net_rub": 224.86
+        "n": 16,
+        "positive_pct": 81.25,
+        "median_net_rub": 4.144874999999998,
+        "mean_net_rub": 2.0036756249998673,
+        "aggregate_net_rub": 32.05880999999788,
+        "worst_net_rub": -29.696520000000096,
+        "best_net_rub": 7.069440000000899
       },
-      "cutoff_epoch": 1790610960,
+      "cutoff_epoch": 1790705580,
       "holdout_pass": true,
       "risk": {
-        "loss_to_median_ratio": 6.201646090534981,
-        "risk_adjusted_score": 3.050864099920868,
-        "holdout_worst_rub": -30.14
+        "loss_to_median_ratio": 7.164635845471844,
+        "risk_adjusted_score": 2.233668888795255,
+        "holdout_worst_rub": -29.696520000000096
       },
       "risk_status": "WATCH"
     },
@@ -303,8 +375,8 @@
       "spread": "VTBR-12.26-3.27",
       "near": "VBZ6",
       "far": "VBH7",
-      "current_trades": 1060.0,
-      "current_volume": 11036.0,
+      "current_trades": 1064.0,
+      "current_volume": 11078.0,
       "cost_proxy_rub": 9.34,
       "selected_entry_z": 2.5,
       "train_score": 7.98,
@@ -330,8 +402,44 @@
       "holdout_pass": true,
       "risk": {
         "loss_to_median_ratio": 0.8072289156626504,
-        "risk_adjusted_score": 2.140217155202116,
+        "risk_adjusted_score": 2.140485931030976,
         "holdout_worst_rub": -1.3399999999999999
+      },
+      "risk_status": "WATCH"
+    },
+    {
+      "spread": "COCOA-11.26-2.27",
+      "near": "CCX6",
+      "far": "CCG7",
+      "current_trades": 5993.0,
+      "current_volume": 85162.0,
+      "cost_proxy_rub": 7.440000000000113,
+      "selected_entry_z": 3.0,
+      "train_score": 11.313708498985516,
+      "train": {
+        "n": 32,
+        "positive_pct": 78.125,
+        "median_net_rub": 2.560000000000171,
+        "mean_net_rub": 2.0600000000000396,
+        "aggregate_net_rub": 65.92000000000127,
+        "worst_net_rub": -6.439999999999886,
+        "best_net_rub": 6.559999999999659
+      },
+      "holdout": {
+        "n": 14,
+        "positive_pct": 85.71428571428571,
+        "median_net_rub": 1.5599999999996594,
+        "mean_net_rub": 1.4171428571425246,
+        "aggregate_net_rub": 19.839999999995346,
+        "worst_net_rub": -5.440000000000227,
+        "best_net_rub": 4.559999999999205
+      },
+      "cutoff_epoch": 1790751540,
+      "holdout_pass": true,
+      "risk": {
+        "loss_to_median_ratio": 3.487179487180394,
+        "risk_adjusted_score": 1.5361844069899282,
+        "holdout_worst_rub": -5.440000000000227
       },
       "risk_status": "WATCH"
     },
@@ -339,35 +447,35 @@
       "spread": "Si-12.26-3.27",
       "near": "SiZ6",
       "far": "SiH7",
-      "current_trades": 7311.0,
-      "current_volume": 30900.0,
-      "cost_proxy_rub": 22.68,
+      "current_trades": 7697.0,
+      "current_volume": 32574.0,
+      "cost_proxy_rub": 23.68,
       "selected_entry_z": 3.0,
-      "train_score": 130.41497159843755,
+      "train_score": 123.9969119725302,
       "train": {
         "n": 47,
         "positive_pct": 93.61702127659575,
-        "median_net_rub": 20.32,
-        "mean_net_rub": 21.660425531914893,
-        "aggregate_net_rub": 1018.04,
-        "worst_net_rub": -50.68,
-        "best_net_rub": 70.32
+        "median_net_rub": 19.32,
+        "mean_net_rub": 20.660425531914893,
+        "aggregate_net_rub": 971.04,
+        "worst_net_rub": -51.68,
+        "best_net_rub": 69.32
       },
       "holdout": {
         "n": 21,
-        "positive_pct": 90.47619047619048,
-        "median_net_rub": 9.32,
-        "mean_net_rub": 5.8914285714285715,
-        "aggregate_net_rub": 123.72,
-        "worst_net_rub": -240.68,
-        "best_net_rub": 71.32
+        "positive_pct": 85.71428571428571,
+        "median_net_rub": 8.32,
+        "mean_net_rub": 4.8914285714285715,
+        "aggregate_net_rub": 102.72,
+        "worst_net_rub": -241.68,
+        "best_net_rub": 70.32
       },
       "cutoff_epoch": 1790751660,
       "holdout_pass": true,
       "risk": {
-        "loss_to_median_ratio": 25.824034334763947,
-        "risk_adjusted_score": 1.9972093570064293,
-        "holdout_worst_rub": -240.68
+        "loss_to_median_ratio": 29.048076923076923,
+        "risk_adjusted_score": 1.5102773776352079,
+        "holdout_worst_rub": -241.68
       },
       "risk_status": "WATCH"
     },
@@ -375,8 +483,8 @@
       "spread": "CNY-12.26-3.27",
       "near": "CRZ6",
       "far": "CRH7",
-      "current_trades": 14099.0,
-      "current_volume": 208212.0,
+      "current_trades": 14312.0,
+      "current_volume": 211494.0,
       "cost_proxy_rub": 7.3400000000001135,
       "selected_entry_z": 2.0,
       "train_score": 1.440661612713647,
@@ -402,80 +510,116 @@
       "holdout_pass": true,
       "risk": {
         "loss_to_median_ratio": 1.1551724137942718,
-        "risk_adjusted_score": 1.3462710510764557,
+        "risk_adjusted_score": 1.3468906583507523,
         "holdout_worst_rub": -1.3399999999998862
       },
       "risk_status": "WATCH"
     },
     {
-      "spread": "SILVM-12.26-3.27",
-      "near": "S1Z6",
-      "far": "S1H7",
-      "current_trades": 387.0,
-      "current_volume": 1446.0,
-      "cost_proxy_rub": 8.937949999999763,
+      "spread": "COFFEE-11.26-2.27",
+      "near": "KCX6",
+      "far": "KCG7",
+      "current_trades": 1086.0,
+      "current_volume": 13870.0,
+      "cost_proxy_rub": 4.991180000000187,
       "selected_entry_z": 3.0,
-      "train_score": 3.196670658719747,
+      "train_score": 2.476688317255404,
       "train": {
-        "n": 8,
-        "positive_pct": 75.0,
-        "median_net_rub": 1.5069250000005336,
-        "mean_net_rub": 1.8202712500001004,
-        "aggregate_net_rub": 14.562170000000803,
-        "worst_net_rub": -0.5820500000002387,
-        "best_net_rub": 5.267079999999192
+        "n": 12,
+        "positive_pct": 83.33333333333333,
+        "median_net_rub": 0.8579499999997253,
+        "mean_net_rub": 0.30088999999975574,
+        "aggregate_net_rub": 3.610679999997069,
+        "worst_net_rub": -7.497950000000282,
+        "best_net_rub": 3.364719999999635
       },
       "holdout": {
-        "n": 4,
-        "positive_pct": 75.0,
-        "median_net_rub": 0.6713350000004032,
-        "mean_net_rub": 1.089130000000023,
-        "aggregate_net_rub": 4.356520000000092,
-        "worst_net_rub": -0.582050000000832,
-        "best_net_rub": 3.5959000000001176
+        "n": 6,
+        "positive_pct": 83.33333333333333,
+        "median_net_rub": 1.2757449999998647,
+        "mean_net_rub": 1.136479999999942,
+        "aggregate_net_rub": 6.818879999999652,
+        "worst_net_rub": -2.4844100000000924,
+        "best_net_rub": 4.200309999999914
       },
-      "cutoff_epoch": 1790782320,
+      "cutoff_epoch": 1790766900,
       "holdout_pass": true,
       "risk": {
-        "loss_to_median_ratio": 0.867003805850257,
-        "risk_adjusted_score": 0.678941112564381,
-        "holdout_worst_rub": -0.582050000000832
+        "loss_to_median_ratio": 1.9474189591182844,
+        "risk_adjusted_score": 1.1517416269148006,
+        "holdout_worst_rub": -2.4844100000000924
       },
       "risk_status": "WATCH"
     },
     {
-      "spread": "COCOA-11.26-2.27",
-      "near": "CCX6",
-      "far": "CCG7",
-      "current_trades": 5121.0,
-      "current_volume": 72560.0,
-      "cost_proxy_rub": 8.44000000000034,
+      "spread": "CNY-3.27-6.27",
+      "near": "CRH7",
+      "far": "CRM7",
+      "current_trades": 780.0,
+      "current_volume": 10974.0,
+      "cost_proxy_rub": 9.400000000000782,
       "selected_entry_z": 3.0,
-      "train_score": 11.547318036933202,
+      "train_score": 7.055365463118781,
       "train": {
-        "n": 26,
-        "positive_pct": 88.46153846153847,
-        "median_net_rub": 2.5599999999993184,
-        "mean_net_rub": 2.059999999999839,
-        "aggregate_net_rub": 53.55999999999581,
-        "worst_net_rub": -7.440000000000113,
-        "best_net_rub": 5.559999999999432
+        "n": 11,
+        "positive_pct": 81.81818181818181,
+        "median_net_rub": 2.599999999999673,
+        "mean_net_rub": 10.054545454544549,
+        "aggregate_net_rub": 110.59999999999003,
+        "worst_net_rub": -1.400000000001663,
+        "best_net_rub": 72.59999999999818
       },
       "holdout": {
-        "n": 12,
-        "positive_pct": 83.33333333333333,
-        "median_net_rub": 0.5599999999997163,
-        "mean_net_rub": 0.47666666666612717,
-        "aggregate_net_rub": 5.719999999993526,
-        "worst_net_rub": -4.4399999999999995,
-        "best_net_rub": 3.5599999999989773
+        "n": 5,
+        "positive_pct": 80.0,
+        "median_net_rub": 0.5999999999990049,
+        "mean_net_rub": 2.199999999999539,
+        "aggregate_net_rub": 10.999999999997696,
+        "worst_net_rub": -2.3999999999993324,
+        "best_net_rub": 7.600000000000454
       },
-      "cutoff_epoch": 1790704620,
+      "cutoff_epoch": 1790687700,
       "holdout_pass": true,
       "risk": {
-        "loss_to_median_ratio": 7.928571428575444,
-        "risk_adjusted_score": 0.2482175256586166,
-        "holdout_worst_rub": -4.4399999999999995
+        "loss_to_median_ratio": 4.000000000005522,
+        "risk_adjusted_score": 0.2767449590773864,
+        "holdout_worst_rub": -2.3999999999993324
+      },
+      "risk_status": "WATCH"
+    },
+    {
+      "spread": "GL-12.26-3.27",
+      "near": "GLZ6",
+      "far": "GLH7",
+      "current_trades": 773.0,
+      "current_volume": 4386.0,
+      "cost_proxy_rub": 14.420000000001092,
+      "selected_entry_z": 2.0,
+      "train_score": 3.7999999999963605,
+      "train": {
+        "n": 9,
+        "positive_pct": 55.55555555555556,
+        "median_net_rub": 2.279999999997816,
+        "mean_net_rub": -2.597777777779113,
+        "aggregate_net_rub": -23.380000000012018,
+        "worst_net_rub": -51.22000000000219,
+        "best_net_rub": 15.87999999999818
+      },
+      "holdout": {
+        "n": 5,
+        "positive_pct": 60.0,
+        "median_net_rub": 1.2799999999978162,
+        "mean_net_rub": 0.059999999998107255,
+        "aggregate_net_rub": 0.2999999999905363,
+        "worst_net_rub": -11.320000000002548,
+        "best_net_rub": 6.979999999998544
+      },
+      "cutoff_epoch": 1790784600,
+      "holdout_pass": true,
+      "risk": {
+        "loss_to_median_ratio": 8.843750000017078,
+        "risk_adjusted_score": 0.2248418875842252,
+        "holdout_worst_rub": -11.320000000002548
       },
       "risk_status": "WATCH"
     }
