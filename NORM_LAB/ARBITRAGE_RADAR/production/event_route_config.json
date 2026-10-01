@@ -21,26 +21,6 @@
       "stress10_aggregate_proxy_bps": 37.618744014352245,
       "status": "VALIDATED_STRESS10"
     },
-    "ICP|HTX|MEXC": {
-      "base": "ICP",
-      "venue_a": "HTX",
-      "venue_b": "MEXC",
-      "entry_z": 2.0,
-      "train_score": 30.528356733090973,
-      "holdout": {
-        "n": 7,
-        "positive_pct": 85.71428571428571,
-        "median_net_bps": 18.574490981467605,
-        "mean_net_bps": 13.86018704433933,
-        "aggregate_net_bps": 97.02130931037532,
-        "worst_net_bps": -11.269327794613176,
-        "best_net_bps": 27.87733205339407
-      },
-      "stress10_pass": true,
-      "stress10_median_proxy_bps": 8.574490981467605,
-      "stress10_aggregate_proxy_bps": 27.021309310375315,
-      "status": "VALIDATED_STRESS10"
-    },
     "DOT|GATE|HTX": {
       "base": "DOT",
       "venue_a": "GATE",
@@ -139,6 +119,26 @@
       "stress10_pass": true,
       "stress10_median_proxy_bps": 1.1609114594395606,
       "stress10_aggregate_proxy_bps": 41.40701444325515,
+      "status": "VALIDATED_STRESS10"
+    },
+    "ICP|HTX|MEXC": {
+      "base": "ICP",
+      "venue_a": "HTX",
+      "venue_b": "MEXC",
+      "entry_z": 2.0,
+      "train_score": 36.36930770051946,
+      "holdout": {
+        "n": 6,
+        "positive_pct": 83.33333333333333,
+        "median_net_bps": 15.730839900353981,
+        "mean_net_bps": 13.074469721484618,
+        "aggregate_net_bps": 78.44681832890771,
+        "worst_net_bps": -11.269327794613176,
+        "best_net_bps": 27.87733205339407
+      },
+      "stress10_pass": true,
+      "stress10_median_proxy_bps": 5.730839900353981,
+      "stress10_aggregate_proxy_bps": 18.44681832890771,
       "status": "VALIDATED_STRESS10"
     },
     "HBAR|BITGET|HTX": {
@@ -321,26 +321,6 @@
       "stress10_aggregate_proxy_bps": -1.3317278963726267,
       "status": "VALIDATED_SHADOW"
     },
-    "AVAX|GATE|HTX": {
-      "base": "AVAX",
-      "venue_a": "GATE",
-      "venue_b": "HTX",
-      "entry_z": 3.0,
-      "train_score": 15.190642274673607,
-      "holdout": {
-        "n": 2,
-        "positive_pct": 100.0,
-        "median_net_bps": 7.726024756067783,
-        "mean_net_bps": 7.726024756067783,
-        "aggregate_net_bps": 15.452049512135567,
-        "worst_net_bps": 3.383820775598089,
-        "best_net_bps": 12.068228736537478
-      },
-      "stress10_pass": false,
-      "stress10_median_proxy_bps": -2.2739752439322167,
-      "stress10_aggregate_proxy_bps": -4.5479504878644335,
-      "status": "VALIDATED_SHADOW"
-    },
     "AVAX|HTX|OKX": {
       "base": "AVAX",
       "venue_a": "HTX",
@@ -359,6 +339,46 @@
       "stress10_pass": false,
       "stress10_median_proxy_bps": -3.1484752473787907,
       "stress10_aggregate_proxy_bps": -6.296950494757581,
+      "status": "VALIDATED_SHADOW"
+    },
+    "AVAX|GATE|HTX": {
+      "base": "AVAX",
+      "venue_a": "GATE",
+      "venue_b": "HTX",
+      "entry_z": 3.0,
+      "train_score": 15.190642274673607,
+      "holdout": {
+        "n": 3,
+        "positive_pct": 66.66666666666667,
+        "median_net_bps": 3.383820775598089,
+        "mean_net_bps": 4.114582109070919,
+        "aggregate_net_bps": 12.343746327212756,
+        "worst_net_bps": -3.1083031849228107,
+        "best_net_bps": 12.068228736537478
+      },
+      "stress10_pass": false,
+      "stress10_median_proxy_bps": -6.616179224401911,
+      "stress10_aggregate_proxy_bps": -17.656253672787244,
+      "status": "VALIDATED_SHADOW"
+    },
+    "ARB|GATE|HTX": {
+      "base": "ARB",
+      "venue_a": "GATE",
+      "venue_b": "HTX",
+      "entry_z": 2.0,
+      "train_score": 5.5190614693884275,
+      "holdout": {
+        "n": 3,
+        "positive_pct": 66.66666666666667,
+        "median_net_bps": 3.5208692171322618,
+        "mean_net_bps": 1.538829376990704,
+        "aggregate_net_bps": 4.616488130972112,
+        "worst_net_bps": -3.551323791025162,
+        "best_net_bps": 4.646942704865012
+      },
+      "stress10_pass": false,
+      "stress10_median_proxy_bps": -6.479130782867738,
+      "stress10_aggregate_proxy_bps": -25.38351186902789,
       "status": "VALIDATED_SHADOW"
     },
     "OP|GATE|HTX": {
@@ -415,7 +435,7 @@
       "base": "OP",
       "venue_a": "BITGET",
       "venue_b": "GATE",
-      "entry_z": 3.0,
+      "entry_z": 2.0,
       "train_score": 15.105550311988717,
       "train": {
         "n": 5,
@@ -642,31 +662,7 @@
       "status": "REJECTED_TRANSFER_OR_IDENTITY_GATE"
     }
   },
-  "moex": {
-    "FF:SRZ6:SRH7": {
-      "key": "FF:SRZ6:SRH7",
-      "type": "FF",
-      "train": {
-        "n": 5,
-        "positive_pct": 80.0,
-        "median_net_rub": 6.219999999999999,
-        "mean_net_rub": 14.219999999999999,
-        "aggregate_net_rub": 71.1,
-        "worst_net_rub": -3.780000000000001,
-        "best_net_rub": 35.22
-      },
-      "holdout": {
-        "n": 4,
-        "positive_pct": 75.0,
-        "median_net_rub": 4.219999999999999,
-        "mean_net_rub": 5.969999999999999,
-        "aggregate_net_rub": 23.879999999999995,
-        "worst_net_rub": -1.7800000000000011,
-        "best_net_rub": 17.22
-      },
-      "status": "VALIDATED_SHADOW"
-    }
-  },
+  "moex": {},
   "notes": [
     "Universe remains fully scanned.",
     "Only holdout-passing routes are eligible for validated shadow entries.",
