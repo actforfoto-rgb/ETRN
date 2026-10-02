@@ -1,0 +1,39 @@
+name: Deploy ETRN site to Yandex Object Storage
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.YC_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.YC_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ru-central1
+      AWS_EC2_METADATA_DISABLED: "true"
+      YC_BUCKET: etrn-help
+      YC_ENDPOINT: https://storage.yandexcloud.net
+      SITE_URL: https://etrn-help.website.yandexcloud.net
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build static site
+        run: bash website/build.sh
+
+      - name: Install AWS CLI
+        run: python -m pip install --disable-pip-version-check --quiet awscli
+
+      - name: Sync site to Yandex Object Storage
+        run: |
+          aws --endpoint-url="$YC_ENDPOINT" s3 sync dist/ "s3://$YC_BUCKET/" --delete --no-progress
+
+      - name: Verify published site
+        run: |
+          curl -fSL --retry 5 --retry-delay 3 "$SITE_URL/" -o /tmp/index.html
+          grep -q "База помощи при работе с ЭТрН" /tmp/index.html
+          curl -fSL --retry 5 --retry-delay 3 "$SITE_URL/deploy-check.txt"
