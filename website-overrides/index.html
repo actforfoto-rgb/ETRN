@@ -15,6 +15,12 @@
   <link rel="apple-touch-icon" href="pwa/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="192x192" href="pwa/icon-192.png">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Не обещаем ссылку, если у карточки её нет */
+    .shot.img-failed:before {
+      content: "Скрин временно недоступен. Используйте текстовую инструкцию выше.";
+    }
+  </style>
 </head>
 <body>
   <div id="app"></div>
