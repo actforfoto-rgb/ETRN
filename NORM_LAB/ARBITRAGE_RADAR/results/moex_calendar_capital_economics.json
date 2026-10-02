@@ -2,32 +2,220 @@
   "routes": [
     {
       "spread": "MIX-12.26-3.27",
-      "error": "ConnectTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Max retries exceeded with url: /iss/engines/futures/markets/forts/boards/RFUD/securities/MXZ6.json?iss.meta=off (Caused by ConnectTimeoutError(<HTTPSConnection(host='iss.moex.com', port=443) at 0x7f1a5a34bd10>, 'Connection to iss.moex.com timed out. (connect timeout=20)'))"
-    },
-    {
-      "spread": "SILV-12.26-3.27",
-      "error": "ConnectTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Max retries exceeded with url: /iss/engines/futures/markets/forts/boards/RFUD/securities/SVZ6.json?iss.meta=off (Caused by ConnectTimeoutError(<HTTPSConnection(host='iss.moex.com', port=443) at 0x7f1a5a34bef0>, 'Connection to iss.moex.com timed out. (connect timeout=20)'))"
-    },
-    {
-      "spread": "NG-12.26-1.27",
-      "error": "ConnectTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Max retries exceeded with url: /iss/engines/futures/markets/forts/boards/RFUD/securities/NGZ6.json?iss.meta=off (Caused by ConnectTimeoutError(<HTTPSConnection(host='iss.moex.com', port=443) at 0x7f1a5a398380>, 'Connection to iss.moex.com timed out. (connect timeout=20)'))"
-    },
-    {
-      "spread": "NG-11.26-12.26",
-      "error": "ConnectTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Max retries exceeded with url: /iss/engines/futures/markets/forts/boards/RFUD/securities/NGX6.json?iss.meta=off (Caused by ConnectTimeoutError(<HTTPSConnection(host='iss.moex.com', port=443) at 0x7f1a5a398680>, 'Connection to iss.moex.com timed out. (connect timeout=20)'))"
+      "near": {
+        "secid": "MXZ6",
+        "initialmargin": 27464.0,
+        "buysellfee": 15.18,
+        "scalperfee": 7.59,
+        "stepprice": 25.0,
+        "minstep": 25.0,
+        "volume": 177922.0,
+        "trades": 65281.0,
+        "oi": 342616.0
+      },
+      "far": {
+        "secid": "MXH7",
+        "initialmargin": 30366.75,
+        "buysellfee": 15.53,
+        "scalperfee": 7.77,
+        "stepprice": 25.0,
+        "minstep": 25.0,
+        "volume": 898.0,
+        "trades": 698.0,
+        "oi": 3974.0
+      },
+      "conservative_sum_leg_im_rub": 57830.75,
+      "holdout_events": 9,
+      "holdout_positive_pct": 100.0,
+      "median_net_rub": 111.57999999999998,
+      "aggregate_net_rub": 1179.2199999999998,
+      "worst_net_rub": 36.579999999999984,
+      "median_event_return_on_sum_im_pct": 0.19294233604094704,
+      "aggregate_holdout_return_on_sum_im_pct": 2.039088201346169,
+      "worst_event_return_on_sum_im_pct": 0.06325354590767021,
+      "risk_adjusted_score": 429.8516669140058,
+      "note": "Capital denominator is conservative sum of current leg IM; actual exchange calendar-spread margin may differ and is not assumed."
     },
     {
       "spread": "MXI-12.26-3.27",
-      "error": "ConnectTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Max retries exceeded with url: /iss/engines/futures/markets/forts/boards/RFUD/securities/MMZ6.json?iss.meta=off (Caused by ConnectTimeoutError(<HTTPSConnection(host='iss.moex.com', port=443) at 0x7f1a5a34bf50>, 'Connection to iss.moex.com timed out. (connect timeout=20)'))"
+      "near": {
+        "secid": "MMZ6",
+        "initialmargin": 2746.58,
+        "buysellfee": 1.52,
+        "scalperfee": 0.76,
+        "stepprice": 0.5,
+        "minstep": 0.05,
+        "volume": 265105.0,
+        "trades": 61033.0,
+        "oi": 375834.0
+      },
+      "far": {
+        "secid": "MMH7",
+        "initialmargin": 3036.83,
+        "buysellfee": 1.55,
+        "scalperfee": 0.78,
+        "stepprice": 0.5,
+        "minstep": 0.05,
+        "volume": 831.0,
+        "trades": 449.0,
+        "oi": 8344.0
+      },
+      "conservative_sum_leg_im_rub": 5783.41,
+      "holdout_events": 12,
+      "holdout_positive_pct": 100.0,
+      "median_net_rub": 10.610000000002273,
+      "aggregate_net_rub": 155.3200000000382,
+      "worst_net_rub": 4.360000000004547,
+      "median_event_return_on_sum_im_pct": 0.18345578127786674,
+      "aggregate_holdout_return_on_sum_im_pct": 2.6856128132025603,
+      "worst_event_return_on_sum_im_pct": 0.07538804961094833,
+      "risk_adjusted_score": 46.512845306833086,
+      "note": "Capital denominator is conservative sum of current leg IM; actual exchange calendar-spread margin may differ and is not assumed."
     },
     {
-      "spread": "Si-12.26-3.27",
-      "error": "ConnectTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Max retries exceeded with url: /iss/engines/futures/markets/forts/boards/RFUD/securities/SiZ6.json?iss.meta=off (Caused by ConnectTimeoutError(<HTTPSConnection(host='iss.moex.com', port=443) at 0x7f1a5a34b560>, 'Connection to iss.moex.com timed out. (connect timeout=20)'))"
+      "spread": "NG-11.26-12.26",
+      "near": {
+        "secid": "NGX6",
+        "initialmargin": 7694.31,
+        "buysellfee": 3.65,
+        "scalperfee": 1.83,
+        "stepprice": 8.32454,
+        "minstep": 0.001,
+        "volume": 44303.0,
+        "trades": 9131.0,
+        "oi": 70152.0
+      },
+      "far": {
+        "secid": "NGZ6",
+        "initialmargin": 7846.19,
+        "buysellfee": 4.09,
+        "scalperfee": 2.05,
+        "stepprice": 8.32454,
+        "minstep": 0.001,
+        "volume": 5011.0,
+        "trades": 1674.0,
+        "oi": 18830.0
+      },
+      "conservative_sum_leg_im_rub": 15540.5,
+      "holdout_events": 10,
+      "holdout_positive_pct": 90.0,
+      "median_net_rub": 24.14270000000281,
+      "aggregate_net_rub": 366.2951000000181,
+      "worst_net_rub": -0.8309199999981374,
+      "median_event_return_on_sum_im_pct": 0.15535343135679555,
+      "aggregate_holdout_return_on_sum_im_pct": 2.3570354879187807,
+      "worst_event_return_on_sum_im_pct": -0.005346803513388484,
+      "risk_adjusted_score": 86.64075793096129,
+      "note": "Capital denominator is conservative sum of current leg IM; actual exchange calendar-spread margin may differ and is not assumed."
+    },
+    {
+      "spread": "SILV-12.26-3.27",
+      "near": {
+        "secid": "SVZ6",
+        "initialmargin": 11529.18,
+        "buysellfee": 6.78,
+        "scalperfee": 3.39,
+        "stepprice": 8.32454,
+        "minstep": 0.01,
+        "volume": 378798.0,
+        "trades": 53044.0,
+        "oi": 529984.0
+      },
+      "far": {
+        "secid": "SVH7",
+        "initialmargin": 12408.74,
+        "buysellfee": 6.96,
+        "scalperfee": 3.48,
+        "stepprice": 8.32454,
+        "minstep": 0.01,
+        "volume": 1426.0,
+        "trades": 951.0,
+        "oi": 7296.0
+      },
+      "conservative_sum_leg_im_rub": 23937.92,
+      "holdout_events": 10,
+      "holdout_positive_pct": 90.0,
+      "median_net_rub": 28.7917800000032,
+      "aggregate_net_rub": 296.2423400000067,
+      "worst_net_rub": -4.506379999999048,
+      "median_event_return_on_sum_im_pct": 0.12027686616048179,
+      "aggregate_holdout_return_on_sum_im_pct": 1.23754419765797,
+      "worst_event_return_on_sum_im_pct": -0.018825278052558653,
+      "risk_adjusted_score": 91.7157670364121,
+      "note": "Capital denominator is conservative sum of current leg IM; actual exchange calendar-spread margin may differ and is not assumed."
     },
     {
       "spread": "GOLDM-12.26-3.27",
-      "error": "ConnectTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Max retries exceeded with url: /iss/engines/futures/markets/forts/boards/RFUD/securities/GNZ6.json?iss.meta=off (Caused by ConnectTimeoutError(<HTTPSConnection(host='iss.moex.com', port=443) at 0x7f1a5a3984d0>, 'Connection to iss.moex.com timed out. (connect timeout=20)'))"
+      "near": {
+        "secid": "GNZ6",
+        "initialmargin": 3231.1,
+        "buysellfee": 4.65,
+        "scalperfee": 2.33,
+        "stepprice": 0.83245,
+        "minstep": 0.1,
+        "volume": 48394.0,
+        "trades": 14533.0,
+        "oi": 49760.0
+      },
+      "far": {
+        "secid": "GNH7",
+        "initialmargin": 3356.86,
+        "buysellfee": 4.71,
+        "scalperfee": 2.36,
+        "stepprice": 0.83245,
+        "minstep": 0.1,
+        "volume": 726.0,
+        "trades": 427.0,
+        "oi": 2188.0
+      },
+      "conservative_sum_leg_im_rub": 6587.96,
+      "holdout_events": 7,
+      "holdout_positive_pct": 85.71428571428571,
+      "median_net_rub": 5.0859499999954565,
+      "aggregate_net_rub": 87.21354999998943,
+      "worst_net_rub": -4.070999999999998,
+      "median_event_return_on_sum_im_pct": 0.07720068124268296,
+      "aggregate_holdout_return_on_sum_im_pct": 1.3238324154972014,
+      "worst_event_return_on_sum_im_pct": -0.06179454641497517,
+      "risk_adjusted_score": 8.061682700200679,
+      "note": "Capital denominator is conservative sum of current leg IM; actual exchange calendar-spread margin may differ and is not assumed."
+    },
+    {
+      "spread": "Si-12.26-3.27",
+      "near": {
+        "secid": "SiZ6",
+        "initialmargin": 13380.93,
+        "buysellfee": 3.91,
+        "scalperfee": 1.96,
+        "stepprice": 1.0,
+        "minstep": 1.0,
+        "volume": 891503.0,
+        "trades": 177875.0,
+        "oi": 10681658.0
+      },
+      "far": {
+        "secid": "SiH7",
+        "initialmargin": 13651.98,
+        "buysellfee": 3.97,
+        "scalperfee": 1.99,
+        "stepprice": 1.0,
+        "minstep": 1.0,
+        "volume": 14613.0,
+        "trades": 6173.0,
+        "oi": 202876.0
+      },
+      "conservative_sum_leg_im_rub": 27032.91,
+      "holdout_events": 21,
+      "holdout_positive_pct": 95.23809523809524,
+      "median_net_rub": 9.239999999999998,
+      "aggregate_net_rub": 247.03999999999996,
+      "worst_net_rub": -3.7600000000000016,
+      "median_event_return_on_sum_im_pct": 0.03418055991752275,
+      "aggregate_holdout_return_on_sum_im_pct": 0.9138490824702186,
+      "worst_event_return_on_sum_im_pct": -0.013908972433970303,
+      "risk_adjusted_score": 39.451551053930785,
+      "note": "Capital denominator is conservative sum of current leg IM; actual exchange calendar-spread margin may differ and is not assumed."
     }
   ],
-  "count": 7
+  "count": 6
 }
