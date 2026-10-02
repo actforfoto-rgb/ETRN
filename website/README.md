@@ -1,7 +1,12 @@
 # ETRN Help Site
 
-Эта папка предназначена для опубликованного сайта «База помощи при работе с ЭТрН».
+Эта папка содержит пакет опубликованного сайта «База помощи при работе с ЭТрН».
 
-Cloudflare Pages: root directory `website`.
+Cloudflare Pages настройки:
+- Production branch: `main`
+- Root directory: оставить пустым (корень репозитория)
+- Framework preset: `None`
+- Build command: `bash website/build.sh`
+- Build output directory: `dist`
 
-После первичной загрузки сайта дальнейшие текстовые и кодовые обновления можно вносить напрямую через подключение GitHub в ChatGPT.
+Файл `website/site.zip` — базовая версия сайта. Файлы из `website-overrides/` при сборке накладываются поверх неё, поэтому дальнейшие текстовые и кодовые обновления можно вносить напрямую через GitHub.
