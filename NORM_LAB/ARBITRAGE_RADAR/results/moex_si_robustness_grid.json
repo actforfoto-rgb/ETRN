@@ -1,34 +1,134 @@
 {
   "days": 30,
-  "bars": 8874,
-  "cost_rub": 36.760000000000005,
+  "bars": 8892,
+  "cost_rub": 30.76,
   "extra_stress_rub": 10.0,
   "grid_size": 81,
-  "holdout_pass_count": 8,
-  "holdout_pass_pct": 9.876543209876543,
+  "holdout_pass_count": 48,
+  "holdout_pass_pct": 59.25925925925926,
   "parameter_pass_map": {
     "lookback": {
-      "30": 2,
-      "60": 3,
-      "120": 3
+      "30": 20,
+      "60": 22,
+      "120": 6
     },
     "entry_z": {
-      "2.5": 4,
-      "3.0": 1,
-      "3.5": 3
+      "2.5": 12,
+      "3.0": 21,
+      "3.5": 15
     },
     "exit_z": {
-      "0.25": 1,
-      "0.5": 4,
-      "1.0": 3
+      "0.25": 16,
+      "0.5": 16,
+      "1.0": 16
     },
     "max_hold": {
-      "30": 5,
-      "60": 1,
-      "120": 2
+      "30": 18,
+      "60": 15,
+      "120": 15
     }
   },
   "top_holdout": [
+    {
+      "lookback": 30,
+      "entry_z": 2.5,
+      "exit_z": 0.5,
+      "max_hold_min": 30,
+      "train": {
+        "n": 191,
+        "positive_pct": 85.34031413612566,
+        "median": 16.24,
+        "mean": 25.58031413612565,
+        "aggregate": 4885.839999999999,
+        "worst": -122.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 66,
+        "positive_pct": 72.72727272727273,
+        "median": 4.239999999999998,
+        "mean": 3.800606060606059,
+        "aggregate": 250.8399999999999,
+        "worst": -211.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 30,
+      "entry_z": 2.5,
+      "exit_z": 0.25,
+      "max_hold_min": 30,
+      "train": {
+        "n": 178,
+        "positive_pct": 86.51685393258427,
+        "median": 15.239999999999998,
+        "mean": 25.42539325842696,
+        "aggregate": 4525.719999999999,
+        "worst": -122.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 63,
+        "positive_pct": 76.19047619047619,
+        "median": 4.239999999999998,
+        "mean": 3.6050793650793636,
+        "aggregate": 227.1199999999999,
+        "worst": -211.76,
+        "best": 60.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 2.5,
+      "exit_z": 0.5,
+      "max_hold_min": 120,
+      "train": {
+        "n": 169,
+        "positive_pct": 91.12426035502959,
+        "median": 19.24,
+        "mean": 31.305088757396447,
+        "aggregate": 5290.5599999999995,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 58,
+        "positive_pct": 72.41379310344827,
+        "median": 4.239999999999998,
+        "mean": 3.8262068965517226,
+        "aggregate": 221.9199999999999,
+        "worst": -248.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 2.5,
+      "exit_z": 0.5,
+      "max_hold_min": 30,
+      "train": {
+        "n": 169,
+        "positive_pct": 91.12426035502959,
+        "median": 19.24,
+        "mean": 31.305088757396447,
+        "aggregate": 5290.5599999999995,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 58,
+        "positive_pct": 72.41379310344827,
+        "median": 4.239999999999998,
+        "mean": 3.8089655172413774,
+        "aggregate": 220.9199999999999,
+        "worst": -211.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
     {
       "lookback": 120,
       "entry_z": 3.5,
@@ -36,21 +136,21 @@
       "max_hold_min": 60,
       "train": {
         "n": 59,
-        "positive_pct": 96.61016949152543,
-        "median": 34.239999999999995,
-        "mean": 48.90101694915254,
-        "aggregate": 2885.16,
-        "worst": -64.76,
-        "best": 279.24
+        "positive_pct": 98.30508474576271,
+        "median": 40.239999999999995,
+        "mean": 54.90101694915254,
+        "aggregate": 3239.16,
+        "worst": -58.760000000000005,
+        "best": 285.24
       },
       "holdout": {
-        "n": 16,
-        "positive_pct": 87.5,
-        "median": 14.239999999999995,
-        "mean": 5.052499999999996,
-        "aggregate": 80.83999999999993,
-        "worst": -172.76,
-        "best": 63.239999999999995
+        "n": 18,
+        "positive_pct": 94.44444444444444,
+        "median": 18.24,
+        "mean": 10.96222222222222,
+        "aggregate": 197.31999999999996,
+        "worst": -166.76,
+        "best": 69.24
       },
       "holdout_pass": true
     },
@@ -61,45 +161,70 @@
       "max_hold_min": 120,
       "train": {
         "n": 59,
-        "positive_pct": 96.61016949152543,
-        "median": 34.239999999999995,
-        "mean": 48.90101694915254,
-        "aggregate": 2885.16,
-        "worst": -64.76,
-        "best": 279.24
+        "positive_pct": 98.30508474576271,
+        "median": 40.239999999999995,
+        "mean": 54.90101694915254,
+        "aggregate": 3239.16,
+        "worst": -58.760000000000005,
+        "best": 285.24
       },
       "holdout": {
-        "n": 16,
-        "positive_pct": 87.5,
-        "median": 14.239999999999995,
-        "mean": 5.052499999999996,
-        "aggregate": 80.83999999999993,
-        "worst": -172.76,
+        "n": 18,
+        "positive_pct": 94.44444444444444,
+        "median": 18.24,
+        "mean": 10.96222222222222,
+        "aggregate": 197.31999999999996,
+        "worst": -166.76,
+        "best": 69.24
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 2.5,
+      "exit_z": 0.5,
+      "max_hold_min": 60,
+      "train": {
+        "n": 169,
+        "positive_pct": 91.12426035502959,
+        "median": 19.24,
+        "mean": 31.305088757396447,
+        "aggregate": 5290.5599999999995,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 58,
+        "positive_pct": 72.41379310344827,
+        "median": 4.239999999999998,
+        "mean": 3.2055172413793085,
+        "aggregate": 185.9199999999999,
+        "worst": -284.76,
         "best": 63.239999999999995
       },
       "holdout_pass": true
     },
     {
-      "lookback": 120,
-      "entry_z": 3.5,
-      "exit_z": 1.0,
-      "max_hold_min": 30,
+      "lookback": 30,
+      "entry_z": 2.5,
+      "exit_z": 0.5,
+      "max_hold_min": 120,
       "train": {
-        "n": 59,
-        "positive_pct": 96.61016949152543,
-        "median": 34.239999999999995,
-        "mean": 48.90101694915254,
-        "aggregate": 2885.16,
-        "worst": -64.76,
-        "best": 279.24
+        "n": 191,
+        "positive_pct": 85.34031413612566,
+        "median": 16.24,
+        "mean": 25.58031413612565,
+        "aggregate": 4885.839999999999,
+        "worst": -122.76,
+        "best": 285.24
       },
       "holdout": {
-        "n": 16,
-        "positive_pct": 87.5,
-        "median": 14.239999999999995,
-        "mean": 2.3024999999999958,
-        "aggregate": 36.83999999999993,
-        "worst": -216.76,
+        "n": 66,
+        "positive_pct": 72.72727272727273,
+        "median": 4.239999999999998,
+        "mean": 2.800606060606059,
+        "aggregate": 184.8399999999999,
+        "worst": -277.76,
         "best": 63.239999999999995
       },
       "holdout_pass": true
@@ -110,72 +235,147 @@
       "exit_z": 0.5,
       "max_hold_min": 30,
       "train": {
-        "n": 106,
-        "positive_pct": 95.28301886792453,
-        "median": 23.239999999999995,
-        "mean": 34.862641509433956,
-        "aggregate": 3695.4399999999996,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 24,
-        "positive_pct": 75.0,
-        "median": 8.739999999999995,
-        "mean": 1.281666666666662,
-        "aggregate": 30.75999999999989,
-        "worst": -217.76,
-        "best": 57.239999999999995
-      },
-      "holdout_pass": true
-    },
-    {
-      "lookback": 60,
-      "entry_z": 2.5,
-      "exit_z": 0.5,
-      "max_hold_min": 120,
-      "train": {
-        "n": 154,
-        "positive_pct": 90.9090909090909,
-        "median": 16.239999999999995,
-        "mean": 28.278961038961032,
-        "aggregate": 4354.959999999999,
-        "worst": -85.76,
-        "best": 279.24
+        "n": 110,
+        "positive_pct": 94.54545454545455,
+        "median": 28.74,
+        "mean": 39.49454545454545,
+        "aggregate": 4344.4,
+        "worst": -79.76,
+        "best": 285.24
       },
       "holdout": {
         "n": 34,
-        "positive_pct": 70.58823529411765,
-        "median": 8.739999999999995,
-        "mean": 0.4458823529411718,
-        "aggregate": 15.15999999999984,
-        "worst": -254.76,
-        "best": 57.239999999999995
+        "positive_pct": 82.3529411764706,
+        "median": 8.239999999999998,
+        "mean": 5.357647058823528,
+        "aggregate": 182.15999999999997,
+        "worst": -211.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 30,
+      "entry_z": 2.5,
+      "exit_z": 0.5,
+      "max_hold_min": 60,
+      "train": {
+        "n": 191,
+        "positive_pct": 85.34031413612566,
+        "median": 16.24,
+        "mean": 25.58031413612565,
+        "aggregate": 4885.839999999999,
+        "worst": -122.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 66,
+        "positive_pct": 72.72727272727273,
+        "median": 4.239999999999998,
+        "mean": 2.694545454545453,
+        "aggregate": 177.8399999999999,
+        "worst": -284.76,
+        "best": 63.239999999999995
       },
       "holdout_pass": true
     },
     {
       "lookback": 60,
       "entry_z": 2.5,
+      "exit_z": 0.25,
+      "max_hold_min": 30,
+      "train": {
+        "n": 156,
+        "positive_pct": 90.38461538461539,
+        "median": 19.24,
+        "mean": 31.10538461538461,
+        "aggregate": 4852.44,
+        "worst": -94.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 50,
+        "positive_pct": 76.0,
+        "median": 3.7399999999999984,
+        "mean": 3.459999999999998,
+        "aggregate": 172.99999999999991,
+        "worst": -211.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 30,
+      "entry_z": 3.0,
       "exit_z": 0.5,
       "max_hold_min": 30,
       "train": {
-        "n": 154,
-        "positive_pct": 90.9090909090909,
-        "median": 16.239999999999995,
-        "mean": 28.278961038961032,
-        "aggregate": 4354.959999999999,
-        "worst": -85.76,
-        "best": 279.24
+        "n": 133,
+        "positive_pct": 85.71428571428571,
+        "median": 19.24,
+        "mean": 30.788872180451126,
+        "aggregate": 4094.9199999999996,
+        "worst": -122.76,
+        "best": 285.24
       },
       "holdout": {
-        "n": 34,
-        "positive_pct": 70.58823529411765,
-        "median": 8.739999999999995,
-        "mean": 0.41647058823528943,
-        "aggregate": 14.15999999999984,
-        "worst": -217.76,
-        "best": 57.239999999999995
+        "n": 52,
+        "positive_pct": 76.92307692307692,
+        "median": 4.739999999999998,
+        "mean": 3.259230769230768,
+        "aggregate": 169.47999999999993,
+        "worst": -211.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 2.5,
+      "exit_z": 0.25,
+      "max_hold_min": 120,
+      "train": {
+        "n": 156,
+        "positive_pct": 90.38461538461539,
+        "median": 19.24,
+        "mean": 31.188717948717947,
+        "aggregate": 4865.44,
+        "worst": -94.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 50,
+        "positive_pct": 76.0,
+        "median": 3.7399999999999984,
+        "mean": 3.1999999999999984,
+        "aggregate": 159.99999999999991,
+        "worst": -246.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 30,
+      "entry_z": 3.0,
+      "exit_z": 0.25,
+      "max_hold_min": 30,
+      "train": {
+        "n": 128,
+        "positive_pct": 87.5,
+        "median": 18.24,
+        "mean": 29.7790625,
+        "aggregate": 3811.72,
+        "worst": -122.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 51,
+        "positive_pct": 74.50980392156863,
+        "median": 4.239999999999998,
+        "mean": 3.102745098039214,
+        "aggregate": 158.23999999999992,
+        "worst": -211.76,
+        "best": 60.239999999999995
       },
       "holdout_pass": true
     },
@@ -183,49 +383,399 @@
       "lookback": 30,
       "entry_z": 2.5,
       "exit_z": 0.25,
-      "max_hold_min": 30,
+      "max_hold_min": 60,
       "train": {
-        "n": 150,
-        "positive_pct": 85.33333333333333,
-        "median": 14.239999999999995,
-        "mean": 26.439999999999994,
-        "aggregate": 3965.999999999999,
-        "worst": -85.76,
-        "best": 279.24
+        "n": 178,
+        "positive_pct": 86.51685393258427,
+        "median": 15.239999999999998,
+        "mean": 25.42539325842696,
+        "aggregate": 4525.719999999999,
+        "worst": -122.76,
+        "best": 285.24
       },
       "holdout": {
-        "n": 38,
-        "positive_pct": 68.42105263157895,
-        "median": 3.739999999999995,
-        "mean": 0.31894736842104787,
-        "aggregate": 12.11999999999982,
-        "worst": -217.76,
-        "best": 54.239999999999995
+        "n": 63,
+        "positive_pct": 76.19047619047619,
+        "median": 4.239999999999998,
+        "mean": 2.4463492063492045,
+        "aggregate": 154.1199999999999,
+        "worst": -284.76,
+        "best": 60.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 120,
+      "entry_z": 3.5,
+      "exit_z": 1.0,
+      "max_hold_min": 30,
+      "train": {
+        "n": 59,
+        "positive_pct": 98.30508474576271,
+        "median": 40.239999999999995,
+        "mean": 54.90101694915254,
+        "aggregate": 3239.16,
+        "worst": -58.760000000000005,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 18,
+        "positive_pct": 94.44444444444444,
+        "median": 18.24,
+        "mean": 8.517777777777775,
+        "aggregate": 153.31999999999996,
+        "worst": -210.76,
+        "best": 69.24
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 120,
+      "entry_z": 3.0,
+      "exit_z": 1.0,
+      "max_hold_min": 120,
+      "train": {
+        "n": 105,
+        "positive_pct": 94.28571428571429,
+        "median": 29.24,
+        "mean": 40.44,
+        "aggregate": 4246.2,
+        "worst": -58.760000000000005,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 39,
+        "positive_pct": 66.66666666666667,
+        "median": 6.239999999999998,
+        "mean": 3.8553846153846134,
+        "aggregate": 150.35999999999993,
+        "worst": -210.76,
+        "best": 69.24
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 120,
+      "entry_z": 3.0,
+      "exit_z": 1.0,
+      "max_hold_min": 30,
+      "train": {
+        "n": 105,
+        "positive_pct": 94.28571428571429,
+        "median": 29.24,
+        "mean": 40.44,
+        "aggregate": 4246.2,
+        "worst": -58.760000000000005,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 39,
+        "positive_pct": 66.66666666666667,
+        "median": 6.239999999999998,
+        "mean": 3.7784615384615368,
+        "aggregate": 147.35999999999993,
+        "worst": -213.76,
+        "best": 69.24
       },
       "holdout_pass": true
     },
     {
       "lookback": 30,
       "entry_z": 2.5,
+      "exit_z": 0.25,
+      "max_hold_min": 120,
+      "train": {
+        "n": 178,
+        "positive_pct": 86.51685393258427,
+        "median": 15.239999999999998,
+        "mean": 25.42539325842696,
+        "aggregate": 4525.719999999999,
+        "worst": -122.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 63,
+        "positive_pct": 76.19047619047619,
+        "median": 4.239999999999998,
+        "mean": 2.3193650793650775,
+        "aggregate": 146.1199999999999,
+        "worst": -292.76,
+        "best": 60.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 3.0,
       "exit_z": 0.5,
+      "max_hold_min": 120,
+      "train": {
+        "n": 110,
+        "positive_pct": 94.54545454545455,
+        "median": 28.74,
+        "mean": 39.49454545454545,
+        "aggregate": 4344.4,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 34,
+        "positive_pct": 82.3529411764706,
+        "median": 8.239999999999998,
+        "mean": 4.269411764705882,
+        "aggregate": 145.15999999999997,
+        "worst": -248.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 3.0,
+      "exit_z": 0.25,
       "max_hold_min": 30,
       "train": {
-        "n": 158,
-        "positive_pct": 84.17721518987342,
-        "median": 13.239999999999995,
-        "mean": 26.657721518987337,
-        "aggregate": 4211.919999999999,
-        "worst": -85.76,
-        "best": 279.24
+        "n": 108,
+        "positive_pct": 91.66666666666667,
+        "median": 26.74,
+        "mean": 38.79555555555556,
+        "aggregate": 4189.92,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 30,
+        "positive_pct": 76.66666666666667,
+        "median": 7.739999999999998,
+        "mean": 4.673333333333332,
+        "aggregate": 140.19999999999996,
+        "worst": -211.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 30,
+      "entry_z": 3.0,
+      "exit_z": 1.0,
+      "max_hold_min": 60,
+      "train": {
+        "n": 138,
+        "positive_pct": 84.78260869565217,
+        "median": 17.24,
+        "mean": 29.384927536231885,
+        "aggregate": 4055.12,
+        "worst": -122.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 52,
+        "positive_pct": 69.23076923076923,
+        "median": 4.739999999999998,
+        "mean": 2.489999999999998,
+        "aggregate": 129.4799999999999,
+        "worst": -207.76,
+        "best": 69.24
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 30,
+      "entry_z": 3.0,
+      "exit_z": 1.0,
+      "max_hold_min": 120,
+      "train": {
+        "n": 138,
+        "positive_pct": 84.78260869565217,
+        "median": 17.24,
+        "mean": 29.384927536231885,
+        "aggregate": 4055.12,
+        "worst": -122.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 52,
+        "positive_pct": 69.23076923076923,
+        "median": 4.739999999999998,
+        "mean": 2.489999999999998,
+        "aggregate": 129.4799999999999,
+        "worst": -207.76,
+        "best": 69.24
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 30,
+      "entry_z": 3.0,
+      "exit_z": 1.0,
+      "max_hold_min": 30,
+      "train": {
+        "n": 138,
+        "positive_pct": 84.78260869565217,
+        "median": 17.24,
+        "mean": 29.384927536231885,
+        "aggregate": 4055.12,
+        "worst": -122.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 52,
+        "positive_pct": 69.23076923076923,
+        "median": 4.739999999999998,
+        "mean": 2.4130769230769213,
+        "aggregate": 125.47999999999992,
+        "worst": -211.76,
+        "best": 69.24
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 2.5,
+      "exit_z": 0.25,
+      "max_hold_min": 60,
+      "train": {
+        "n": 156,
+        "positive_pct": 90.38461538461539,
+        "median": 19.24,
+        "mean": 31.188717948717947,
+        "aggregate": 4865.44,
+        "worst": -94.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 50,
+        "positive_pct": 76.0,
+        "median": 3.7399999999999984,
+        "mean": 2.439999999999998,
+        "aggregate": 121.99999999999991,
+        "worst": -284.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 3.0,
+      "exit_z": 0.25,
+      "max_hold_min": 120,
+      "train": {
+        "n": 108,
+        "positive_pct": 91.66666666666667,
+        "median": 26.74,
+        "mean": 38.87888888888889,
+        "aggregate": 4198.92,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 30,
+        "positive_pct": 76.66666666666667,
+        "median": 7.739999999999998,
+        "mean": 3.639999999999999,
+        "aggregate": 109.19999999999996,
+        "worst": -246.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 3.0,
+      "exit_z": 0.5,
+      "max_hold_min": 60,
+      "train": {
+        "n": 110,
+        "positive_pct": 94.54545454545455,
+        "median": 28.74,
+        "mean": 39.49454545454545,
+        "aggregate": 4344.4,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 34,
+        "positive_pct": 82.3529411764706,
+        "median": 8.239999999999998,
+        "mean": 3.210588235294116,
+        "aggregate": 109.15999999999995,
+        "worst": -284.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 30,
+      "entry_z": 3.0,
+      "exit_z": 0.5,
+      "max_hold_min": 120,
+      "train": {
+        "n": 133,
+        "positive_pct": 85.71428571428571,
+        "median": 19.24,
+        "mean": 30.788872180451126,
+        "aggregate": 4094.9199999999996,
+        "worst": -122.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 52,
+        "positive_pct": 76.92307692307692,
+        "median": 4.739999999999998,
+        "mean": 1.9899999999999984,
+        "aggregate": 103.47999999999992,
+        "worst": -277.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 30,
+      "entry_z": 3.0,
+      "exit_z": 0.5,
+      "max_hold_min": 60,
+      "train": {
+        "n": 133,
+        "positive_pct": 85.71428571428571,
+        "median": 19.24,
+        "mean": 30.788872180451126,
+        "aggregate": 4094.9199999999996,
+        "worst": -122.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 52,
+        "positive_pct": 76.92307692307692,
+        "median": 4.739999999999998,
+        "mean": 1.8553846153846139,
+        "aggregate": 96.47999999999992,
+        "worst": -284.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 120,
+      "entry_z": 3.0,
+      "exit_z": 1.0,
+      "max_hold_min": 60,
+      "train": {
+        "n": 105,
+        "positive_pct": 94.28571428571429,
+        "median": 29.24,
+        "mean": 40.44,
+        "aggregate": 4246.2,
+        "worst": -58.760000000000005,
+        "best": 285.24
       },
       "holdout": {
         "n": 39,
         "positive_pct": 66.66666666666667,
-        "median": 5.239999999999995,
-        "mean": 0.009230769230764478,
-        "aggregate": 0.3599999999998147,
-        "worst": -217.76,
-        "best": 57.239999999999995
+        "median": 6.239999999999998,
+        "mean": 2.2399999999999984,
+        "aggregate": 87.35999999999994,
+        "worst": -273.76,
+        "best": 69.24
       },
       "holdout_pass": true
     }
@@ -237,22 +787,22 @@
       "exit_z": 0.25,
       "max_hold_min": 30,
       "train": {
-        "n": 150,
-        "positive_pct": 85.33333333333333,
-        "median": 14.239999999999995,
-        "mean": 26.439999999999994,
-        "aggregate": 3965.999999999999,
-        "worst": -85.76,
-        "best": 279.24
+        "n": 178,
+        "positive_pct": 86.51685393258427,
+        "median": 15.239999999999998,
+        "mean": 25.42539325842696,
+        "aggregate": 4525.719999999999,
+        "worst": -122.76,
+        "best": 285.24
       },
       "holdout": {
-        "n": 38,
-        "positive_pct": 68.42105263157895,
-        "median": 3.739999999999995,
-        "mean": 0.31894736842104787,
-        "aggregate": 12.11999999999982,
-        "worst": -217.76,
-        "best": 54.239999999999995
+        "n": 63,
+        "positive_pct": 76.19047619047619,
+        "median": 4.239999999999998,
+        "mean": 3.6050793650793636,
+        "aggregate": 227.1199999999999,
+        "worst": -211.76,
+        "best": 60.239999999999995
       },
       "holdout_pass": true
     },
@@ -262,24 +812,24 @@
       "exit_z": 0.25,
       "max_hold_min": 60,
       "train": {
-        "n": 150,
-        "positive_pct": 85.33333333333333,
-        "median": 14.239999999999995,
-        "mean": 26.439999999999994,
-        "aggregate": 3965.999999999999,
-        "worst": -85.76,
-        "best": 279.24
+        "n": 178,
+        "positive_pct": 86.51685393258427,
+        "median": 15.239999999999998,
+        "mean": 25.42539325842696,
+        "aggregate": 4525.719999999999,
+        "worst": -122.76,
+        "best": 285.24
       },
       "holdout": {
-        "n": 38,
-        "positive_pct": 68.42105263157895,
-        "median": 3.739999999999995,
-        "mean": -1.6021052631578996,
-        "aggregate": -60.88000000000018,
-        "worst": -290.76,
-        "best": 54.239999999999995
+        "n": 63,
+        "positive_pct": 76.19047619047619,
+        "median": 4.239999999999998,
+        "mean": 2.4463492063492045,
+        "aggregate": 154.1199999999999,
+        "worst": -284.76,
+        "best": 60.239999999999995
       },
-      "holdout_pass": false
+      "holdout_pass": true
     },
     {
       "lookback": 30,
@@ -287,24 +837,24 @@
       "exit_z": 0.25,
       "max_hold_min": 120,
       "train": {
-        "n": 150,
-        "positive_pct": 85.33333333333333,
-        "median": 14.239999999999995,
-        "mean": 26.439999999999994,
-        "aggregate": 3965.999999999999,
-        "worst": -85.76,
-        "best": 279.24
+        "n": 178,
+        "positive_pct": 86.51685393258427,
+        "median": 15.239999999999998,
+        "mean": 25.42539325842696,
+        "aggregate": 4525.719999999999,
+        "worst": -122.76,
+        "best": 285.24
       },
       "holdout": {
-        "n": 38,
-        "positive_pct": 68.42105263157895,
-        "median": 3.739999999999995,
-        "mean": -1.8126315789473733,
-        "aggregate": -68.88000000000018,
-        "worst": -298.76,
-        "best": 54.239999999999995
+        "n": 63,
+        "positive_pct": 76.19047619047619,
+        "median": 4.239999999999998,
+        "mean": 2.3193650793650775,
+        "aggregate": 146.1199999999999,
+        "worst": -292.76,
+        "best": 60.239999999999995
       },
-      "holdout_pass": false
+      "holdout_pass": true
     },
     {
       "lookback": 30,
@@ -312,22 +862,22 @@
       "exit_z": 0.5,
       "max_hold_min": 30,
       "train": {
-        "n": 158,
-        "positive_pct": 84.17721518987342,
-        "median": 13.239999999999995,
-        "mean": 26.657721518987337,
-        "aggregate": 4211.919999999999,
-        "worst": -85.76,
-        "best": 279.24
+        "n": 191,
+        "positive_pct": 85.34031413612566,
+        "median": 16.24,
+        "mean": 25.58031413612565,
+        "aggregate": 4885.839999999999,
+        "worst": -122.76,
+        "best": 285.24
       },
       "holdout": {
-        "n": 39,
-        "positive_pct": 66.66666666666667,
-        "median": 5.239999999999995,
-        "mean": 0.009230769230764478,
-        "aggregate": 0.3599999999998147,
-        "worst": -217.76,
-        "best": 57.239999999999995
+        "n": 66,
+        "positive_pct": 72.72727272727273,
+        "median": 4.239999999999998,
+        "mean": 3.800606060606059,
+        "aggregate": 250.8399999999999,
+        "worst": -211.76,
+        "best": 63.239999999999995
       },
       "holdout_pass": true
     },
@@ -337,24 +887,24 @@
       "exit_z": 0.5,
       "max_hold_min": 60,
       "train": {
-        "n": 158,
-        "positive_pct": 84.17721518987342,
-        "median": 13.239999999999995,
-        "mean": 26.657721518987337,
-        "aggregate": 4211.919999999999,
-        "worst": -85.76,
-        "best": 279.24
+        "n": 191,
+        "positive_pct": 85.34031413612566,
+        "median": 16.24,
+        "mean": 25.58031413612565,
+        "aggregate": 4885.839999999999,
+        "worst": -122.76,
+        "best": 285.24
       },
       "holdout": {
-        "n": 39,
-        "positive_pct": 66.66666666666667,
-        "median": 5.239999999999995,
-        "mean": -1.8625641025641073,
-        "aggregate": -72.64000000000019,
-        "worst": -290.76,
-        "best": 57.239999999999995
+        "n": 66,
+        "positive_pct": 72.72727272727273,
+        "median": 4.239999999999998,
+        "mean": 2.694545454545453,
+        "aggregate": 177.8399999999999,
+        "worst": -284.76,
+        "best": 63.239999999999995
       },
-      "holdout_pass": false
+      "holdout_pass": true
     },
     {
       "lookback": 30,
@@ -362,24 +912,24 @@
       "exit_z": 0.5,
       "max_hold_min": 120,
       "train": {
-        "n": 158,
-        "positive_pct": 84.17721518987342,
-        "median": 13.239999999999995,
-        "mean": 26.657721518987337,
-        "aggregate": 4211.919999999999,
-        "worst": -85.76,
-        "best": 279.24
+        "n": 191,
+        "positive_pct": 85.34031413612566,
+        "median": 16.24,
+        "mean": 25.58031413612565,
+        "aggregate": 4885.839999999999,
+        "worst": -122.76,
+        "best": 285.24
       },
       "holdout": {
-        "n": 39,
-        "positive_pct": 66.66666666666667,
-        "median": 5.239999999999995,
-        "mean": -1.6830769230769278,
-        "aggregate": -65.64000000000019,
-        "worst": -283.76,
-        "best": 57.239999999999995
+        "n": 66,
+        "positive_pct": 72.72727272727273,
+        "median": 4.239999999999998,
+        "mean": 2.800606060606059,
+        "aggregate": 184.8399999999999,
+        "worst": -277.76,
+        "best": 63.239999999999995
       },
-      "holdout_pass": false
+      "holdout_pass": true
     },
     {
       "lookback": 30,
@@ -387,22 +937,22 @@
       "exit_z": 1.0,
       "max_hold_min": 30,
       "train": {
-        "n": 165,
-        "positive_pct": 79.39393939393939,
-        "median": 13.239999999999995,
-        "mean": 25.530909090909088,
-        "aggregate": 4212.599999999999,
-        "worst": -85.76,
-        "best": 279.24
+        "n": 200,
+        "positive_pct": 81.5,
+        "median": 15.239999999999998,
+        "mean": 24.83,
+        "aggregate": 4966.0,
+        "worst": -122.76,
+        "best": 285.24
       },
       "holdout": {
-        "n": 39,
-        "positive_pct": 56.41025641025641,
-        "median": 4.239999999999995,
-        "mean": -0.811282051282056,
-        "aggregate": -31.640000000000185,
-        "worst": -217.76,
-        "best": 63.239999999999995
+        "n": 66,
+        "positive_pct": 62.121212121212125,
+        "median": 3.2399999999999984,
+        "mean": 2.5581818181818163,
+        "aggregate": 168.8399999999999,
+        "worst": -211.76,
+        "best": 69.24
       },
       "holdout_pass": false
     },
@@ -412,22 +962,22 @@
       "exit_z": 1.0,
       "max_hold_min": 60,
       "train": {
-        "n": 165,
-        "positive_pct": 79.39393939393939,
-        "median": 13.239999999999995,
-        "mean": 25.530909090909088,
-        "aggregate": 4212.599999999999,
-        "worst": -85.76,
-        "best": 279.24
+        "n": 200,
+        "positive_pct": 81.5,
+        "median": 15.239999999999998,
+        "mean": 24.83,
+        "aggregate": 4966.0,
+        "worst": -122.76,
+        "best": 285.24
       },
       "holdout": {
-        "n": 39,
-        "positive_pct": 56.41025641025641,
-        "median": 4.239999999999995,
-        "mean": -0.7087179487179535,
-        "aggregate": -27.640000000000185,
-        "worst": -213.76,
-        "best": 63.239999999999995
+        "n": 66,
+        "positive_pct": 62.121212121212125,
+        "median": 3.2399999999999984,
+        "mean": 2.6187878787878773,
+        "aggregate": 172.8399999999999,
+        "worst": -207.76,
+        "best": 69.24
       },
       "holdout_pass": false
     },
@@ -437,124 +987,124 @@
       "exit_z": 1.0,
       "max_hold_min": 120,
       "train": {
-        "n": 165,
-        "positive_pct": 79.39393939393939,
-        "median": 13.239999999999995,
-        "mean": 25.530909090909088,
-        "aggregate": 4212.599999999999,
-        "worst": -85.76,
-        "best": 279.24
+        "n": 200,
+        "positive_pct": 81.5,
+        "median": 15.239999999999998,
+        "mean": 24.83,
+        "aggregate": 4966.0,
+        "worst": -122.76,
+        "best": 285.24
       },
       "holdout": {
-        "n": 39,
-        "positive_pct": 56.41025641025641,
-        "median": 4.239999999999995,
-        "mean": -0.7087179487179535,
-        "aggregate": -27.640000000000185,
-        "worst": -213.76,
+        "n": 66,
+        "positive_pct": 62.121212121212125,
+        "median": 3.2399999999999984,
+        "mean": 2.6187878787878773,
+        "aggregate": 172.8399999999999,
+        "worst": -207.76,
+        "best": 69.24
+      },
+      "holdout_pass": false
+    },
+    {
+      "lookback": 30,
+      "entry_z": 3.0,
+      "exit_z": 0.25,
+      "max_hold_min": 30,
+      "train": {
+        "n": 128,
+        "positive_pct": 87.5,
+        "median": 18.24,
+        "mean": 29.7790625,
+        "aggregate": 3811.72,
+        "worst": -122.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 51,
+        "positive_pct": 74.50980392156863,
+        "median": 4.239999999999998,
+        "mean": 3.102745098039214,
+        "aggregate": 158.23999999999992,
+        "worst": -211.76,
+        "best": 60.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 30,
+      "entry_z": 3.0,
+      "exit_z": 0.25,
+      "max_hold_min": 60,
+      "train": {
+        "n": 128,
+        "positive_pct": 87.5,
+        "median": 18.24,
+        "mean": 29.7790625,
+        "aggregate": 3811.72,
+        "worst": -122.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 51,
+        "positive_pct": 74.50980392156863,
+        "median": 4.239999999999998,
+        "mean": 1.6713725490196063,
+        "aggregate": 85.23999999999992,
+        "worst": -284.76,
+        "best": 60.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 30,
+      "entry_z": 3.0,
+      "exit_z": 0.25,
+      "max_hold_min": 120,
+      "train": {
+        "n": 128,
+        "positive_pct": 87.5,
+        "median": 18.24,
+        "mean": 29.7790625,
+        "aggregate": 3811.72,
+        "worst": -122.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 51,
+        "positive_pct": 74.50980392156863,
+        "median": 4.239999999999998,
+        "mean": 1.5145098039215672,
+        "aggregate": 77.23999999999992,
+        "worst": -292.76,
+        "best": 60.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 30,
+      "entry_z": 3.0,
+      "exit_z": 0.5,
+      "max_hold_min": 30,
+      "train": {
+        "n": 133,
+        "positive_pct": 85.71428571428571,
+        "median": 19.24,
+        "mean": 30.788872180451126,
+        "aggregate": 4094.9199999999996,
+        "worst": -122.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 52,
+        "positive_pct": 76.92307692307692,
+        "median": 4.739999999999998,
+        "mean": 3.259230769230768,
+        "aggregate": 169.47999999999993,
+        "worst": -211.76,
         "best": 63.239999999999995
       },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 30,
-      "entry_z": 3.0,
-      "exit_z": 0.25,
-      "max_hold_min": 30,
-      "train": {
-        "n": 112,
-        "positive_pct": 88.39285714285714,
-        "median": 15.739999999999995,
-        "mean": 30.525714285714283,
-        "aggregate": 3418.8799999999997,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 32,
-        "positive_pct": 68.75,
-        "median": 3.739999999999995,
-        "mean": -0.7287500000000047,
-        "aggregate": -23.32000000000015,
-        "worst": -217.76,
-        "best": 54.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 30,
-      "entry_z": 3.0,
-      "exit_z": 0.25,
-      "max_hold_min": 60,
-      "train": {
-        "n": 112,
-        "positive_pct": 88.39285714285714,
-        "median": 15.739999999999995,
-        "mean": 30.525714285714283,
-        "aggregate": 3418.8799999999997,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 32,
-        "positive_pct": 68.75,
-        "median": 3.739999999999995,
-        "mean": -3.0100000000000047,
-        "aggregate": -96.32000000000015,
-        "worst": -290.76,
-        "best": 54.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 30,
-      "entry_z": 3.0,
-      "exit_z": 0.25,
-      "max_hold_min": 120,
-      "train": {
-        "n": 112,
-        "positive_pct": 88.39285714285714,
-        "median": 15.739999999999995,
-        "mean": 30.525714285714283,
-        "aggregate": 3418.8799999999997,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 32,
-        "positive_pct": 68.75,
-        "median": 3.739999999999995,
-        "mean": -3.2600000000000047,
-        "aggregate": -104.32000000000015,
-        "worst": -298.76,
-        "best": 54.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 30,
-      "entry_z": 3.0,
-      "exit_z": 0.5,
-      "max_hold_min": 30,
-      "train": {
-        "n": 114,
-        "positive_pct": 85.96491228070175,
-        "median": 19.739999999999995,
-        "mean": 32.02070175438596,
-        "aggregate": 3650.3599999999997,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 32,
-        "positive_pct": 68.75,
-        "median": 4.739999999999995,
-        "mean": -1.3225000000000047,
-        "aggregate": -42.32000000000015,
-        "worst": -217.76,
-        "best": 57.239999999999995
-      },
-      "holdout_pass": false
+      "holdout_pass": true
     },
     {
       "lookback": 30,
@@ -562,24 +1112,24 @@
       "exit_z": 0.5,
       "max_hold_min": 60,
       "train": {
-        "n": 114,
-        "positive_pct": 85.96491228070175,
-        "median": 19.739999999999995,
-        "mean": 32.02070175438596,
-        "aggregate": 3650.3599999999997,
-        "worst": -85.76,
-        "best": 279.24
+        "n": 133,
+        "positive_pct": 85.71428571428571,
+        "median": 19.24,
+        "mean": 30.788872180451126,
+        "aggregate": 4094.9199999999996,
+        "worst": -122.76,
+        "best": 285.24
       },
       "holdout": {
-        "n": 32,
-        "positive_pct": 68.75,
-        "median": 4.739999999999995,
-        "mean": -3.6037500000000047,
-        "aggregate": -115.32000000000015,
-        "worst": -290.76,
-        "best": 57.239999999999995
+        "n": 52,
+        "positive_pct": 76.92307692307692,
+        "median": 4.739999999999998,
+        "mean": 1.8553846153846139,
+        "aggregate": 96.47999999999992,
+        "worst": -284.76,
+        "best": 63.239999999999995
       },
-      "holdout_pass": false
+      "holdout_pass": true
     },
     {
       "lookback": 30,
@@ -587,24 +1137,24 @@
       "exit_z": 0.5,
       "max_hold_min": 120,
       "train": {
-        "n": 114,
-        "positive_pct": 85.96491228070175,
-        "median": 19.739999999999995,
-        "mean": 32.02070175438596,
-        "aggregate": 3650.3599999999997,
-        "worst": -85.76,
-        "best": 279.24
+        "n": 133,
+        "positive_pct": 85.71428571428571,
+        "median": 19.24,
+        "mean": 30.788872180451126,
+        "aggregate": 4094.9199999999996,
+        "worst": -122.76,
+        "best": 285.24
       },
       "holdout": {
-        "n": 32,
-        "positive_pct": 68.75,
-        "median": 4.739999999999995,
-        "mean": -3.3850000000000047,
-        "aggregate": -108.32000000000015,
-        "worst": -283.76,
-        "best": 57.239999999999995
+        "n": 52,
+        "positive_pct": 76.92307692307692,
+        "median": 4.739999999999998,
+        "mean": 1.9899999999999984,
+        "aggregate": 103.47999999999992,
+        "worst": -277.76,
+        "best": 63.239999999999995
       },
-      "holdout_pass": false
+      "holdout_pass": true
     },
     {
       "lookback": 30,
@@ -612,24 +1162,24 @@
       "exit_z": 1.0,
       "max_hold_min": 30,
       "train": {
-        "n": 118,
-        "positive_pct": 84.7457627118644,
-        "median": 17.239999999999995,
-        "mean": 30.28237288135593,
-        "aggregate": 3573.3199999999997,
-        "worst": -85.76,
-        "best": 279.24
+        "n": 138,
+        "positive_pct": 84.78260869565217,
+        "median": 17.24,
+        "mean": 29.384927536231885,
+        "aggregate": 4055.12,
+        "worst": -122.76,
+        "best": 285.24
       },
       "holdout": {
-        "n": 32,
-        "positive_pct": 62.5,
-        "median": 4.739999999999995,
-        "mean": -1.3537500000000047,
-        "aggregate": -43.32000000000015,
-        "worst": -217.76,
-        "best": 63.239999999999995
+        "n": 52,
+        "positive_pct": 69.23076923076923,
+        "median": 4.739999999999998,
+        "mean": 2.4130769230769213,
+        "aggregate": 125.47999999999992,
+        "worst": -211.76,
+        "best": 69.24
       },
-      "holdout_pass": false
+      "holdout_pass": true
     },
     {
       "lookback": 30,
@@ -637,24 +1187,24 @@
       "exit_z": 1.0,
       "max_hold_min": 60,
       "train": {
-        "n": 118,
-        "positive_pct": 84.7457627118644,
-        "median": 17.239999999999995,
-        "mean": 30.28237288135593,
-        "aggregate": 3573.3199999999997,
-        "worst": -85.76,
-        "best": 279.24
+        "n": 138,
+        "positive_pct": 84.78260869565217,
+        "median": 17.24,
+        "mean": 29.384927536231885,
+        "aggregate": 4055.12,
+        "worst": -122.76,
+        "best": 285.24
       },
       "holdout": {
-        "n": 32,
-        "positive_pct": 62.5,
-        "median": 4.739999999999995,
-        "mean": -1.2287500000000047,
-        "aggregate": -39.32000000000015,
-        "worst": -213.76,
-        "best": 63.239999999999995
+        "n": 52,
+        "positive_pct": 69.23076923076923,
+        "median": 4.739999999999998,
+        "mean": 2.489999999999998,
+        "aggregate": 129.4799999999999,
+        "worst": -207.76,
+        "best": 69.24
       },
-      "holdout_pass": false
+      "holdout_pass": true
     },
     {
       "lookback": 30,
@@ -662,24 +1212,24 @@
       "exit_z": 1.0,
       "max_hold_min": 120,
       "train": {
-        "n": 118,
-        "positive_pct": 84.7457627118644,
-        "median": 17.239999999999995,
-        "mean": 30.28237288135593,
-        "aggregate": 3573.3199999999997,
-        "worst": -85.76,
-        "best": 279.24
+        "n": 138,
+        "positive_pct": 84.78260869565217,
+        "median": 17.24,
+        "mean": 29.384927536231885,
+        "aggregate": 4055.12,
+        "worst": -122.76,
+        "best": 285.24
       },
       "holdout": {
-        "n": 32,
-        "positive_pct": 62.5,
-        "median": 4.739999999999995,
-        "mean": -1.2287500000000047,
-        "aggregate": -39.32000000000015,
-        "worst": -213.76,
-        "best": 63.239999999999995
+        "n": 52,
+        "positive_pct": 69.23076923076923,
+        "median": 4.739999999999998,
+        "mean": 2.489999999999998,
+        "aggregate": 129.4799999999999,
+        "worst": -207.76,
+        "best": 69.24
       },
-      "holdout_pass": false
+      "holdout_pass": true
     },
     {
       "lookback": 30,
@@ -687,947 +1237,897 @@
       "exit_z": 0.25,
       "max_hold_min": 30,
       "train": {
-        "n": 80,
-        "positive_pct": 95.0,
-        "median": 25.239999999999995,
-        "mean": 39.277499999999996,
-        "aggregate": 3142.2,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 23,
-        "positive_pct": 65.21739130434783,
-        "median": 2.239999999999995,
-        "mean": -4.4991304347826135,
-        "aggregate": -103.4800000000001,
-        "worst": -217.76,
-        "best": 54.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 30,
-      "entry_z": 3.5,
-      "exit_z": 0.25,
-      "max_hold_min": 60,
-      "train": {
-        "n": 80,
-        "positive_pct": 95.0,
-        "median": 25.239999999999995,
-        "mean": 39.277499999999996,
-        "aggregate": 3142.2,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 23,
-        "positive_pct": 65.21739130434783,
-        "median": 2.239999999999995,
-        "mean": -7.673043478260874,
-        "aggregate": -176.4800000000001,
-        "worst": -290.76,
-        "best": 54.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 30,
-      "entry_z": 3.5,
-      "exit_z": 0.25,
-      "max_hold_min": 120,
-      "train": {
-        "n": 80,
-        "positive_pct": 95.0,
-        "median": 25.239999999999995,
-        "mean": 39.277499999999996,
-        "aggregate": 3142.2,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 23,
-        "positive_pct": 65.21739130434783,
-        "median": 2.239999999999995,
-        "mean": -8.020869565217396,
-        "aggregate": -184.4800000000001,
-        "worst": -298.76,
-        "best": 54.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 30,
-      "entry_z": 3.5,
-      "exit_z": 0.5,
-      "max_hold_min": 30,
-      "train": {
-        "n": 80,
-        "positive_pct": 90.0,
-        "median": 26.239999999999995,
-        "mean": 39.265,
-        "aggregate": 3141.2,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 23,
-        "positive_pct": 65.21739130434783,
-        "median": 4.239999999999995,
-        "mean": -4.281739130434787,
-        "aggregate": -98.4800000000001,
-        "worst": -217.76,
-        "best": 57.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 30,
-      "entry_z": 3.5,
-      "exit_z": 0.5,
-      "max_hold_min": 60,
-      "train": {
-        "n": 80,
-        "positive_pct": 90.0,
-        "median": 26.239999999999995,
-        "mean": 39.265,
-        "aggregate": 3141.2,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 23,
-        "positive_pct": 65.21739130434783,
-        "median": 4.239999999999995,
-        "mean": -7.455652173913048,
-        "aggregate": -171.4800000000001,
-        "worst": -290.76,
-        "best": 57.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 30,
-      "entry_z": 3.5,
-      "exit_z": 0.5,
-      "max_hold_min": 120,
-      "train": {
-        "n": 80,
-        "positive_pct": 90.0,
-        "median": 26.239999999999995,
-        "mean": 39.265,
-        "aggregate": 3141.2,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 23,
-        "positive_pct": 65.21739130434783,
-        "median": 4.239999999999995,
-        "mean": -7.151304347826091,
-        "aggregate": -164.4800000000001,
-        "worst": -283.76,
-        "best": 57.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 30,
-      "entry_z": 3.5,
-      "exit_z": 1.0,
-      "max_hold_min": 30,
-      "train": {
-        "n": 80,
-        "positive_pct": 90.0,
-        "median": 25.239999999999995,
-        "mean": 38.089999999999996,
-        "aggregate": 3047.2,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 23,
-        "positive_pct": 65.21739130434783,
-        "median": 4.239999999999995,
-        "mean": -3.3686956521739178,
-        "aggregate": -77.4800000000001,
-        "worst": -217.76,
-        "best": 63.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 30,
-      "entry_z": 3.5,
-      "exit_z": 1.0,
-      "max_hold_min": 60,
-      "train": {
-        "n": 80,
-        "positive_pct": 90.0,
-        "median": 25.239999999999995,
-        "mean": 38.089999999999996,
-        "aggregate": 3047.2,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 23,
-        "positive_pct": 65.21739130434783,
-        "median": 4.239999999999995,
-        "mean": -3.1947826086956566,
-        "aggregate": -73.4800000000001,
-        "worst": -213.76,
-        "best": 63.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 30,
-      "entry_z": 3.5,
-      "exit_z": 1.0,
-      "max_hold_min": 120,
-      "train": {
-        "n": 80,
-        "positive_pct": 90.0,
-        "median": 25.239999999999995,
-        "mean": 38.089999999999996,
-        "aggregate": 3047.2,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 23,
-        "positive_pct": 65.21739130434783,
-        "median": 4.239999999999995,
-        "mean": -3.1947826086956566,
-        "aggregate": -73.4800000000001,
-        "worst": -213.76,
-        "best": 63.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 60,
-      "entry_z": 2.5,
-      "exit_z": 0.25,
-      "max_hold_min": 30,
-      "train": {
-        "n": 142,
-        "positive_pct": 90.84507042253522,
-        "median": 15.239999999999995,
-        "mean": 28.099154929577463,
-        "aggregate": 3990.0799999999995,
-        "worst": -100.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 31,
-        "positive_pct": 70.96774193548387,
-        "median": 6.239999999999995,
-        "mean": -0.8567741935483918,
-        "aggregate": -26.560000000000144,
-        "worst": -217.76,
-        "best": 57.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 60,
-      "entry_z": 2.5,
-      "exit_z": 0.25,
-      "max_hold_min": 60,
-      "train": {
-        "n": 142,
-        "positive_pct": 90.84507042253522,
-        "median": 15.239999999999995,
-        "mean": 28.19070422535211,
-        "aggregate": 4003.0799999999995,
-        "worst": -100.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 31,
-        "positive_pct": 70.96774193548387,
-        "median": 6.239999999999995,
-        "mean": -2.501935483870972,
-        "aggregate": -77.56000000000014,
-        "worst": -290.76,
-        "best": 57.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 60,
-      "entry_z": 2.5,
-      "exit_z": 0.25,
-      "max_hold_min": 120,
-      "train": {
-        "n": 142,
-        "positive_pct": 90.84507042253522,
-        "median": 15.239999999999995,
-        "mean": 28.19070422535211,
-        "aggregate": 4003.0799999999995,
-        "worst": -100.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 31,
-        "positive_pct": 70.96774193548387,
-        "median": 6.239999999999995,
-        "mean": -1.2761290322580692,
-        "aggregate": -39.560000000000144,
-        "worst": -252.76,
-        "best": 57.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 60,
-      "entry_z": 2.5,
-      "exit_z": 0.5,
-      "max_hold_min": 30,
-      "train": {
-        "n": 154,
+        "n": 88,
         "positive_pct": 90.9090909090909,
-        "median": 16.239999999999995,
-        "mean": 28.278961038961032,
-        "aggregate": 4354.959999999999,
-        "worst": -85.76,
-        "best": 279.24
+        "median": 29.74,
+        "mean": 40.944545454545455,
+        "aggregate": 3603.12,
+        "worst": -79.76,
+        "best": 285.24
       },
       "holdout": {
-        "n": 34,
-        "positive_pct": 70.58823529411765,
-        "median": 8.739999999999995,
-        "mean": 0.41647058823528943,
-        "aggregate": 14.15999999999984,
-        "worst": -217.76,
-        "best": 57.239999999999995
+        "n": 32,
+        "positive_pct": 78.125,
+        "median": 4.739999999999998,
+        "mean": 0.8962499999999985,
+        "aggregate": 28.679999999999954,
+        "worst": -211.76,
+        "best": 60.239999999999995
       },
       "holdout_pass": true
     },
     {
-      "lookback": 60,
-      "entry_z": 2.5,
-      "exit_z": 0.5,
+      "lookback": 30,
+      "entry_z": 3.5,
+      "exit_z": 0.25,
       "max_hold_min": 60,
       "train": {
-        "n": 154,
+        "n": 88,
         "positive_pct": 90.9090909090909,
-        "median": 16.239999999999995,
-        "mean": 28.278961038961032,
-        "aggregate": 4354.959999999999,
-        "worst": -85.76,
-        "best": 279.24
+        "median": 29.74,
+        "mean": 40.944545454545455,
+        "aggregate": 3603.12,
+        "worst": -79.76,
+        "best": 285.24
       },
       "holdout": {
-        "n": 34,
-        "positive_pct": 70.58823529411765,
-        "median": 8.739999999999995,
-        "mean": -0.612941176470593,
-        "aggregate": -20.84000000000016,
-        "worst": -290.76,
-        "best": 57.239999999999995
+        "n": 32,
+        "positive_pct": 78.125,
+        "median": 4.739999999999998,
+        "mean": -1.3850000000000016,
+        "aggregate": -44.32000000000005,
+        "worst": -284.76,
+        "best": 60.239999999999995
       },
       "holdout_pass": false
     },
     {
-      "lookback": 60,
-      "entry_z": 2.5,
-      "exit_z": 0.5,
+      "lookback": 30,
+      "entry_z": 3.5,
+      "exit_z": 0.25,
       "max_hold_min": 120,
       "train": {
-        "n": 154,
+        "n": 88,
         "positive_pct": 90.9090909090909,
-        "median": 16.239999999999995,
-        "mean": 28.278961038961032,
-        "aggregate": 4354.959999999999,
-        "worst": -85.76,
-        "best": 279.24
+        "median": 29.74,
+        "mean": 40.944545454545455,
+        "aggregate": 3603.12,
+        "worst": -79.76,
+        "best": 285.24
       },
       "holdout": {
-        "n": 34,
-        "positive_pct": 70.58823529411765,
-        "median": 8.739999999999995,
-        "mean": 0.4458823529411718,
-        "aggregate": 15.15999999999984,
-        "worst": -254.76,
-        "best": 57.239999999999995
-      },
-      "holdout_pass": true
-    },
-    {
-      "lookback": 60,
-      "entry_z": 2.5,
-      "exit_z": 1.0,
-      "max_hold_min": 30,
-      "train": {
-        "n": 170,
-        "positive_pct": 83.52941176470588,
-        "median": 14.739999999999995,
-        "mean": 26.14588235294117,
-        "aggregate": 4444.799999999999,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 36,
-        "positive_pct": 58.333333333333336,
-        "median": 4.239999999999995,
-        "mean": -0.2877777777777825,
-        "aggregate": -10.36000000000017,
-        "worst": -217.76,
-        "best": 63.239999999999995
+        "n": 32,
+        "positive_pct": 78.125,
+        "median": 4.739999999999998,
+        "mean": -1.6350000000000016,
+        "aggregate": -52.32000000000005,
+        "worst": -292.76,
+        "best": 60.239999999999995
       },
       "holdout_pass": false
     },
     {
-      "lookback": 60,
-      "entry_z": 2.5,
-      "exit_z": 1.0,
-      "max_hold_min": 60,
-      "train": {
-        "n": 170,
-        "positive_pct": 83.52941176470588,
-        "median": 14.739999999999995,
-        "mean": 26.14588235294117,
-        "aggregate": 4444.799999999999,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 36,
-        "positive_pct": 58.333333333333336,
-        "median": 4.239999999999995,
-        "mean": -2.3155555555555605,
-        "aggregate": -83.36000000000017,
-        "worst": -290.76,
-        "best": 63.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 60,
-      "entry_z": 2.5,
-      "exit_z": 1.0,
-      "max_hold_min": 120,
-      "train": {
-        "n": 170,
-        "positive_pct": 83.52941176470588,
-        "median": 14.739999999999995,
-        "mean": 26.14588235294117,
-        "aggregate": 4444.799999999999,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 36,
-        "positive_pct": 58.333333333333336,
-        "median": 4.239999999999995,
-        "mean": -2.121111111111116,
-        "aggregate": -76.36000000000017,
-        "worst": -283.76,
-        "best": 63.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 60,
-      "entry_z": 3.0,
-      "exit_z": 0.25,
-      "max_hold_min": 30,
-      "train": {
-        "n": 104,
-        "positive_pct": 93.26923076923077,
-        "median": 23.239999999999995,
-        "mean": 34.191923076923075,
-        "aggregate": 3555.9599999999996,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 23,
-        "positive_pct": 73.91304347826087,
-        "median": 6.239999999999995,
-        "mean": -1.1078260869565262,
-        "aggregate": -25.480000000000103,
-        "worst": -217.76,
-        "best": 57.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 60,
-      "entry_z": 3.0,
-      "exit_z": 0.25,
-      "max_hold_min": 60,
-      "train": {
-        "n": 104,
-        "positive_pct": 93.26923076923077,
-        "median": 23.239999999999995,
-        "mean": 34.278461538461535,
-        "aggregate": 3564.9599999999996,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 23,
-        "positive_pct": 73.91304347826087,
-        "median": 6.239999999999995,
-        "mean": -4.107826086956527,
-        "aggregate": -94.4800000000001,
-        "worst": -290.76,
-        "best": 57.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 60,
-      "entry_z": 3.0,
-      "exit_z": 0.25,
-      "max_hold_min": 120,
-      "train": {
-        "n": 104,
-        "positive_pct": 93.26923076923077,
-        "median": 23.239999999999995,
-        "mean": 34.278461538461535,
-        "aggregate": 3564.9599999999996,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 23,
-        "positive_pct": 73.91304347826087,
-        "median": 6.239999999999995,
-        "mean": -2.455652173913048,
-        "aggregate": -56.4800000000001,
-        "worst": -252.76,
-        "best": 57.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 60,
-      "entry_z": 3.0,
-      "exit_z": 0.5,
-      "max_hold_min": 30,
-      "train": {
-        "n": 106,
-        "positive_pct": 95.28301886792453,
-        "median": 23.239999999999995,
-        "mean": 34.862641509433956,
-        "aggregate": 3695.4399999999996,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 24,
-        "positive_pct": 75.0,
-        "median": 8.739999999999995,
-        "mean": 1.281666666666662,
-        "aggregate": 30.75999999999989,
-        "worst": -217.76,
-        "best": 57.239999999999995
-      },
-      "holdout_pass": true
-    },
-    {
-      "lookback": 60,
-      "entry_z": 3.0,
-      "exit_z": 0.5,
-      "max_hold_min": 60,
-      "train": {
-        "n": 106,
-        "positive_pct": 95.28301886792453,
-        "median": 23.239999999999995,
-        "mean": 34.862641509433956,
-        "aggregate": 3695.4399999999996,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 24,
-        "positive_pct": 75.0,
-        "median": 8.739999999999995,
-        "mean": -1.7600000000000044,
-        "aggregate": -42.24000000000011,
-        "worst": -290.76,
-        "best": 57.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 60,
-      "entry_z": 3.0,
-      "exit_z": 0.5,
-      "max_hold_min": 120,
-      "train": {
-        "n": 106,
-        "positive_pct": 95.28301886792453,
-        "median": 23.239999999999995,
-        "mean": 34.862641509433956,
-        "aggregate": 3695.4399999999996,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 24,
-        "positive_pct": 75.0,
-        "median": 8.739999999999995,
-        "mean": -0.2600000000000045,
-        "aggregate": -6.240000000000109,
-        "worst": -254.76,
-        "best": 57.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 60,
-      "entry_z": 3.0,
-      "exit_z": 1.0,
-      "max_hold_min": 30,
-      "train": {
-        "n": 113,
-        "positive_pct": 93.80530973451327,
-        "median": 23.239999999999995,
-        "mean": 34.47893805309734,
-        "aggregate": 3896.1199999999994,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 24,
-        "positive_pct": 54.166666666666664,
-        "median": 1.2399999999999949,
-        "mean": -2.8850000000000047,
-        "aggregate": -69.24000000000011,
-        "worst": -217.76,
-        "best": 63.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 60,
-      "entry_z": 3.0,
-      "exit_z": 1.0,
-      "max_hold_min": 60,
-      "train": {
-        "n": 113,
-        "positive_pct": 93.80530973451327,
-        "median": 23.239999999999995,
-        "mean": 34.47893805309734,
-        "aggregate": 3896.1199999999994,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 24,
-        "positive_pct": 54.166666666666664,
-        "median": 1.2399999999999949,
-        "mean": -5.926666666666672,
-        "aggregate": -142.24000000000012,
-        "worst": -290.76,
-        "best": 63.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 60,
-      "entry_z": 3.0,
-      "exit_z": 1.0,
-      "max_hold_min": 120,
-      "train": {
-        "n": 113,
-        "positive_pct": 93.80530973451327,
-        "median": 23.239999999999995,
-        "mean": 34.47893805309734,
-        "aggregate": 3896.1199999999994,
-        "worst": -85.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 24,
-        "positive_pct": 54.166666666666664,
-        "median": 1.2399999999999949,
-        "mean": -5.635000000000005,
-        "aggregate": -135.24000000000012,
-        "worst": -283.76,
-        "best": 63.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 60,
-      "entry_z": 3.5,
-      "exit_z": 0.25,
-      "max_hold_min": 30,
-      "train": {
-        "n": 67,
-        "positive_pct": 95.5223880597015,
-        "median": 27.239999999999995,
-        "mean": 44.26985074626865,
-        "aggregate": 2966.08,
-        "worst": -64.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 15,
-        "positive_pct": 80.0,
-        "median": 12.239999999999995,
-        "mean": -4.226666666666671,
-        "aggregate": -63.40000000000006,
-        "worst": -219.76,
-        "best": 57.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 60,
-      "entry_z": 3.5,
-      "exit_z": 0.25,
-      "max_hold_min": 60,
-      "train": {
-        "n": 67,
-        "positive_pct": 95.5223880597015,
-        "median": 27.239999999999995,
-        "mean": 44.26985074626865,
-        "aggregate": 2966.08,
-        "worst": -64.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 15,
-        "positive_pct": 80.0,
-        "median": 12.239999999999995,
-        "mean": -7.960000000000004,
-        "aggregate": -119.40000000000006,
-        "worst": -279.76,
-        "best": 57.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 60,
-      "entry_z": 3.5,
-      "exit_z": 0.25,
-      "max_hold_min": 120,
-      "train": {
-        "n": 67,
-        "positive_pct": 95.5223880597015,
-        "median": 27.239999999999995,
-        "mean": 44.26985074626865,
-        "aggregate": 2966.08,
-        "worst": -64.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 15,
-        "positive_pct": 80.0,
-        "median": 12.239999999999995,
-        "mean": -5.026666666666671,
-        "aggregate": -75.40000000000006,
-        "worst": -235.76,
-        "best": 57.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 60,
+      "lookback": 30,
       "entry_z": 3.5,
       "exit_z": 0.5,
       "max_hold_min": 30,
       "train": {
-        "n": 68,
-        "positive_pct": 95.58823529411765,
-        "median": 31.239999999999995,
-        "mean": 44.063529411764705,
-        "aggregate": 2996.3199999999997,
-        "worst": -64.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 15,
-        "positive_pct": 86.66666666666667,
-        "median": 14.239999999999995,
-        "mean": -0.6933333333333375,
-        "aggregate": -10.400000000000063,
-        "worst": -219.76,
-        "best": 57.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 60,
-      "entry_z": 3.5,
-      "exit_z": 0.5,
-      "max_hold_min": 60,
-      "train": {
-        "n": 68,
-        "positive_pct": 95.58823529411765,
-        "median": 31.239999999999995,
-        "mean": 44.063529411764705,
-        "aggregate": 2996.3199999999997,
-        "worst": -64.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 15,
-        "positive_pct": 86.66666666666667,
-        "median": 14.239999999999995,
-        "mean": -4.693333333333338,
-        "aggregate": -70.40000000000006,
-        "worst": -279.76,
-        "best": 57.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 60,
-      "entry_z": 3.5,
-      "exit_z": 0.5,
-      "max_hold_min": 120,
-      "train": {
-        "n": 68,
-        "positive_pct": 95.58823529411765,
-        "median": 31.239999999999995,
-        "mean": 44.063529411764705,
-        "aggregate": 2996.3199999999997,
-        "worst": -64.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 15,
-        "positive_pct": 86.66666666666667,
-        "median": 14.239999999999995,
-        "mean": -1.8933333333333375,
-        "aggregate": -28.400000000000063,
-        "worst": -237.76,
-        "best": 57.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 60,
-      "entry_z": 3.5,
-      "exit_z": 1.0,
-      "max_hold_min": 30,
-      "train": {
-        "n": 71,
-        "positive_pct": 97.1830985915493,
-        "median": 29.239999999999995,
-        "mean": 42.578028169014075,
-        "aggregate": 3023.0399999999995,
-        "worst": -64.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 15,
-        "positive_pct": 66.66666666666667,
-        "median": 10.239999999999995,
-        "mean": -3.8266666666666707,
-        "aggregate": -57.40000000000006,
-        "worst": -219.76,
-        "best": 63.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 60,
-      "entry_z": 3.5,
-      "exit_z": 1.0,
-      "max_hold_min": 60,
-      "train": {
-        "n": 71,
-        "positive_pct": 97.1830985915493,
-        "median": 29.239999999999995,
-        "mean": 42.578028169014075,
-        "aggregate": 3023.0399999999995,
-        "worst": -64.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 15,
-        "positive_pct": 66.66666666666667,
-        "median": 10.239999999999995,
-        "mean": -7.826666666666671,
-        "aggregate": -117.40000000000006,
-        "worst": -279.76,
-        "best": 63.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 60,
-      "entry_z": 3.5,
-      "exit_z": 1.0,
-      "max_hold_min": 120,
-      "train": {
-        "n": 71,
-        "positive_pct": 97.1830985915493,
-        "median": 29.239999999999995,
-        "mean": 42.578028169014075,
-        "aggregate": 3023.0399999999995,
-        "worst": -64.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 15,
-        "positive_pct": 66.66666666666667,
-        "median": 10.239999999999995,
-        "mean": -6.960000000000004,
-        "aggregate": -104.40000000000006,
-        "worst": -266.76,
-        "best": 63.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 120,
-      "entry_z": 2.5,
-      "exit_z": 0.25,
-      "max_hold_min": 30,
-      "train": {
-        "n": 125,
-        "positive_pct": 89.6,
-        "median": 17.239999999999995,
-        "mean": 29.207999999999995,
-        "aggregate": 3650.9999999999995,
-        "worst": -109.76,
-        "best": 265.24
-      },
-      "holdout": {
-        "n": 35,
-        "positive_pct": 65.71428571428571,
-        "median": 2.239999999999995,
-        "mean": -11.131428571428575,
-        "aggregate": -389.60000000000014,
-        "worst": -219.76,
-        "best": 73.24
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 120,
-      "entry_z": 2.5,
-      "exit_z": 0.25,
-      "max_hold_min": 60,
-      "train": {
-        "n": 124,
-        "positive_pct": 91.93548387096774,
-        "median": 17.739999999999995,
-        "mean": 29.489999999999995,
-        "aggregate": 3656.7599999999993,
-        "worst": -109.76,
-        "best": 265.24
+        "n": 88,
+        "positive_pct": 90.9090909090909,
+        "median": 29.74,
+        "mean": 40.97863636363636,
+        "aggregate": 3606.12,
+        "worst": -79.76,
+        "best": 285.24
       },
       "holdout": {
         "n": 33,
-        "positive_pct": 69.6969696969697,
-        "median": 2.239999999999995,
-        "mean": -8.426666666666671,
-        "aggregate": -278.08000000000015,
-        "worst": -279.76,
-        "best": 40.239999999999995
+        "positive_pct": 81.81818181818181,
+        "median": 4.239999999999998,
+        "mean": 1.5127272727272714,
+        "aggregate": 49.91999999999995,
+        "worst": -211.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 30,
+      "entry_z": 3.5,
+      "exit_z": 0.5,
+      "max_hold_min": 60,
+      "train": {
+        "n": 88,
+        "positive_pct": 90.9090909090909,
+        "median": 29.74,
+        "mean": 40.97863636363636,
+        "aggregate": 3606.12,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 33,
+        "positive_pct": 81.81818181818181,
+        "median": 4.239999999999998,
+        "mean": -0.6993939393939409,
+        "aggregate": -23.080000000000048,
+        "worst": -284.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": false
+    },
+    {
+      "lookback": 30,
+      "entry_z": 3.5,
+      "exit_z": 0.5,
+      "max_hold_min": 120,
+      "train": {
+        "n": 88,
+        "positive_pct": 90.9090909090909,
+        "median": 29.74,
+        "mean": 40.97863636363636,
+        "aggregate": 3606.12,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 33,
+        "positive_pct": 81.81818181818181,
+        "median": 4.239999999999998,
+        "mean": -0.48727272727272875,
+        "aggregate": -16.080000000000048,
+        "worst": -277.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": false
+    },
+    {
+      "lookback": 30,
+      "entry_z": 3.5,
+      "exit_z": 1.0,
+      "max_hold_min": 30,
+      "train": {
+        "n": 89,
+        "positive_pct": 88.76404494382022,
+        "median": 29.24,
+        "mean": 39.56584269662921,
+        "aggregate": 3521.3599999999997,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 33,
+        "positive_pct": 72.72727272727273,
+        "median": 5.239999999999998,
+        "mean": 1.0884848484848468,
+        "aggregate": 35.919999999999945,
+        "worst": -211.76,
+        "best": 69.24
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 30,
+      "entry_z": 3.5,
+      "exit_z": 1.0,
+      "max_hold_min": 60,
+      "train": {
+        "n": 89,
+        "positive_pct": 88.76404494382022,
+        "median": 29.24,
+        "mean": 39.56584269662921,
+        "aggregate": 3521.3599999999997,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 33,
+        "positive_pct": 72.72727272727273,
+        "median": 5.239999999999998,
+        "mean": 1.209696969696968,
+        "aggregate": 39.919999999999945,
+        "worst": -207.76,
+        "best": 69.24
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 30,
+      "entry_z": 3.5,
+      "exit_z": 1.0,
+      "max_hold_min": 120,
+      "train": {
+        "n": 89,
+        "positive_pct": 88.76404494382022,
+        "median": 29.24,
+        "mean": 39.56584269662921,
+        "aggregate": 3521.3599999999997,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 33,
+        "positive_pct": 72.72727272727273,
+        "median": 5.239999999999998,
+        "mean": 1.209696969696968,
+        "aggregate": 39.919999999999945,
+        "worst": -207.76,
+        "best": 69.24
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 2.5,
+      "exit_z": 0.25,
+      "max_hold_min": 30,
+      "train": {
+        "n": 156,
+        "positive_pct": 90.38461538461539,
+        "median": 19.24,
+        "mean": 31.10538461538461,
+        "aggregate": 4852.44,
+        "worst": -94.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 50,
+        "positive_pct": 76.0,
+        "median": 3.7399999999999984,
+        "mean": 3.459999999999998,
+        "aggregate": 172.99999999999991,
+        "worst": -211.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 2.5,
+      "exit_z": 0.25,
+      "max_hold_min": 60,
+      "train": {
+        "n": 156,
+        "positive_pct": 90.38461538461539,
+        "median": 19.24,
+        "mean": 31.188717948717947,
+        "aggregate": 4865.44,
+        "worst": -94.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 50,
+        "positive_pct": 76.0,
+        "median": 3.7399999999999984,
+        "mean": 2.439999999999998,
+        "aggregate": 121.99999999999991,
+        "worst": -284.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 2.5,
+      "exit_z": 0.25,
+      "max_hold_min": 120,
+      "train": {
+        "n": 156,
+        "positive_pct": 90.38461538461539,
+        "median": 19.24,
+        "mean": 31.188717948717947,
+        "aggregate": 4865.44,
+        "worst": -94.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 50,
+        "positive_pct": 76.0,
+        "median": 3.7399999999999984,
+        "mean": 3.1999999999999984,
+        "aggregate": 159.99999999999991,
+        "worst": -246.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 2.5,
+      "exit_z": 0.5,
+      "max_hold_min": 30,
+      "train": {
+        "n": 169,
+        "positive_pct": 91.12426035502959,
+        "median": 19.24,
+        "mean": 31.305088757396447,
+        "aggregate": 5290.5599999999995,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 58,
+        "positive_pct": 72.41379310344827,
+        "median": 4.239999999999998,
+        "mean": 3.8089655172413774,
+        "aggregate": 220.9199999999999,
+        "worst": -211.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 2.5,
+      "exit_z": 0.5,
+      "max_hold_min": 60,
+      "train": {
+        "n": 169,
+        "positive_pct": 91.12426035502959,
+        "median": 19.24,
+        "mean": 31.305088757396447,
+        "aggregate": 5290.5599999999995,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 58,
+        "positive_pct": 72.41379310344827,
+        "median": 4.239999999999998,
+        "mean": 3.2055172413793085,
+        "aggregate": 185.9199999999999,
+        "worst": -284.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 2.5,
+      "exit_z": 0.5,
+      "max_hold_min": 120,
+      "train": {
+        "n": 169,
+        "positive_pct": 91.12426035502959,
+        "median": 19.24,
+        "mean": 31.305088757396447,
+        "aggregate": 5290.5599999999995,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 58,
+        "positive_pct": 72.41379310344827,
+        "median": 4.239999999999998,
+        "mean": 3.8262068965517226,
+        "aggregate": 221.9199999999999,
+        "worst": -248.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 2.5,
+      "exit_z": 1.0,
+      "max_hold_min": 30,
+      "train": {
+        "n": 186,
+        "positive_pct": 84.94623655913979,
+        "median": 19.24,
+        "mean": 29.39591397849462,
+        "aggregate": 5467.639999999999,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 61,
+        "positive_pct": 60.65573770491803,
+        "median": 4.239999999999998,
+        "mean": 2.912131147540982,
+        "aggregate": 177.6399999999999,
+        "worst": -211.76,
+        "best": 69.24
+      },
+      "holdout_pass": false
+    },
+    {
+      "lookback": 60,
+      "entry_z": 2.5,
+      "exit_z": 1.0,
+      "max_hold_min": 60,
+      "train": {
+        "n": 186,
+        "positive_pct": 84.94623655913979,
+        "median": 19.24,
+        "mean": 29.39591397849462,
+        "aggregate": 5467.639999999999,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 61,
+        "positive_pct": 60.65573770491803,
+        "median": 4.239999999999998,
+        "mean": 1.715409836065572,
+        "aggregate": 104.6399999999999,
+        "worst": -284.76,
+        "best": 69.24
+      },
+      "holdout_pass": false
+    },
+    {
+      "lookback": 60,
+      "entry_z": 2.5,
+      "exit_z": 1.0,
+      "max_hold_min": 120,
+      "train": {
+        "n": 186,
+        "positive_pct": 84.94623655913979,
+        "median": 19.24,
+        "mean": 29.39591397849462,
+        "aggregate": 5467.639999999999,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 61,
+        "positive_pct": 60.65573770491803,
+        "median": 4.239999999999998,
+        "mean": 1.830163934426228,
+        "aggregate": 111.6399999999999,
+        "worst": -277.76,
+        "best": 69.24
+      },
+      "holdout_pass": false
+    },
+    {
+      "lookback": 60,
+      "entry_z": 3.0,
+      "exit_z": 0.25,
+      "max_hold_min": 30,
+      "train": {
+        "n": 108,
+        "positive_pct": 91.66666666666667,
+        "median": 26.74,
+        "mean": 38.79555555555556,
+        "aggregate": 4189.92,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 30,
+        "positive_pct": 76.66666666666667,
+        "median": 7.739999999999998,
+        "mean": 4.673333333333332,
+        "aggregate": 140.19999999999996,
+        "worst": -211.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 3.0,
+      "exit_z": 0.25,
+      "max_hold_min": 60,
+      "train": {
+        "n": 108,
+        "positive_pct": 91.66666666666667,
+        "median": 26.74,
+        "mean": 38.87888888888889,
+        "aggregate": 4198.92,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 30,
+        "positive_pct": 76.66666666666667,
+        "median": 7.739999999999998,
+        "mean": 2.373333333333332,
+        "aggregate": 71.19999999999996,
+        "worst": -284.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 3.0,
+      "exit_z": 0.25,
+      "max_hold_min": 120,
+      "train": {
+        "n": 108,
+        "positive_pct": 91.66666666666667,
+        "median": 26.74,
+        "mean": 38.87888888888889,
+        "aggregate": 4198.92,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 30,
+        "positive_pct": 76.66666666666667,
+        "median": 7.739999999999998,
+        "mean": 3.639999999999999,
+        "aggregate": 109.19999999999996,
+        "worst": -246.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 3.0,
+      "exit_z": 0.5,
+      "max_hold_min": 30,
+      "train": {
+        "n": 110,
+        "positive_pct": 94.54545454545455,
+        "median": 28.74,
+        "mean": 39.49454545454545,
+        "aggregate": 4344.4,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 34,
+        "positive_pct": 82.3529411764706,
+        "median": 8.239999999999998,
+        "mean": 5.357647058823528,
+        "aggregate": 182.15999999999997,
+        "worst": -211.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 3.0,
+      "exit_z": 0.5,
+      "max_hold_min": 60,
+      "train": {
+        "n": 110,
+        "positive_pct": 94.54545454545455,
+        "median": 28.74,
+        "mean": 39.49454545454545,
+        "aggregate": 4344.4,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 34,
+        "positive_pct": 82.3529411764706,
+        "median": 8.239999999999998,
+        "mean": 3.210588235294116,
+        "aggregate": 109.15999999999995,
+        "worst": -284.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 3.0,
+      "exit_z": 0.5,
+      "max_hold_min": 120,
+      "train": {
+        "n": 110,
+        "positive_pct": 94.54545454545455,
+        "median": 28.74,
+        "mean": 39.49454545454545,
+        "aggregate": 4344.4,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 34,
+        "positive_pct": 82.3529411764706,
+        "median": 8.239999999999998,
+        "mean": 4.269411764705882,
+        "aggregate": 145.15999999999997,
+        "worst": -248.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 3.0,
+      "exit_z": 1.0,
+      "max_hold_min": 30,
+      "train": {
+        "n": 118,
+        "positive_pct": 92.37288135593221,
+        "median": 28.74,
+        "mean": 39.028135593220334,
+        "aggregate": 4605.32,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 34,
+        "positive_pct": 67.6470588235294,
+        "median": 4.239999999999998,
+        "mean": 2.1811764705882335,
+        "aggregate": 74.15999999999994,
+        "worst": -211.76,
+        "best": 69.24
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 3.0,
+      "exit_z": 1.0,
+      "max_hold_min": 60,
+      "train": {
+        "n": 118,
+        "positive_pct": 92.37288135593221,
+        "median": 28.74,
+        "mean": 39.028135593220334,
+        "aggregate": 4605.32,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 34,
+        "positive_pct": 67.6470588235294,
+        "median": 4.239999999999998,
+        "mean": 0.03411764705882197,
+        "aggregate": 1.1599999999999469,
+        "worst": -284.76,
+        "best": 69.24
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 3.0,
+      "exit_z": 1.0,
+      "max_hold_min": 120,
+      "train": {
+        "n": 118,
+        "positive_pct": 92.37288135593221,
+        "median": 28.74,
+        "mean": 39.028135593220334,
+        "aggregate": 4605.32,
+        "worst": -79.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 34,
+        "positive_pct": 67.6470588235294,
+        "median": 4.239999999999998,
+        "mean": 0.23999999999999844,
+        "aggregate": 8.159999999999947,
+        "worst": -277.76,
+        "best": 69.24
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 3.5,
+      "exit_z": 0.25,
+      "max_hold_min": 30,
+      "train": {
+        "n": 69,
+        "positive_pct": 97.10144927536231,
+        "median": 32.239999999999995,
+        "mean": 48.8631884057971,
+        "aggregate": 3371.56,
+        "worst": -58.760000000000005,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 20,
+        "positive_pct": 70.0,
+        "median": 10.739999999999998,
+        "mean": 2.8399999999999985,
+        "aggregate": 56.79999999999997,
+        "worst": -213.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 3.5,
+      "exit_z": 0.25,
+      "max_hold_min": 60,
+      "train": {
+        "n": 69,
+        "positive_pct": 97.10144927536231,
+        "median": 32.239999999999995,
+        "mean": 48.8631884057971,
+        "aggregate": 3371.56,
+        "worst": -58.760000000000005,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 20,
+        "positive_pct": 70.0,
+        "median": 10.739999999999998,
+        "mean": 0.03999999999999861,
+        "aggregate": 0.7999999999999723,
+        "worst": -273.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 3.5,
+      "exit_z": 0.25,
+      "max_hold_min": 120,
+      "train": {
+        "n": 69,
+        "positive_pct": 97.10144927536231,
+        "median": 32.239999999999995,
+        "mean": 48.8631884057971,
+        "aggregate": 3371.56,
+        "worst": -58.760000000000005,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 20,
+        "positive_pct": 70.0,
+        "median": 10.739999999999998,
+        "mean": 2.2399999999999984,
+        "aggregate": 44.79999999999997,
+        "worst": -229.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 3.5,
+      "exit_z": 0.5,
+      "max_hold_min": 30,
+      "train": {
+        "n": 70,
+        "positive_pct": 97.14285714285714,
+        "median": 36.739999999999995,
+        "mean": 48.68285714285714,
+        "aggregate": 3407.7999999999997,
+        "worst": -58.760000000000005,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 22,
+        "positive_pct": 77.27272727272727,
+        "median": 12.239999999999998,
+        "mean": 3.6945454545454535,
+        "aggregate": 81.27999999999997,
+        "worst": -213.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 3.5,
+      "exit_z": 0.5,
+      "max_hold_min": 60,
+      "train": {
+        "n": 70,
+        "positive_pct": 97.14285714285714,
+        "median": 36.739999999999995,
+        "mean": 48.68285714285714,
+        "aggregate": 3407.7999999999997,
+        "worst": -58.760000000000005,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 22,
+        "positive_pct": 77.27272727272727,
+        "median": 12.239999999999998,
+        "mean": 0.9672727272727261,
+        "aggregate": 21.279999999999973,
+        "worst": -273.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 3.5,
+      "exit_z": 0.5,
+      "max_hold_min": 120,
+      "train": {
+        "n": 70,
+        "positive_pct": 97.14285714285714,
+        "median": 36.739999999999995,
+        "mean": 48.68285714285714,
+        "aggregate": 3407.7999999999997,
+        "worst": -58.760000000000005,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 22,
+        "positive_pct": 77.27272727272727,
+        "median": 12.239999999999998,
+        "mean": 2.876363636363635,
+        "aggregate": 63.27999999999997,
+        "worst": -231.76,
+        "best": 63.239999999999995
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 3.5,
+      "exit_z": 1.0,
+      "max_hold_min": 30,
+      "train": {
+        "n": 73,
+        "positive_pct": 94.52054794520548,
+        "median": 34.239999999999995,
+        "mean": 47.13041095890411,
+        "aggregate": 3440.52,
+        "worst": -58.760000000000005,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 22,
+        "positive_pct": 72.72727272727273,
+        "median": 6.239999999999998,
+        "mean": 1.4672727272727257,
+        "aggregate": 32.279999999999966,
+        "worst": -213.76,
+        "best": 69.24
+      },
+      "holdout_pass": true
+    },
+    {
+      "lookback": 60,
+      "entry_z": 3.5,
+      "exit_z": 1.0,
+      "max_hold_min": 60,
+      "train": {
+        "n": 73,
+        "positive_pct": 94.52054794520548,
+        "median": 34.239999999999995,
+        "mean": 47.13041095890411,
+        "aggregate": 3440.52,
+        "worst": -58.760000000000005,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 22,
+        "positive_pct": 72.72727272727273,
+        "median": 6.239999999999998,
+        "mean": -1.2600000000000016,
+        "aggregate": -27.720000000000034,
+        "worst": -273.76,
+        "best": 69.24
+      },
+      "holdout_pass": false
+    },
+    {
+      "lookback": 60,
+      "entry_z": 3.5,
+      "exit_z": 1.0,
+      "max_hold_min": 120,
+      "train": {
+        "n": 73,
+        "positive_pct": 94.52054794520548,
+        "median": 34.239999999999995,
+        "mean": 47.13041095890411,
+        "aggregate": 3440.52,
+        "worst": -58.760000000000005,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 22,
+        "positive_pct": 72.72727272727273,
+        "median": 6.239999999999998,
+        "mean": -0.6690909090909106,
+        "aggregate": -14.720000000000034,
+        "worst": -260.76,
+        "best": 69.24
       },
       "holdout_pass": false
     },
@@ -1635,124 +2135,174 @@
       "lookback": 120,
       "entry_z": 2.5,
       "exit_z": 0.25,
-      "max_hold_min": 120,
-      "train": {
-        "n": 124,
-        "positive_pct": 92.74193548387096,
-        "median": 18.239999999999995,
-        "mean": 30.26419354838709,
-        "aggregate": 3752.7599999999993,
-        "worst": -109.76,
-        "best": 265.24
-      },
-      "holdout": {
-        "n": 33,
-        "positive_pct": 69.6969696969697,
-        "median": 2.239999999999995,
-        "mean": -8.24484848484849,
-        "aggregate": -272.08000000000015,
-        "worst": -308.76,
-        "best": 40.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 120,
-      "entry_z": 2.5,
-      "exit_z": 0.5,
       "max_hold_min": 30,
       "train": {
-        "n": 144,
-        "positive_pct": 93.05555555555556,
-        "median": 17.239999999999995,
-        "mean": 30.26083333333333,
-        "aggregate": 4357.5599999999995,
-        "worst": -109.76,
-        "best": 279.24
+        "n": 131,
+        "positive_pct": 91.6030534351145,
+        "median": 22.24,
+        "mean": 33.36213740458015,
+        "aggregate": 4370.44,
+        "worst": -103.76,
+        "best": 271.24
       },
       "holdout": {
-        "n": 37,
-        "positive_pct": 62.16216216216216,
-        "median": 2.239999999999995,
-        "mean": -11.3545945945946,
-        "aggregate": -420.1200000000002,
-        "worst": -219.76,
-        "best": 31.239999999999995
+        "n": 47,
+        "positive_pct": 72.34042553191489,
+        "median": 4.239999999999998,
+        "mean": -4.100425531914896,
+        "aggregate": -192.72000000000008,
+        "worst": -213.76,
+        "best": 79.24
       },
       "holdout_pass": false
     },
     {
       "lookback": 120,
       "entry_z": 2.5,
-      "exit_z": 0.5,
+      "exit_z": 0.25,
       "max_hold_min": 60,
       "train": {
-        "n": 144,
-        "positive_pct": 94.44444444444444,
-        "median": 17.739999999999995,
-        "mean": 30.719166666666663,
-        "aggregate": 4423.5599999999995,
-        "worst": -109.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 36,
-        "positive_pct": 63.888888888888886,
-        "median": 2.239999999999995,
-        "mean": -7.510000000000005,
-        "aggregate": -270.3600000000002,
-        "worst": -279.76,
-        "best": 31.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 120,
-      "entry_z": 2.5,
-      "exit_z": 0.5,
-      "max_hold_min": 120,
-      "train": {
-        "n": 144,
-        "positive_pct": 94.44444444444444,
-        "median": 17.739999999999995,
-        "mean": 30.719166666666663,
-        "aggregate": 4423.5599999999995,
-        "worst": -109.76,
-        "best": 279.24
-      },
-      "holdout": {
-        "n": 36,
-        "positive_pct": 63.888888888888886,
-        "median": 2.239999999999995,
-        "mean": -7.398888888888894,
-        "aggregate": -266.3600000000002,
-        "worst": -308.76,
-        "best": 31.239999999999995
-      },
-      "holdout_pass": false
-    },
-    {
-      "lookback": 120,
-      "entry_z": 2.5,
-      "exit_z": 1.0,
-      "max_hold_min": 30,
-      "train": {
-        "n": 157,
-        "positive_pct": 89.80891719745223,
-        "median": 16.239999999999995,
-        "mean": 27.870573248407638,
-        "aggregate": 4375.679999999999,
-        "worst": -109.76,
-        "best": 279.24
+        "n": 130,
+        "positive_pct": 93.84615384615384,
+        "median": 22.24,
+        "mean": 33.68615384615384,
+        "aggregate": 4379.2,
+        "worst": -103.76,
+        "best": 271.24
       },
       "holdout": {
         "n": 45,
-        "positive_pct": 46.666666666666664,
-        "median": -0.7600000000000051,
-        "mean": -4.271111111111116,
-        "aggregate": -192.20000000000022,
-        "worst": -219.76,
-        "best": 63.239999999999995
+        "positive_pct": 75.55555555555556,
+        "median": 4.239999999999998,
+        "mean": -2.071111111111113,
+        "aggregate": -93.20000000000007,
+        "worst": -273.76,
+        "best": 46.239999999999995
+      },
+      "holdout_pass": false
+    },
+    {
+      "lookback": 120,
+      "entry_z": 2.5,
+      "exit_z": 0.25,
+      "max_hold_min": 120,
+      "train": {
+        "n": 130,
+        "positive_pct": 95.38461538461539,
+        "median": 22.74,
+        "mean": 34.339999999999996,
+        "aggregate": 4464.2,
+        "worst": -103.76,
+        "best": 271.24
+      },
+      "holdout": {
+        "n": 45,
+        "positive_pct": 75.55555555555556,
+        "median": 4.239999999999998,
+        "mean": -1.9377777777777794,
+        "aggregate": -87.20000000000007,
+        "worst": -302.76,
+        "best": 46.239999999999995
+      },
+      "holdout_pass": false
+    },
+    {
+      "lookback": 120,
+      "entry_z": 2.5,
+      "exit_z": 0.5,
+      "max_hold_min": 30,
+      "train": {
+        "n": 150,
+        "positive_pct": 92.66666666666667,
+        "median": 22.24,
+        "mean": 34.62,
+        "aggregate": 5193.0,
+        "worst": -103.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 50,
+        "positive_pct": 72.0,
+        "median": 4.239999999999998,
+        "mean": -4.000000000000002,
+        "aggregate": -200.00000000000009,
+        "worst": -213.76,
+        "best": 37.239999999999995
+      },
+      "holdout_pass": false
+    },
+    {
+      "lookback": 120,
+      "entry_z": 2.5,
+      "exit_z": 0.5,
+      "max_hold_min": 60,
+      "train": {
+        "n": 150,
+        "positive_pct": 94.0,
+        "median": 22.74,
+        "mean": 35.06,
+        "aggregate": 5259.0,
+        "worst": -103.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 48,
+        "positive_pct": 72.91666666666667,
+        "median": 4.239999999999998,
+        "mean": -1.3850000000000016,
+        "aggregate": -66.48000000000008,
+        "worst": -273.76,
+        "best": 37.239999999999995
+      },
+      "holdout_pass": false
+    },
+    {
+      "lookback": 120,
+      "entry_z": 2.5,
+      "exit_z": 0.5,
+      "max_hold_min": 120,
+      "train": {
+        "n": 150,
+        "positive_pct": 94.0,
+        "median": 22.74,
+        "mean": 35.06,
+        "aggregate": 5259.0,
+        "worst": -103.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 48,
+        "positive_pct": 72.91666666666667,
+        "median": 4.239999999999998,
+        "mean": -1.3016666666666683,
+        "aggregate": -62.480000000000075,
+        "worst": -302.76,
+        "best": 37.239999999999995
+      },
+      "holdout_pass": false
+    },
+    {
+      "lookback": 120,
+      "entry_z": 2.5,
+      "exit_z": 1.0,
+      "max_hold_min": 30,
+      "train": {
+        "n": 165,
+        "positive_pct": 90.3030303030303,
+        "median": 21.24,
+        "mean": 31.99151515151515,
+        "aggregate": 5278.599999999999,
+        "worst": -103.76,
+        "best": 285.24
+      },
+      "holdout": {
+        "n": 62,
+        "positive_pct": 61.29032258064516,
+        "median": 4.239999999999998,
+        "mean": 1.5303225806451597,
+        "aggregate": 94.8799999999999,
+        "worst": -213.76,
+        "best": 69.24
       },
       "holdout_pass": false
     },
@@ -1762,22 +2312,22 @@
       "exit_z": 1.0,
       "max_hold_min": 60,
       "train": {
-        "n": 157,
-        "positive_pct": 89.80891719745223,
-        "median": 16.239999999999995,
-        "mean": 27.870573248407638,
-        "aggregate": 4375.679999999999,
-        "worst": -109.76,
-        "best": 279.24
+        "n": 165,
+        "positive_pct": 90.3030303030303,
+        "median": 21.24,
+        "mean": 31.99151515151515,
+        "aggregate": 5278.599999999999,
+        "worst": -103.76,
+        "best": 285.24
       },
       "holdout": {
-        "n": 44,
-        "positive_pct": 47.72727272727273,
-        "median": -0.7600000000000051,
-        "mean": -3.5554545454545505,
-        "aggregate": -156.44000000000023,
-        "worst": -279.76,
-        "best": 63.239999999999995
+        "n": 61,
+        "positive_pct": 62.295081967213115,
+        "median": 4.239999999999998,
+        "mean": 2.0432786885245884,
+        "aggregate": 124.6399999999999,
+        "worst": -273.76,
+        "best": 69.24
       },
       "holdout_pass": false
     },
@@ -1787,22 +2337,22 @@
       "exit_z": 1.0,
       "max_hold_min": 120,
       "train": {
-        "n": 157,
-        "positive_pct": 89.80891719745223,
-        "median": 16.239999999999995,
-        "mean": 27.870573248407638,
-        "aggregate": 4375.679999999999,
-        "worst": -109.76,
-        "best": 279.24
+        "n": 165,
+        "positive_pct": 90.3030303030303,
+        "median": 21.24,
+        "mean": 31.99151515151515,
+        "aggregate": 5278.599999999999,
+        "worst": -103.76,
+        "best": 285.24
       },
       "holdout": {
-        "n": 44,
-        "positive_pct": 47.72727272727273,
-        "median": -0.7600000000000051,
-        "mean": -2.1236363636363684,
-        "aggregate": -93.44000000000021,
-        "worst": -216.76,
-        "best": 63.239999999999995
+        "n": 61,
+        "positive_pct": 62.295081967213115,
+        "median": 4.239999999999998,
+        "mean": 3.07606557377049,
+        "aggregate": 187.6399999999999,
+        "worst": -210.76,
+        "best": 69.24
       },
       "holdout_pass": false
     },
@@ -1812,22 +2362,22 @@
       "exit_z": 0.25,
       "max_hold_min": 30,
       "train": {
-        "n": 86,
-        "positive_pct": 94.18604651162791,
-        "median": 20.739999999999995,
-        "mean": 37.484186046511624,
-        "aggregate": 3223.6399999999994,
-        "worst": -64.76,
-        "best": 265.24
+        "n": 88,
+        "positive_pct": 92.04545454545455,
+        "median": 25.74,
+        "mean": 41.933181818181815,
+        "aggregate": 3690.12,
+        "worst": -58.760000000000005,
+        "best": 271.24
       },
       "holdout": {
-        "n": 25,
-        "positive_pct": 76.0,
-        "median": 3.239999999999995,
-        "mean": -7.200000000000005,
-        "aggregate": -180.0000000000001,
-        "worst": -219.76,
-        "best": 73.24
+        "n": 31,
+        "positive_pct": 77.41935483870968,
+        "median": 8.239999999999998,
+        "mean": -1.3083870967741955,
+        "aggregate": -40.56000000000006,
+        "worst": -213.76,
+        "best": 79.24
       },
       "holdout_pass": false
     },
@@ -1837,22 +2387,22 @@
       "exit_z": 0.25,
       "max_hold_min": 60,
       "train": {
-        "n": 85,
-        "positive_pct": 96.47058823529412,
-        "median": 22.239999999999995,
-        "mean": 38.42823529411764,
-        "aggregate": 3266.3999999999996,
-        "worst": -64.76,
-        "best": 265.24
+        "n": 87,
+        "positive_pct": 94.25287356321839,
+        "median": 27.24,
+        "mean": 42.837701149425286,
+        "aggregate": 3726.8799999999997,
+        "worst": -58.760000000000005,
+        "best": 271.24
       },
       "holdout": {
-        "n": 24,
-        "positive_pct": 75.0,
-        "median": 2.739999999999995,
-        "mean": -10.843333333333339,
-        "aggregate": -260.2400000000001,
-        "worst": -279.76,
-        "best": 40.239999999999995
+        "n": 30,
+        "positive_pct": 76.66666666666667,
+        "median": 7.239999999999998,
+        "mean": -4.226666666666668,
+        "aggregate": -126.80000000000005,
+        "worst": -273.76,
+        "best": 46.239999999999995
       },
       "holdout_pass": false
     },
@@ -1862,22 +2412,22 @@
       "exit_z": 0.25,
       "max_hold_min": 120,
       "train": {
-        "n": 85,
-        "positive_pct": 97.6470588235294,
-        "median": 22.239999999999995,
-        "mean": 39.21647058823529,
-        "aggregate": 3333.3999999999996,
-        "worst": -64.76,
-        "best": 265.24
+        "n": 87,
+        "positive_pct": 95.40229885057471,
+        "median": 28.24,
+        "mean": 43.60781609195402,
+        "aggregate": 3793.8799999999997,
+        "worst": -58.760000000000005,
+        "best": 271.24
       },
       "holdout": {
-        "n": 24,
-        "positive_pct": 75.0,
-        "median": 2.739999999999995,
-        "mean": -10.593333333333339,
-        "aggregate": -254.24000000000012,
-        "worst": -308.76,
-        "best": 40.239999999999995
+        "n": 30,
+        "positive_pct": 76.66666666666667,
+        "median": 7.239999999999998,
+        "mean": -4.026666666666668,
+        "aggregate": -120.80000000000005,
+        "worst": -302.76,
+        "best": 46.239999999999995
       },
       "holdout_pass": false
     },
@@ -1887,22 +2437,22 @@
       "exit_z": 0.5,
       "max_hold_min": 30,
       "train": {
-        "n": 95,
-        "positive_pct": 95.78947368421052,
-        "median": 23.239999999999995,
-        "mean": 38.54526315789473,
-        "aggregate": 3661.7999999999997,
-        "worst": -64.76,
-        "best": 279.24
+        "n": 98,
+        "positive_pct": 93.87755102040816,
+        "median": 29.24,
+        "mean": 42.9134693877551,
+        "aggregate": 4205.5199999999995,
+        "worst": -58.760000000000005,
+        "best": 285.24
       },
       "holdout": {
-        "n": 26,
-        "positive_pct": 73.07692307692308,
-        "median": 3.239999999999995,
-        "mean": -10.221538461538465,
-        "aggregate": -265.7600000000001,
-        "worst": -219.76,
-        "best": 31.239999999999995
+        "n": 32,
+        "positive_pct": 71.875,
+        "median": 8.239999999999998,
+        "mean": -3.8225000000000016,
+        "aggregate": -122.32000000000005,
+        "worst": -213.76,
+        "best": 37.239999999999995
       },
       "holdout_pass": false
     },
@@ -1912,22 +2462,22 @@
       "exit_z": 0.5,
       "max_hold_min": 60,
       "train": {
-        "n": 95,
-        "positive_pct": 97.89473684210526,
-        "median": 23.239999999999995,
-        "mean": 39.124210526315785,
-        "aggregate": 3716.7999999999997,
-        "worst": -64.76,
-        "best": 279.24
+        "n": 98,
+        "positive_pct": 95.91836734693878,
+        "median": 29.24,
+        "mean": 43.47469387755102,
+        "aggregate": 4260.5199999999995,
+        "worst": -58.760000000000005,
+        "best": 285.24
       },
       "holdout": {
-        "n": 26,
-        "positive_pct": 73.07692307692308,
-        "median": 3.239999999999995,
-        "mean": -9.952307692307697,
-        "aggregate": -258.7600000000001,
-        "worst": -279.76,
-        "best": 31.239999999999995
+        "n": 32,
+        "positive_pct": 71.875,
+        "median": 8.239999999999998,
+        "mean": -3.6037500000000016,
+        "aggregate": -115.32000000000005,
+        "worst": -273.76,
+        "best": 37.239999999999995
       },
       "holdout_pass": false
     },
@@ -1937,22 +2487,22 @@
       "exit_z": 0.5,
       "max_hold_min": 120,
       "train": {
-        "n": 95,
-        "positive_pct": 97.89473684210526,
-        "median": 23.239999999999995,
-        "mean": 39.124210526315785,
-        "aggregate": 3716.7999999999997,
-        "worst": -64.76,
-        "best": 279.24
+        "n": 98,
+        "positive_pct": 95.91836734693878,
+        "median": 29.24,
+        "mean": 43.47469387755102,
+        "aggregate": 4260.5199999999995,
+        "worst": -58.760000000000005,
+        "best": 285.24
       },
       "holdout": {
-        "n": 26,
-        "positive_pct": 73.07692307692308,
-        "median": 3.239999999999995,
-        "mean": -9.798461538461542,
-        "aggregate": -254.7600000000001,
-        "worst": -308.76,
-        "best": 31.239999999999995
+        "n": 32,
+        "positive_pct": 71.875,
+        "median": 8.239999999999998,
+        "mean": -3.4787500000000016,
+        "aggregate": -111.32000000000005,
+        "worst": -302.76,
+        "best": 37.239999999999995
       },
       "holdout_pass": false
     },
@@ -1962,24 +2512,24 @@
       "exit_z": 1.0,
       "max_hold_min": 30,
       "train": {
-        "n": 102,
-        "positive_pct": 93.13725490196079,
-        "median": 23.239999999999995,
-        "mean": 36.04392156862745,
-        "aggregate": 3676.4799999999996,
-        "worst": -64.76,
-        "best": 279.24
+        "n": 105,
+        "positive_pct": 94.28571428571429,
+        "median": 29.24,
+        "mean": 40.44,
+        "aggregate": 4246.2,
+        "worst": -58.760000000000005,
+        "best": 285.24
       },
       "holdout": {
-        "n": 30,
-        "positive_pct": 56.666666666666664,
-        "median": 2.239999999999995,
-        "mean": -1.2266666666666712,
-        "aggregate": -36.80000000000014,
-        "worst": -219.76,
-        "best": 63.239999999999995
+        "n": 39,
+        "positive_pct": 66.66666666666667,
+        "median": 6.239999999999998,
+        "mean": 3.7784615384615368,
+        "aggregate": 147.35999999999993,
+        "worst": -213.76,
+        "best": 69.24
       },
-      "holdout_pass": false
+      "holdout_pass": true
     },
     {
       "lookback": 120,
@@ -1987,24 +2537,24 @@
       "exit_z": 1.0,
       "max_hold_min": 60,
       "train": {
-        "n": 102,
-        "positive_pct": 93.13725490196079,
-        "median": 23.239999999999995,
-        "mean": 36.04392156862745,
-        "aggregate": 3676.4799999999996,
-        "worst": -64.76,
-        "best": 279.24
+        "n": 105,
+        "positive_pct": 94.28571428571429,
+        "median": 29.24,
+        "mean": 40.44,
+        "aggregate": 4246.2,
+        "worst": -58.760000000000005,
+        "best": 285.24
       },
       "holdout": {
-        "n": 30,
-        "positive_pct": 56.666666666666664,
-        "median": 2.239999999999995,
-        "mean": -3.2266666666666715,
-        "aggregate": -96.80000000000014,
-        "worst": -279.76,
-        "best": 63.239999999999995
+        "n": 39,
+        "positive_pct": 66.66666666666667,
+        "median": 6.239999999999998,
+        "mean": 2.2399999999999984,
+        "aggregate": 87.35999999999994,
+        "worst": -273.76,
+        "best": 69.24
       },
-      "holdout_pass": false
+      "holdout_pass": true
     },
     {
       "lookback": 120,
@@ -2012,24 +2562,24 @@
       "exit_z": 1.0,
       "max_hold_min": 120,
       "train": {
-        "n": 102,
-        "positive_pct": 93.13725490196079,
-        "median": 23.239999999999995,
-        "mean": 36.04392156862745,
-        "aggregate": 3676.4799999999996,
-        "worst": -64.76,
-        "best": 279.24
+        "n": 105,
+        "positive_pct": 94.28571428571429,
+        "median": 29.24,
+        "mean": 40.44,
+        "aggregate": 4246.2,
+        "worst": -58.760000000000005,
+        "best": 285.24
       },
       "holdout": {
-        "n": 30,
-        "positive_pct": 56.666666666666664,
-        "median": 2.239999999999995,
-        "mean": -1.1266666666666714,
-        "aggregate": -33.80000000000014,
-        "worst": -216.76,
-        "best": 63.239999999999995
+        "n": 39,
+        "positive_pct": 66.66666666666667,
+        "median": 6.239999999999998,
+        "mean": 3.8553846153846134,
+        "aggregate": 150.35999999999993,
+        "worst": -210.76,
+        "best": 69.24
       },
-      "holdout_pass": false
+      "holdout_pass": true
     },
     {
       "lookback": 120,
@@ -2039,20 +2589,20 @@
       "train": {
         "n": 54,
         "positive_pct": 92.5925925925926,
-        "median": 35.239999999999995,
-        "mean": 51.443703703703704,
-        "aggregate": 2777.96,
-        "worst": -64.76,
-        "best": 265.24
+        "median": 41.239999999999995,
+        "mean": 57.443703703703704,
+        "aggregate": 3101.96,
+        "worst": -58.760000000000005,
+        "best": 271.24
       },
       "holdout": {
-        "n": 14,
-        "positive_pct": 78.57142857142857,
-        "median": 10.239999999999995,
-        "mean": -10.188571428571432,
-        "aggregate": -142.64000000000004,
-        "worst": -216.76,
-        "best": 73.24
+        "n": 15,
+        "positive_pct": 80.0,
+        "median": 12.239999999999998,
+        "mean": -4.693333333333336,
+        "aggregate": -70.40000000000003,
+        "worst": -210.76,
+        "best": 79.24
       },
       "holdout_pass": false
     },
@@ -2064,20 +2614,20 @@
       "train": {
         "n": 53,
         "positive_pct": 94.33962264150944,
-        "median": 36.239999999999995,
-        "mean": 52.67396226415094,
-        "aggregate": 2791.72,
-        "worst": -64.76,
-        "best": 265.24
+        "median": 42.239999999999995,
+        "mean": 58.67396226415094,
+        "aggregate": 3109.72,
+        "worst": -58.760000000000005,
+        "best": 271.24
       },
       "holdout": {
-        "n": 14,
-        "positive_pct": 78.57142857142857,
-        "median": 10.739999999999995,
-        "mean": -7.54571428571429,
-        "aggregate": -105.64000000000006,
-        "worst": -172.76,
-        "best": 40.239999999999995
+        "n": 15,
+        "positive_pct": 80.0,
+        "median": 12.239999999999998,
+        "mean": -2.226666666666668,
+        "aggregate": -33.40000000000002,
+        "worst": -166.76,
+        "best": 46.239999999999995
       },
       "holdout_pass": false
     },
@@ -2089,20 +2639,20 @@
       "train": {
         "n": 53,
         "positive_pct": 96.22641509433963,
-        "median": 36.239999999999995,
-        "mean": 53.93811320754717,
-        "aggregate": 2858.72,
-        "worst": -64.76,
-        "best": 265.24
+        "median": 42.239999999999995,
+        "mean": 59.93811320754717,
+        "aggregate": 3176.72,
+        "worst": -58.760000000000005,
+        "best": 271.24
       },
       "holdout": {
-        "n": 14,
-        "positive_pct": 78.57142857142857,
-        "median": 10.739999999999995,
-        "mean": -11.045714285714288,
-        "aggregate": -154.64000000000004,
-        "worst": -220.76,
-        "best": 40.239999999999995
+        "n": 15,
+        "positive_pct": 80.0,
+        "median": 12.239999999999998,
+        "mean": -5.493333333333335,
+        "aggregate": -82.40000000000002,
+        "worst": -214.76,
+        "best": 46.239999999999995
       },
       "holdout_pass": false
     },
@@ -2114,20 +2664,20 @@
       "train": {
         "n": 57,
         "positive_pct": 96.49122807017544,
-        "median": 39.239999999999995,
-        "mean": 53.099649122807016,
-        "aggregate": 3026.68,
-        "worst": -64.76,
-        "best": 279.24
+        "median": 45.239999999999995,
+        "mean": 59.099649122807016,
+        "aggregate": 3368.68,
+        "worst": -58.760000000000005,
+        "best": 285.24
       },
       "holdout": {
-        "n": 14,
-        "positive_pct": 78.57142857142857,
-        "median": 10.239999999999995,
-        "mean": -14.188571428571432,
-        "aggregate": -198.64000000000004,
-        "worst": -216.76,
-        "best": 25.239999999999995
+        "n": 15,
+        "positive_pct": 80.0,
+        "median": 12.239999999999998,
+        "mean": -7.960000000000002,
+        "aggregate": -119.40000000000002,
+        "worst": -210.76,
+        "best": 31.24
       },
       "holdout_pass": false
     },
@@ -2139,20 +2689,20 @@
       "train": {
         "n": 57,
         "positive_pct": 98.24561403508773,
-        "median": 39.239999999999995,
-        "mean": 53.6259649122807,
-        "aggregate": 3056.68,
-        "worst": -64.76,
-        "best": 279.24
+        "median": 45.239999999999995,
+        "mean": 59.6259649122807,
+        "aggregate": 3398.68,
+        "worst": -58.760000000000005,
+        "best": 285.24
       },
       "holdout": {
-        "n": 14,
-        "positive_pct": 78.57142857142857,
-        "median": 10.739999999999995,
-        "mean": -7.974285714285719,
-        "aggregate": -111.64000000000006,
-        "worst": -172.76,
-        "best": 25.239999999999995
+        "n": 15,
+        "positive_pct": 80.0,
+        "median": 12.239999999999998,
+        "mean": -2.1600000000000015,
+        "aggregate": -32.40000000000002,
+        "worst": -166.76,
+        "best": 31.24
       },
       "holdout_pass": false
     },
@@ -2164,20 +2714,20 @@
       "train": {
         "n": 57,
         "positive_pct": 98.24561403508773,
-        "median": 39.239999999999995,
-        "mean": 53.6259649122807,
-        "aggregate": 3056.68,
-        "worst": -64.76,
-        "best": 279.24
+        "median": 45.239999999999995,
+        "mean": 59.6259649122807,
+        "aggregate": 3398.68,
+        "worst": -58.760000000000005,
+        "best": 285.24
       },
       "holdout": {
-        "n": 14,
-        "positive_pct": 78.57142857142857,
-        "median": 10.739999999999995,
-        "mean": -11.617142857142861,
-        "aggregate": -162.64000000000004,
-        "worst": -223.76,
-        "best": 25.239999999999995
+        "n": 15,
+        "positive_pct": 80.0,
+        "median": 12.239999999999998,
+        "mean": -5.560000000000001,
+        "aggregate": -83.40000000000002,
+        "worst": -217.76,
+        "best": 31.24
       },
       "holdout_pass": false
     },
@@ -2188,21 +2738,21 @@
       "max_hold_min": 30,
       "train": {
         "n": 59,
-        "positive_pct": 96.61016949152543,
-        "median": 34.239999999999995,
-        "mean": 48.90101694915254,
-        "aggregate": 2885.16,
-        "worst": -64.76,
-        "best": 279.24
+        "positive_pct": 98.30508474576271,
+        "median": 40.239999999999995,
+        "mean": 54.90101694915254,
+        "aggregate": 3239.16,
+        "worst": -58.760000000000005,
+        "best": 285.24
       },
       "holdout": {
-        "n": 16,
-        "positive_pct": 87.5,
-        "median": 14.239999999999995,
-        "mean": 2.3024999999999958,
-        "aggregate": 36.83999999999993,
-        "worst": -216.76,
-        "best": 63.239999999999995
+        "n": 18,
+        "positive_pct": 94.44444444444444,
+        "median": 18.24,
+        "mean": 8.517777777777775,
+        "aggregate": 153.31999999999996,
+        "worst": -210.76,
+        "best": 69.24
       },
       "holdout_pass": true
     },
@@ -2213,21 +2763,21 @@
       "max_hold_min": 60,
       "train": {
         "n": 59,
-        "positive_pct": 96.61016949152543,
-        "median": 34.239999999999995,
-        "mean": 48.90101694915254,
-        "aggregate": 2885.16,
-        "worst": -64.76,
-        "best": 279.24
+        "positive_pct": 98.30508474576271,
+        "median": 40.239999999999995,
+        "mean": 54.90101694915254,
+        "aggregate": 3239.16,
+        "worst": -58.760000000000005,
+        "best": 285.24
       },
       "holdout": {
-        "n": 16,
-        "positive_pct": 87.5,
-        "median": 14.239999999999995,
-        "mean": 5.052499999999996,
-        "aggregate": 80.83999999999993,
-        "worst": -172.76,
-        "best": 63.239999999999995
+        "n": 18,
+        "positive_pct": 94.44444444444444,
+        "median": 18.24,
+        "mean": 10.96222222222222,
+        "aggregate": 197.31999999999996,
+        "worst": -166.76,
+        "best": 69.24
       },
       "holdout_pass": true
     },
@@ -2238,21 +2788,21 @@
       "max_hold_min": 120,
       "train": {
         "n": 59,
-        "positive_pct": 96.61016949152543,
-        "median": 34.239999999999995,
-        "mean": 48.90101694915254,
-        "aggregate": 2885.16,
-        "worst": -64.76,
-        "best": 279.24
+        "positive_pct": 98.30508474576271,
+        "median": 40.239999999999995,
+        "mean": 54.90101694915254,
+        "aggregate": 3239.16,
+        "worst": -58.760000000000005,
+        "best": 285.24
       },
       "holdout": {
-        "n": 16,
-        "positive_pct": 87.5,
-        "median": 14.239999999999995,
-        "mean": 5.052499999999996,
-        "aggregate": 80.83999999999993,
-        "worst": -172.76,
-        "best": 63.239999999999995
+        "n": 18,
+        "positive_pct": 94.44444444444444,
+        "median": 18.24,
+        "mean": 10.96222222222222,
+        "aggregate": 197.31999999999996,
+        "worst": -166.76,
+        "best": 69.24
       },
       "holdout_pass": true
     }
