@@ -45,5 +45,8 @@ jobs:
       - name: Verify published site
         run: |
           curl -fSL --retry 5 --retry-delay 3 "$SITE_URL/" -o /tmp/index.html
-          grep -q "База помощи при работе с ЭТрН" /tmp/index.html
-          curl -fSL --retry 5 --retry-delay 3 "$SITE_URL/deploy-check.txt"
+          curl -fSL --retry 5 --retry-delay 3 "$SITE_URL/app.js" -o /tmp/app.js
+          curl -fSL --retry 5 --retry-delay 3 "$SITE_URL/data.js" -o /tmp/data.js
+          curl -fSL --retry 5 --retry-delay 3 "$SITE_URL/styles.css" -o /tmp/styles.css
+          curl -fSL --retry 5 --retry-delay 3 "$SITE_URL/deploy-check.txt" -o /tmp/deploy-check.txt
+          grep -q "ETRN_AUTO_DEPLOY_OK" /tmp/deploy-check.txt
