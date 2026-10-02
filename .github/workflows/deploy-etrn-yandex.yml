@@ -49,4 +49,12 @@ jobs:
           curl -fSL --retry 5 --retry-delay 3 "$SITE_URL/data.js" -o /tmp/data.js
           curl -fSL --retry 5 --retry-delay 3 "$SITE_URL/styles.css" -o /tmp/styles.css
           curl -fSL --retry 5 --retry-delay 3 "$SITE_URL/deploy-check.txt" -o /tmp/deploy-check.txt
+          curl -fSL --retry 5 --retry-delay 3 "$SITE_URL/manifest.json" -o /tmp/manifest.json
+          curl -fSL --retry 5 --retry-delay 3 "$SITE_URL/service-worker.js" -o /tmp/service-worker.js
+          curl -fSL --retry 5 --retry-delay 3 "$SITE_URL/pwa/icon-192.png" -o /tmp/icon-192.png
+          curl -fSL --retry 5 --retry-delay 3 "$SITE_URL/pwa/icon-512.png" -o /tmp/icon-512.png
           grep -q "ETRN_AUTO_DEPLOY_OK" /tmp/deploy-check.txt
+          grep -q '"display": "standalone"' /tmp/manifest.json
+          grep -q "etrn-help-pwa-v1" /tmp/service-worker.js
+          test -s /tmp/icon-192.png
+          test -s /tmp/icon-512.png
