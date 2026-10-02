@@ -2,9 +2,19 @@ name: Deploy ETRN site to Yandex Object Storage
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'website/**'
+      - 'website-overrides/**'
 
 permissions:
   contents: read
+
+concurrency:
+  group: etrn-yandex-deploy
+  cancel-in-progress: true
 
 jobs:
   deploy:
