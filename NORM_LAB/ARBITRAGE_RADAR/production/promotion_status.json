@@ -2,10 +2,23 @@
   "event_driven": {
     "crypto_perp": {
       "status": "SHADOW",
-      "closed_cycles": 0,
-      "calendar_days": 0,
-      "reason": "No closed event-shadow cycles yet",
-      "units": "bps"
+      "closed_cycles": 3,
+      "calendar_days": 1,
+      "aggregate_net": 202.73242603089787,
+      "median_net": 64.94945656853093,
+      "positive_cycles_pct": 100.0,
+      "worst_cycle": 62.1463589874234,
+      "best_cycle": 75.63661047494354,
+      "largest_win_share_of_positive_pnl": 0.3730859041928299,
+      "units": "bps",
+      "requirements": {
+        "closed_cycles_gte": 30,
+        "calendar_days_gte": 3,
+        "aggregate_net_gt": 0,
+        "median_net_gt": 0,
+        "positive_cycles_pct_gte": 55.00000000000001,
+        "largest_win_share_lte": 0.5
+      }
     },
     "crypto_spot": {
       "status": "SHADOW",
@@ -84,9 +97,9 @@
     },
     "moex_si_synthetic_v1_deprecated": {
       "status": "SHADOW",
-      "closed_cycles": 196,
+      "closed_cycles": 197,
       "calendar_days": 3,
-      "aggregate_net": -6680.54,
+      "aggregate_net": -6702.3,
       "median_net": -25.68,
       "positive_cycles_pct": 0.0,
       "worst_cycle": -112.68,
