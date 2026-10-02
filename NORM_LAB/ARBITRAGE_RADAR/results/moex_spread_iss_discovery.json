@@ -1,162 +1,22 @@
 {
   "secid": "SiZ6SiH7",
-  "generic": {
-    "description": [
-      {
-        "name": "SECID",
-        "title": "Краткий код",
-        "value": "SiZ6SiH7",
-        "type": "string",
-        "sort_order": 1,
-        "is_hidden": 0,
-        "precision": null
-      },
-      {
-        "name": "NAME",
-        "title": "Наименование серии инструмента",
-        "value": "SiZ6SiH7",
-        "type": "string",
-        "sort_order": 2,
-        "is_hidden": 0,
-        "precision": null
-      },
-      {
-        "name": "SHORTNAME",
-        "title": "Краткое наименование контракта",
-        "value": "SiZ6SiH7",
-        "type": "string",
-        "sort_order": 3,
-        "is_hidden": 0,
-        "precision": null
-      },
-      {
-        "name": "FRSTTRADE",
-        "title": "Начало обращения",
-        "value": "2026-03-13",
-        "type": "date",
-        "sort_order": 9,
-        "is_hidden": 0,
-        "precision": null
-      },
-      {
-        "name": "LSTDELDATE",
-        "title": "Дата экспирации",
-        "value": "2026-12-17",
-        "type": "date",
-        "sort_order": 11,
-        "is_hidden": 0,
-        "precision": null
-      },
-      {
-        "name": "ASSETCODE",
-        "title": "Код базового актива",
-        "value": "Si",
-        "type": "string",
-        "sort_order": 20,
-        "is_hidden": 0,
-        "precision": null
-      },
-      {
-        "name": "TYPENAME",
-        "title": "Вид/категория ценной бумаги",
-        "value": "Календарный спред",
-        "type": "string",
-        "sort_order": 9000,
-        "is_hidden": 0,
-        "precision": null
-      },
-      {
-        "name": "GROUP",
-        "title": "Код типа инструмента",
-        "value": "futures_forts",
-        "type": "string",
-        "sort_order": 9001,
-        "is_hidden": 1,
-        "precision": null
-      },
-      {
-        "name": "TYPE",
-        "title": "Тип бумаги",
-        "value": "futures_spread",
-        "type": "string",
-        "sort_order": 10000,
-        "is_hidden": 1,
-        "precision": null
-      },
-      {
-        "name": "GROUPNAME",
-        "title": "Типа инструмента",
-        "value": "Фьючерсы",
-        "type": "string",
-        "sort_order": 10011,
-        "is_hidden": 1,
-        "precision": null
-      }
-    ],
-    "boards": [
-      {
-        "secid": "SiZ6SiH7",
-        "boardid": "RFUD",
-        "title": "Фьючерсы",
-        "board_group_id": 45,
-        "market_id": 22,
-        "market": "forts",
-        "engine_id": 4,
-        "engine": "futures",
-        "is_traded": 0,
-        "decimals": 0,
-        "history_from": "2026-03-13",
-        "history_till": "2026-10-01",
-        "listed_from": "2026-03-13",
-        "listed_till": "2026-10-01",
-        "is_primary": 1,
-        "currencyid": null,
-        "unit": "P"
-      }
-    ]
-  },
-  "search": {
-    "securities": [
-      {
-        "secid": "SiZ6SiH7",
-        "shortname": "SiZ6SiH7",
-        "regnumber": null,
-        "name": "SiZ6SiH7",
-        "isin": null,
-        "is_traded": 0,
-        "emitent_id": null,
-        "emitent_title": null,
-        "emitent_inn": null,
-        "emitent_okpo": null,
-        "type": "futures_spread",
-        "group": "futures_forts",
-        "primary_boardid": "RFUD",
-        "marketprice_boardid": null
-      }
-    ]
-  },
+  "generic": {},
+  "search": {},
   "routes": [
     {
       "label": "forts_market",
       "url": "https://iss.moex.com/iss/engines/futures/markets/forts/securities/SiZ6SiH7.json",
-      "ok": true,
-      "security_rows": 0,
-      "marketdata_rows": 0,
-      "security": [],
-      "marketdata": []
+      "ok": false,
+      "error": "ConnectTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Max retries exceeded with url: /iss/engines/futures/markets/forts/securities/SiZ6SiH7.json?iss.meta=off (Caused by ConnectTimeoutError(<HTTPSConnection(host='iss.moex.com', port=443) at 0x7f253e918c80>, 'Connection to iss.moex.com timed out. (connect timeout=25)'))"
     },
     {
       "label": "forts_RFUD",
       "url": "https://iss.moex.com/iss/engines/futures/markets/forts/boards/RFUD/securities/SiZ6SiH7.json",
-      "ok": true,
-      "security_rows": 0,
-      "marketdata_rows": 0,
-      "security": [],
-      "marketdata": []
+      "ok": false,
+      "error": "ConnectTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Max retries exceeded with url: /iss/engines/futures/markets/forts/boards/RFUD/securities/SiZ6SiH7.json?iss.meta=off (Caused by ConnectTimeoutError(<HTTPSConnection(host='iss.moex.com', port=443) at 0x7f253e918f80>, 'Connection to iss.moex.com timed out. (connect timeout=25)'))"
     }
   ],
-  "candles": {
-    "rows": 0,
-    "sample": []
-  }
+  "generic_error": "ConnectTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Max retries exceeded with url: /iss/securities/SiZ6SiH7.json?iss.meta=off (Caused by ConnectTimeoutError(<HTTPSConnection(host='iss.moex.com', port=443) at 0x7f253e918680>, 'Connection to iss.moex.com timed out. (connect timeout=25)'))",
+  "search_error": "ConnectTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Max retries exceeded with url: /iss/securities.json?q=SiZ6SiH7&iss.meta=off (Caused by ConnectTimeoutError(<HTTPSConnection(host='iss.moex.com', port=443) at 0x7f253e918950>, 'Connection to iss.moex.com timed out. (connect timeout=25)'))",
+  "candles_error": "ConnectTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Max retries exceeded with url: /iss/engines/futures/markets/forts/securities/SiZ6SiH7/candles.json?from=2026-09-29&till=2026-09-30&interval=1&iss.meta=off (Caused by ConnectTimeoutError(<HTTPSConnection(host='iss.moex.com', port=443) at 0x7f253e919250>, 'Connection to iss.moex.com timed out. (connect timeout=25)'))"
 }
