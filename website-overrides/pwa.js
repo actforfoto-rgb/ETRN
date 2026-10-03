@@ -7,6 +7,12 @@
     window.matchMedia('(display-mode: standalone)').matches ||
     window.navigator.standalone === true;
 
+  function syncLastUpdatedDate() {
+    const note = document.querySelector('.version-note');
+    const value = 'Материалы актуализированы: ' + ETRN_LAST_UPDATED;
+    if (note && note.textContent !== value) note.textContent = value;
+  }
+
   function removeInstallButton() {
     document.getElementById(INSTALL_BUTTON_ID)?.remove();
   }
@@ -40,7 +46,6 @@
         alert('На iPhone: откройте сайт в Safari → нажмите «Поделиться» → «На экран “Домой”» → «Добавить».');
         return;
       }
-
       if (!deferredPrompt) return;
       deferredPrompt.prompt();
       try {
@@ -66,6 +71,8 @@
   });
 
   document.addEventListener('DOMContentLoaded', () => {
+    syncLastUpdatedDate();
+
     const ua = navigator.userAgent || '';
     const isIOS = /iPad|iPhone|iPod/.test(ua) ||
       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -75,28 +82,33 @@
     }
   });
 
-  function syncLastUpdatedDate() {
-    const note = document.querySelector('.version-note');
-    const value = 'Материалы актуализированы: ' + ETRN_LAST_UPDATED;
-    if (note && note.textContent !== value) {
-      note.textContent = value;
-    }
-  }
-
-  const appRoot = document.getElementById('app');
-  if (appRoot) {
-    const observer = new MutationObserver(() => {
-      syncLastUpdatedDate();
-    });
-    observer.observe(appRoot, { childList: true, subtree: true });
-  }
-  document.addEventListener('DOMContentLoaded', syncLastUpdatedDate);
+  // Страница перерисовывается при смене раздела. Обновляем дату один раз после рендера,
+  // без MutationObserver, чтобы исключить циклическое изменение DOM.
+  window.addEventListener('hashchange', () => {
+    window.setTimeout(syncLastUpdatedDate, 0);
+  });
+  window.addEventListener('pageshow', syncLastUpdatedDate);
   syncLastUpdatedDate();
+
+  // Удаляем только старые кэши нашего PWA, чтобы установленное приложение
+  // не могло поднять повреждённый JS из предыдущей версии.
+  if ('caches' in window) {
+    caches.keys()
+      .then((keys) => Promise.all(
+        keys
+          .filter((key) => key.startsWith('etrn-help-pwa-') && key !== 'etrn-help-pwa-v3')
+          .map((key) => caches.delete(key))
+      ))
+      .catch(() => {});
+  }
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
       try {
-        const registration = await navigator.serviceWorker.register('./service-worker.js', { scope: './' });
+        const registration = await navigator.serviceWorker.register(
+          './service-worker.js?v=20261003-r2',
+          { scope: './', updateViaCache: 'none' }
+        );
         registration.update().catch(() => {});
       } catch (error) {
         console.warn('PWA service worker registration failed:', error);
