@@ -1,4 +1,5 @@
 (() => {
+  const ETRN_LAST_UPDATED = '03.10.2026';
   const INSTALL_BUTTON_ID = 'pwa-install-button';
   let deferredPrompt = null;
 
@@ -73,6 +74,19 @@
       window.setTimeout(() => showInstallButton('ios'), 1000);
     }
   });
+
+  function syncLastUpdatedDate() {
+    const note = document.querySelector('.version-note');
+    if (note) note.textContent = 'Материалы актуализированы: ' + ETRN_LAST_UPDATED;
+  }
+
+  const appRoot = document.getElementById('app');
+  if (appRoot) {
+    const observer = new MutationObserver(syncLastUpdatedDate);
+    observer.observe(appRoot, { childList: true, subtree: true });
+  }
+  document.addEventListener('DOMContentLoaded', syncLastUpdatedDate);
+  syncLastUpdatedDate();
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
