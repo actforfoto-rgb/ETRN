@@ -28,17 +28,17 @@
       "entry_z": 2.5,
       "train_score": 19.293478156966003,
       "holdout": {
-        "n": 7,
-        "positive_pct": 85.71428571428571,
-        "median_net_bps": 10.770701270505413,
-        "mean_net_bps": 16.376271606951374,
-        "aggregate_net_bps": 114.63390124865963,
+        "n": 8,
+        "positive_pct": 87.5,
+        "median_net_bps": 10.53612954994334,
+        "mean_net_bps": 14.341442548721961,
+        "aggregate_net_bps": 114.73154038977569,
         "worst_net_bps": -1.0859096023514212,
         "best_net_bps": 39.55576863972901
       },
       "stress10_pass": true,
-      "stress10_median_proxy_bps": 0.7707012705054126,
-      "stress10_aggregate_proxy_bps": 44.633901248659626,
+      "stress10_median_proxy_bps": 0.5361295499433396,
+      "stress10_aggregate_proxy_bps": 34.73154038977569,
       "status": "VALIDATED_STRESS10"
     },
     "APT|GATE|HTX": {
@@ -598,7 +598,31 @@
       "status": "REJECTED_TRANSFER_OR_IDENTITY_GATE"
     }
   },
-  "moex": {},
+  "moex": {
+    "FF:BMX6:BMZ6": {
+      "key": "FF:BMX6:BMZ6",
+      "type": "FF",
+      "train": {
+        "n": 50,
+        "positive_pct": 76.0,
+        "median_net_rub": 1.9483999999989319,
+        "mean_net_rub": 1.4975863999996744,
+        "aggregate_net_rub": 74.87931999998372,
+        "worst_net_rub": -29.775520000000093,
+        "best_net_rub": 14.471
+      },
+      "holdout": {
+        "n": 25,
+        "positive_pct": 52.0,
+        "median_net_rub": 0.27871999999985775,
+        "mean_net_rub": 1.4141023999999638,
+        "aggregate_net_rub": 35.352559999999094,
+        "worst_net_rub": -12.24387999999943,
+        "best_net_rub": 32.00263999999829
+      },
+      "status": "VALIDATED_SHADOW"
+    }
+  },
   "notes": [
     "Universe remains fully scanned.",
     "Only holdout-passing routes are eligible for validated shadow entries.",
