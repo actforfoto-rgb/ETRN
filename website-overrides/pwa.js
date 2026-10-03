@@ -1,17 +1,10 @@
 (() => {
-  const ETRN_LAST_UPDATED = '03.10.2026';
   const INSTALL_BUTTON_ID = 'pwa-install-button';
   let deferredPrompt = null;
 
   const isStandalone = () =>
     window.matchMedia('(display-mode: standalone)').matches ||
     window.navigator.standalone === true;
-
-  function syncLastUpdatedDate() {
-    const note = document.querySelector('.version-note');
-    const value = 'Материалы актуализированы: ' + ETRN_LAST_UPDATED;
-    if (note && note.textContent !== value) note.textContent = value;
-  }
 
   function removeInstallButton() {
     document.getElementById(INSTALL_BUTTON_ID)?.remove();
@@ -71,8 +64,6 @@
   });
 
   document.addEventListener('DOMContentLoaded', () => {
-    syncLastUpdatedDate();
-
     const ua = navigator.userAgent || '';
     const isIOS = /iPad|iPhone|iPod/.test(ua) ||
       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -82,16 +73,7 @@
     }
   });
 
-  // Страница перерисовывается при смене раздела. Обновляем дату один раз после рендера,
-  // без MutationObserver, чтобы исключить циклическое изменение DOM.
-  window.addEventListener('hashchange', () => {
-    window.setTimeout(syncLastUpdatedDate, 0);
-  });
-  window.addEventListener('pageshow', syncLastUpdatedDate);
-  syncLastUpdatedDate();
-
-  // Удаляем только старые кэши нашего PWA, чтобы установленное приложение
-  // не могло поднять повреждённый JS из предыдущей версии.
+  // Recovery: clear only old ETRN PWA caches.
   if ('caches' in window) {
     caches.keys()
       .then((keys) => Promise.all(
@@ -106,7 +88,7 @@
     window.addEventListener('load', async () => {
       try {
         const registration = await navigator.serviceWorker.register(
-          './service-worker.js?v=20261003-r2',
+          './service-worker.js?v=20261003-r3',
           { scope: './', updateViaCache: 'none' }
         );
         registration.update().catch(() => {});
