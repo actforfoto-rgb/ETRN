@@ -1,32 +1,16 @@
-const CACHE_NAME = 'etrn-help-pwa-v1';
-const CORE_FILES = [
-  './',
-  './index.html',
-  './styles.css',
-  './data.js',
-  './visuals.js',
-  './app.js',
-  './pwa.js',
-  './manifest.json',
-  './pwa/icon-192.png',
-  './pwa/icon-512.png',
-  './pwa/icon-maskable-512.png',
-  './pwa/apple-touch-icon.png'
-];
+const CACHE_NAME = 'etrn-help-pwa-v3';
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(CORE_FILES))
-      .then(() => self.skipWaiting())
-  );
+self.addEventListener('install', () => {
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
       .then((keys) => Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+        keys
+          .filter((key) => key.startsWith('etrn-help-pwa-') && key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
       ))
       .then(() => self.clients.claim())
   );
@@ -35,17 +19,18 @@ self.addEventListener('activate', (event) => {
 async function networkFirst(request) {
   const cache = await caches.open(CACHE_NAME);
   try {
-    const response = await fetch(request);
+    const response = await fetch(request, { cache: 'no-store' });
     if (response && response.ok) {
       cache.put(request, response.clone()).catch(() => {});
     }
     return response;
   } catch (error) {
-    const cached = await cache.match(request, { ignoreSearch: true });
+    const cached = await cache.match(request);
     if (cached) return cached;
 
     if (request.mode === 'navigate') {
-      return (await cache.match('./index.html')) || (await cache.match('./'));
+      const fallback = await cache.match('./');
+      if (fallback) return fallback;
     }
     throw error;
   }
@@ -53,7 +38,7 @@ async function networkFirst(request) {
 
 async function staleWhileRevalidate(request) {
   const cache = await caches.open(CACHE_NAME);
-  const cached = await cache.match(request, { ignoreSearch: true });
+  const cached = await cache.match(request);
   const network = fetch(request)
     .then((response) => {
       if (response && response.ok) {
@@ -81,5 +66,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  event.respondWith(staleWhileRevalidate(request));
+  if (request.destination === 'image') {
+    event.respondWith(staleWhileRevalidate(request));
+  }
 });
