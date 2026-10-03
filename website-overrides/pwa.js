@@ -77,12 +77,17 @@
 
   function syncLastUpdatedDate() {
     const note = document.querySelector('.version-note');
-    if (note) note.textContent = 'Материалы актуализированы: ' + ETRN_LAST_UPDATED;
+    const value = 'Материалы актуализированы: ' + ETRN_LAST_UPDATED;
+    if (note && note.textContent !== value) {
+      note.textContent = value;
+    }
   }
 
   const appRoot = document.getElementById('app');
   if (appRoot) {
-    const observer = new MutationObserver(syncLastUpdatedDate);
+    const observer = new MutationObserver(() => {
+      syncLastUpdatedDate();
+    });
     observer.observe(appRoot, { childList: true, subtree: true });
   }
   document.addEventListener('DOMContentLoaded', syncLastUpdatedDate);
