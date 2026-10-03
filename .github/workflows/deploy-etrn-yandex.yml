@@ -55,6 +55,6 @@ jobs:
           curl -fSL --retry 5 --retry-delay 3 "$SITE_URL/pwa/icon-512.png" -o /tmp/icon-512.png
           grep -q "ETRN_AUTO_DEPLOY_OK" /tmp/deploy-check.txt
           grep -q '"display": "standalone"' /tmp/manifest.json
-          grep -q "etrn-help-pwa-v1" /tmp/service-worker.js
+          grep -q "etrn-help-pwa-v3" /tmp/service-worker.js
           test -s /tmp/icon-192.png
           test -s /tmp/icon-512.png
