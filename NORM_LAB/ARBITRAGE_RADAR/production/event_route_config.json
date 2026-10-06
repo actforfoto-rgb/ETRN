@@ -88,17 +88,17 @@
       "entry_z": 2.0,
       "train_score": 60.49398129591807,
       "holdout": {
-        "n": 8,
-        "positive_pct": 62.5,
-        "median_net_bps": 7.623628383334104,
-        "mean_net_bps": 10.816234226171307,
-        "aggregate_net_bps": 86.52987380937046,
+        "n": 9,
+        "positive_pct": 66.66666666666667,
+        "median_net_bps": 5.810321639839103,
+        "mean_net_bps": 10.26002171657884,
+        "aggregate_net_bps": 92.34019544920957,
         "worst_net_bps": -43.10138951441675,
         "best_net_bps": 80.02930755114093
       },
       "stress10_pass": false,
-      "stress10_median_proxy_bps": -2.376371616665896,
-      "stress10_aggregate_proxy_bps": 6.529873809370457,
+      "stress10_median_proxy_bps": -4.189678360160897,
+      "stress10_aggregate_proxy_bps": 2.340195449209574,
       "status": "VALIDATED_SHADOW"
     },
     "ICP|HTX|MEXC": {
@@ -361,6 +361,26 @@
       "stress10_aggregate_proxy_bps": -30.68554845915537,
       "status": "VALIDATED_SHADOW"
     },
+    "BCH|GATE|HTX": {
+      "base": "BCH",
+      "venue_a": "GATE",
+      "venue_b": "HTX",
+      "entry_z": 2.0,
+      "train_score": 7.331026657550463,
+      "holdout": {
+        "n": 2,
+        "positive_pct": 50.0,
+        "median_net_bps": 1.0290484987245598,
+        "mean_net_bps": 1.0290484987245598,
+        "aggregate_net_bps": 2.0580969974491197,
+        "worst_net_bps": -1.4839803950179373,
+        "best_net_bps": 3.542077392467057
+      },
+      "stress10_pass": false,
+      "stress10_median_proxy_bps": -8.97095150127544,
+      "stress10_aggregate_proxy_bps": -17.94190300255088,
+      "status": "VALIDATED_SHADOW"
+    },
     "OP|GATE|OKX": {
       "base": "OP",
       "venue_a": "GATE",
@@ -575,12 +595,12 @@
       "venue_b": "MEXC",
       "entry_z": 2.5,
       "holdout": {
-        "n": 5,
-        "positive_pct": 100.0,
-        "median_net_bps": 10.966731898236972,
-        "mean_net_bps": 12.32788951925271,
-        "aggregate_net_bps": 61.639447596263544,
-        "worst_net_bps": 3.670034765283411,
+        "n": 6,
+        "positive_pct": 83.33333333333333,
+        "median_net_bps": 8.510767594497793,
+        "mean_net_bps": 9.64072167346056,
+        "aggregate_net_bps": 57.84433004076336,
+        "worst_net_bps": -3.795117555500184,
         "best_net_bps": 25.122192652043324
       },
       "status": "REJECTED_TRANSFER_OR_IDENTITY_GATE"
@@ -634,7 +654,31 @@
       "status": "REJECTED_TRANSFER_OR_IDENTITY_GATE"
     }
   },
-  "moex": {},
+  "moex": {
+    "FF:NGX6:NGZ6": {
+      "key": "FF:NGX6:NGZ6",
+      "type": "FF",
+      "train": {
+        "n": 10,
+        "positive_pct": 60.0,
+        "median_net_rub": 7.519270000006635,
+        "mean_net_rub": 12.61512400000645,
+        "aggregate_net_rub": 126.15124000006449,
+        "worst_net_rub": -34.94617999999435,
+        "best_net_rub": 109.43635000000484
+      },
+      "holdout": {
+        "n": 3,
+        "positive_pct": 66.66666666666667,
+        "median_net_rub": 7.519270000000972,
+        "mean_net_rub": 1.8572100000041136,
+        "aggregate_net_rub": 5.571630000012341,
+        "worst_net_rub": -9.466909999993383,
+        "best_net_rub": 7.519270000004752
+      },
+      "status": "VALIDATED_SHADOW"
+    }
+  },
   "notes": [
     "Universe remains fully scanned.",
     "Only holdout-passing routes are eligible for validated shadow entries.",
