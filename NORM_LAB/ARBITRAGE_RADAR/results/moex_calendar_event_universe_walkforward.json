@@ -1,9 +1,39 @@
 {
-  "utc": "2026-10-08T02:34:55.325920+03:00",
+  "utc": "2026-10-08T02:51:47.110033+03:00",
   "discovery_candidates": 50,
-  "tested_routes": 8,
-  "holdout_pass": 2,
+  "tested_routes": 13,
+  "holdout_pass": 4,
   "routes": [
+    {
+      "spread": "GOLD-12.26-3.27",
+      "near": "GDZ6",
+      "far": "GDH7",
+      "current_trades": 2000.0,
+      "current_volume": 4894.0,
+      "cost_proxy_rub": 245.72695999995324,
+      "selected_entry_z": 2.5,
+      "train_score": 93.40617451499611,
+      "train": {
+        "n": 27,
+        "positive_pct": 62.96296296296296,
+        "median_net_rub": 28.550160000109145,
+        "mean_net_rub": -45.73322666661412,
+        "aggregate_net_rub": -1234.7971199985814,
+        "worst_net_rub": -1634.2548800000159,
+        "best_net_rub": 208.5445199999844
+      },
+      "holdout": {
+        "n": 12,
+        "positive_pct": 66.66666666666667,
+        "median_net_rub": 62.83480000007796,
+        "mean_net_rub": 49.263796666740724,
+        "aggregate_net_rub": 591.1655600008887,
+        "worst_net_rub": -151.44420000000002,
+        "best_net_rub": 208.5445200000624
+      },
+      "cutoff_epoch": 1791220080,
+      "holdout_pass": true
+    },
     {
       "spread": "Si-12.26-3.27",
       "near": "SiZ6",
@@ -32,6 +62,36 @@
         "best_net_rub": 23.86
       },
       "cutoff_epoch": 1791288420,
+      "holdout_pass": true
+    },
+    {
+      "spread": "MIX-12.26-3.27",
+      "near": "MXZ6",
+      "far": "MXH7",
+      "current_trades": 1057.0,
+      "current_volume": 2584.0,
+      "cost_proxy_rub": 214.6,
+      "selected_entry_z": 2.5,
+      "train_score": 161.06666666666666,
+      "train": {
+        "n": 9,
+        "positive_pct": 88.88888888888889,
+        "median_net_rub": 60.400000000000006,
+        "mean_net_rub": 32.62222222222223,
+        "aggregate_net_rub": 293.6,
+        "worst_net_rub": -264.6,
+        "best_net_rub": 160.4
+      },
+      "holdout": {
+        "n": 4,
+        "positive_pct": 75.0,
+        "median_net_rub": 22.900000000000006,
+        "mean_net_rub": 22.900000000000006,
+        "aggregate_net_rub": 91.60000000000002,
+        "worst_net_rub": -14.599999999999994,
+        "best_net_rub": 60.400000000000006
+      },
+      "cutoff_epoch": 1791364320,
       "holdout_pass": true
     },
     {
@@ -125,6 +185,36 @@
       "holdout_pass": false
     },
     {
+      "spread": "GOLDM-12.26-3.27",
+      "near": "GNZ6",
+      "far": "GNH7",
+      "current_trades": 590.0,
+      "current_volume": 2032.0,
+      "cost_proxy_rub": 64.95311999999532,
+      "selected_entry_z": 2.0,
+      "train_score": -57.58293147197614,
+      "train": {
+        "n": 6,
+        "positive_pct": 33.333333333333336,
+        "median_net_rub": -70.52439999999609,
+        "mean_net_rub": -53.667706666662504,
+        "aggregate_net_rub": -322.00623999997504,
+        "worst_net_rub": -103.52351999999533,
+        "best_net_rub": 23.330240000006228
+      },
+      "holdout": {
+        "n": 3,
+        "positive_pct": 66.66666666666667,
+        "median_net_rub": 0.18799999999998818,
+        "mean_net_rub": -0.09770666666511592,
+        "aggregate_net_rub": -0.29311999999534777,
+        "worst_net_rub": -1.5262399999984453,
+        "best_net_rub": 1.0451200000031093
+      },
+      "cutoff_epoch": 1790956140,
+      "holdout_pass": false
+    },
+    {
       "spread": "CNY-3.27-6.27",
       "near": "CRH7",
       "far": "CRM7",
@@ -152,6 +242,66 @@
         "best_net_rub": 1.5600000000002279
       },
       "cutoff_epoch": 1791299280,
+      "holdout_pass": false
+    },
+    {
+      "spread": "OZON-12.26-3.27",
+      "near": "ONZ6",
+      "far": "ONH7",
+      "current_trades": 542.0,
+      "current_volume": 6740.0,
+      "cost_proxy_rub": 10.58,
+      "selected_entry_z": 2.5,
+      "train_score": -0.0,
+      "train": {
+        "n": 5,
+        "positive_pct": 0.0,
+        "median_net_rub": -2.58,
+        "mean_net_rub": -3.9799999999999995,
+        "aggregate_net_rub": -19.9,
+        "worst_net_rub": -8.58,
+        "best_net_rub": -0.5800000000000001
+      },
+      "holdout": {
+        "n": 3,
+        "positive_pct": 66.66666666666667,
+        "median_net_rub": 0.41999999999999993,
+        "mean_net_rub": -0.9133333333333334,
+        "aggregate_net_rub": -2.74,
+        "worst_net_rub": -4.58,
+        "best_net_rub": 1.42
+      },
+      "cutoff_epoch": 1790967000,
+      "holdout_pass": false
+    },
+    {
+      "spread": "ORANGE-11.26-1.27",
+      "near": "OJX6",
+      "far": "OJF7",
+      "current_trades": 380.0,
+      "current_volume": 1308.0,
+      "cost_proxy_rub": 111.91392000000009,
+      "selected_entry_z": 2.0,
+      "train_score": -19.384312300052162,
+      "train": {
+        "n": 5,
+        "positive_pct": 20.0,
+        "median_net_rub": -43.34464000000193,
+        "mean_net_rub": -41.6304080000006,
+        "aggregate_net_rub": -208.152040000003,
+        "worst_net_rub": -137.62740000000107,
+        "best_net_rub": 33.79579999999909
+      },
+      "holdout": {
+        "n": 3,
+        "positive_pct": 33.333333333333336,
+        "median_net_rub": -0.48883999999904404,
+        "mean_net_rub": -3.345893333332692,
+        "aggregate_net_rub": -10.037679999998076,
+        "worst_net_rub": -43.34464000000003,
+        "best_net_rub": 33.795800000000995
+      },
+      "cutoff_epoch": 1791302400,
       "holdout_pass": false
     },
     {
@@ -245,110 +395,5 @@
       "holdout_pass": false
     }
   ],
-  "errors": [
-    {
-      "spread": "NGM-10.26-11.26",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/NRX6/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=1000&iss.meta=off"
-    },
-    {
-      "spread": "NGM-11.26-12.26",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/NRX6/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=0&iss.meta=off"
-    },
-    {
-      "spread": "BR-11.26-12.26",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/BRX6/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=0&iss.meta=off"
-    },
-    {
-      "spread": "OZON-12.26-3.27",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/ONZ6/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=1000&iss.meta=off"
-    },
-    {
-      "spread": "T-12.26-3.27",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/TBZ6/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=0&iss.meta=off"
-    },
-    {
-      "spread": "GOLD-12.26-3.27",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/GDZ6/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=0&iss.meta=off"
-    },
-    {
-      "spread": "MXI-12.26-3.27",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/MMZ6/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=0&iss.meta=off"
-    },
-    {
-      "spread": "GAZR-12.26-3.27",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/GZZ6/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=0&iss.meta=off"
-    },
-    {
-      "spread": "VKCO-12.26-3.27",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/VKZ6/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=0&iss.meta=off"
-    },
-    {
-      "spread": "YDEX-12.26-3.27",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/YDZ6/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=0&iss.meta=off"
-    },
-    {
-      "spread": "SPYF-12.26-3.27",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/SFZ6/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=0&iss.meta=off"
-    },
-    {
-      "spread": "SILV-12.26-3.27",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/SVZ6/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=6000&iss.meta=off"
-    },
-    {
-      "spread": "NGM-1.27-2.27",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/NRG7/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=0&iss.meta=off"
-    },
-    {
-      "spread": "SILVM-12.26-3.27",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/S1Z6/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=0&iss.meta=off"
-    },
-    {
-      "spread": "MIX-12.26-3.27",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/MXZ6/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=0&iss.meta=off"
-    },
-    {
-      "spread": "ETH-11.26-12.26",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/EHZ6/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=0&iss.meta=off"
-    },
-    {
-      "spread": "GOLDM-12.26-3.27",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/GNZ6/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=0&iss.meta=off"
-    },
-    {
-      "spread": "SBRF-12.26-3.27",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/SRZ6/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=500&iss.meta=off"
-    },
-    {
-      "spread": "GMKN-12.26-3.27",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/GKZ6/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=0&iss.meta=off"
-    },
-    {
-      "spread": "MGNT-12.26-3.27",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/MNZ6/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=0&iss.meta=off"
-    },
-    {
-      "spread": "RGBI-12.26-3.27",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/RBZ6/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=0&iss.meta=off"
-    },
-    {
-      "spread": "ORANGE-11.26-1.27",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/OJX6/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=0&iss.meta=off"
-    },
-    {
-      "spread": "PLTM-12.26-3.27",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/LTZ6/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=0&iss.meta=off"
-    },
-    {
-      "spread": "SGZH-12.26-3.27",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/SZZ6/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=0&iss.meta=off"
-    },
-    {
-      "spread": "WUSH-12.26-3.27",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/WUZ6/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=0&iss.meta=off"
-    },
-    {
-      "spread": "NG-1.27-2.27",
-      "error": "HTTPError: 502 Server Error: Bad Gateway for url: https://iss.moex.com/iss/engines/futures/markets/forts/securities/NGF7/candles.json?interval=1&from=2026-09-30&till=2026-10-08&start=0&iss.meta=off"
-    }
-  ]
+  "errors": []
 }
