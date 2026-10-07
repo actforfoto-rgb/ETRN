@@ -1,6 +1,42 @@
 {
   "routes": [
     {
+      "spread": "GL-12.26-3.27",
+      "near": {
+        "secid": "GLZ6",
+        "initialmargin": 1483.04,
+        "buysellfee": 1.55,
+        "scalperfee": 0.78,
+        "stepprice": 0.1,
+        "minstep": 0.1,
+        "volume": 307713.0,
+        "trades": 10434.0,
+        "oi": 1214226.0
+      },
+      "far": {
+        "secid": "GLH7",
+        "initialmargin": 1483.08,
+        "buysellfee": 1.6,
+        "scalperfee": 0.8,
+        "stepprice": 0.1,
+        "minstep": 0.1,
+        "volume": 3754.0,
+        "trades": 569.0,
+        "oi": 19546.0
+      },
+      "conservative_sum_leg_im_rub": 2966.12,
+      "holdout_events": 8,
+      "holdout_positive_pct": 100.0,
+      "median_net_rub": 5.400000000000727,
+      "aggregate_net_rub": 43.500000000008725,
+      "worst_net_rub": 0.5000000000010907,
+      "median_event_return_on_sum_im_pct": 0.18205601931144821,
+      "aggregate_holdout_return_on_sum_im_pct": 1.4665623777867627,
+      "worst_event_return_on_sum_im_pct": 0.016857038825168594,
+      "risk_adjusted_score": 19.412805985665123,
+      "note": "Capital denominator is conservative sum of current leg IM; actual exchange calendar-spread margin may differ and is not assumed."
+    },
+    {
       "spread": "MIX-12.26-3.27",
       "near": {
         "secid": "MXZ6",
@@ -9,9 +45,9 @@
         "scalperfee": 7.75,
         "stepprice": 25.0,
         "minstep": 25.0,
-        "volume": 95745.0,
-        "trades": 34001.0,
-        "oi": 355092.0
+        "volume": 101685.0,
+        "trades": 36005.0,
+        "oi": 354252.0
       },
       "far": {
         "secid": "MXH7",
@@ -20,9 +56,9 @@
         "scalperfee": 7.91,
         "stepprice": 25.0,
         "minstep": 25.0,
-        "volume": 639.0,
-        "trades": 507.0,
-        "oi": 4966.0
+        "volume": 680.0,
+        "trades": 542.0,
+        "oi": 4952.0
       },
       "conservative_sum_leg_im_rub": 58787.38,
       "holdout_events": 6,
@@ -33,79 +69,7 @@
       "median_event_return_on_sum_im_pct": 0.16653234078470586,
       "aggregate_holdout_return_on_sum_im_pct": 0.8290895086666561,
       "worst_event_return_on_sum_im_pct": -0.024835262262070522,
-      "risk_adjusted_score": 221.03283861331371,
-      "note": "Capital denominator is conservative sum of current leg IM; actual exchange calendar-spread margin may differ and is not assumed."
-    },
-    {
-      "spread": "SBRF-12.26-3.27",
-      "near": {
-        "secid": "SRZ6",
-        "initialmargin": 5397.71,
-        "buysellfee": 5.76,
-        "scalperfee": 2.88,
-        "stepprice": 1.0,
-        "minstep": 1.0,
-        "volume": 86377.0,
-        "trades": 21773.0,
-        "oi": 560708.0
-      },
-      "far": {
-        "secid": "SRH7",
-        "initialmargin": 5921.72,
-        "buysellfee": 5.95,
-        "scalperfee": 2.98,
-        "stepprice": 1.0,
-        "minstep": 1.0,
-        "volume": 471.0,
-        "trades": 238.0,
-        "oi": 9130.0
-      },
-      "conservative_sum_leg_im_rub": 11319.43,
-      "holdout_events": 5,
-      "holdout_positive_pct": 80.0,
-      "median_net_rub": 16.58,
-      "aggregate_net_rub": 110.89999999999999,
-      "worst_net_rub": -2.4200000000000017,
-      "median_event_return_on_sum_im_pct": 0.14647380654326234,
-      "aggregate_holdout_return_on_sum_im_pct": 0.9797313115589741,
-      "worst_event_return_on_sum_im_pct": -0.02137916838568728,
-      "risk_adjusted_score": 31.881068863327737,
-      "note": "Capital denominator is conservative sum of current leg IM; actual exchange calendar-spread margin may differ and is not assumed."
-    },
-    {
-      "spread": "CNY-3.27-6.27",
-      "near": {
-        "secid": "CRH7",
-        "initialmargin": 1321.41,
-        "buysellfee": 0.61,
-        "scalperfee": 0.31,
-        "stepprice": 1.0,
-        "minstep": 0.001,
-        "volume": 43597.0,
-        "trades": 3389.0,
-        "oi": 2909542.0
-      },
-      "far": {
-        "secid": "CRM7",
-        "initialmargin": 1420.44,
-        "buysellfee": 0.61,
-        "scalperfee": 0.31,
-        "stepprice": 1.0,
-        "minstep": 0.001,
-        "volume": 2371.0,
-        "trades": 390.0,
-        "oi": 121592.0
-      },
-      "conservative_sum_leg_im_rub": 2741.8500000000004,
-      "holdout_events": 7,
-      "holdout_positive_pct": 85.71428571428571,
-      "median_net_rub": 3.5599999999991194,
-      "aggregate_net_rub": 24.920000000002716,
-      "worst_net_rub": -0.4399999999986637,
-      "median_event_return_on_sum_im_pct": 0.12983934205004355,
-      "aggregate_holdout_return_on_sum_im_pct": 0.9088753943506287,
-      "worst_event_return_on_sum_im_pct": -0.01604755912973589,
-      "risk_adjusted_score": 8.85234027771334,
+      "risk_adjusted_score": 221.7218243111549,
       "note": "Capital denominator is conservative sum of current leg IM; actual exchange calendar-spread margin may differ and is not assumed."
     },
     {
@@ -117,9 +81,9 @@
         "scalperfee": 0.98,
         "stepprice": 1.0,
         "minstep": 1.0,
-        "volume": 89751.0,
-        "trades": 12926.0,
-        "oi": 1068688.0
+        "volume": 91536.0,
+        "trades": 13197.0,
+        "oi": 1070024.0
       },
       "far": {
         "secid": "GZH7",
@@ -128,8 +92,8 @@
         "scalperfee": 1.02,
         "stepprice": 1.0,
         "minstep": 1.0,
-        "volume": 560.0,
-        "trades": 245.0,
+        "volume": 565.0,
+        "trades": 248.0,
         "oi": 55432.0
       },
       "conservative_sum_leg_im_rub": 3954.59,
@@ -141,7 +105,43 @@
       "median_event_return_on_sum_im_pct": 0.11429756308492156,
       "aggregate_holdout_return_on_sum_im_pct": 1.3685363084415827,
       "worst_event_return_on_sum_im_pct": 0.05107988438750919,
-      "risk_adjusted_score": 13.690689464541496,
+      "risk_adjusted_score": 13.724692143893352,
+      "note": "Capital denominator is conservative sum of current leg IM; actual exchange calendar-spread margin may differ and is not assumed."
+    },
+    {
+      "spread": "MXI-12.26-3.27",
+      "near": {
+        "secid": "MMZ6",
+        "initialmargin": 2798.39,
+        "buysellfee": 1.55,
+        "scalperfee": 0.78,
+        "stepprice": 0.5,
+        "minstep": 0.05,
+        "volume": 196766.0,
+        "trades": 41622.0,
+        "oi": 417010.0
+      },
+      "far": {
+        "secid": "MMH7",
+        "initialmargin": 3081.7,
+        "buysellfee": 1.58,
+        "scalperfee": 0.79,
+        "stepprice": 0.5,
+        "minstep": 0.05,
+        "volume": 1393.0,
+        "trades": 715.0,
+        "oi": 9798.0
+      },
+      "conservative_sum_leg_im_rub": 5880.09,
+      "holdout_events": 28,
+      "holdout_positive_pct": 89.28571428571429,
+      "median_net_rub": 3.2400000000031834,
+      "aggregate_net_rub": 127.22000000001275,
+      "worst_net_rub": -1.7599999999990903,
+      "median_event_return_on_sum_im_pct": 0.05510119743070571,
+      "aggregate_holdout_return_on_sum_im_pct": 2.163572326274134,
+      "worst_event_return_on_sum_im_pct": -0.0299315146536718,
+      "risk_adjusted_score": 12.733988624123437,
       "note": "Capital denominator is conservative sum of current leg IM; actual exchange calendar-spread margin may differ and is not assumed."
     },
     {
@@ -153,9 +153,9 @@
         "scalperfee": 3.53,
         "stepprice": 8.57116,
         "minstep": 0.01,
-        "volume": 81607.0,
-        "trades": 12234.0,
-        "oi": 554022.0
+        "volume": 89984.0,
+        "trades": 13365.0,
+        "oi": 551046.0
       },
       "far": {
         "secid": "SVH7",
@@ -164,22 +164,58 @@
         "scalperfee": 3.62,
         "stepprice": 8.57116,
         "minstep": 0.01,
-        "volume": 441.0,
-        "trades": 229.0,
-        "oi": 7526.0
+        "volume": 464.0,
+        "trades": 244.0,
+        "oi": 7548.0
       },
       "conservative_sum_leg_im_rub": 24834.6,
-      "holdout_events": 6,
-      "holdout_positive_pct": 83.33333333333333,
-      "median_net_rub": 3.704639999999273,
-      "aggregate_net_rub": 39.370159999992225,
-      "worst_net_rub": -4.866519999999021,
-      "median_event_return_on_sum_im_pct": 0.014917252542820392,
-      "aggregate_holdout_return_on_sum_im_pct": 0.15852947097997241,
-      "worst_event_return_on_sum_im_pct": -0.019595725318704633,
-      "risk_adjusted_score": 4.035389773927854,
+      "holdout_events": 7,
+      "holdout_positive_pct": 100.0,
+      "median_net_rub": 12.275800000003663,
+      "aggregate_net_rub": 111.64408000002052,
+      "worst_net_rub": 3.7046400000053694,
+      "median_event_return_on_sum_im_pct": 0.04943023040436997,
+      "aggregate_holdout_return_on_sum_im_pct": 0.4495505464151649,
+      "worst_event_return_on_sum_im_pct": 0.014917252542844942,
+      "risk_adjusted_score": 40.35441764688756,
+      "note": "Capital denominator is conservative sum of current leg IM; actual exchange calendar-spread margin may differ and is not assumed."
+    },
+    {
+      "spread": "Si-12.26-3.27",
+      "near": {
+        "secid": "SiZ6",
+        "initialmargin": 13810.59,
+        "buysellfee": 4.0,
+        "scalperfee": 2.0,
+        "stepprice": 1.0,
+        "minstep": 1.0,
+        "volume": 750367.0,
+        "trades": 121347.0,
+        "oi": 10093978.0
+      },
+      "far": {
+        "secid": "SiH7",
+        "initialmargin": 14027.02,
+        "buysellfee": 4.07,
+        "scalperfee": 2.04,
+        "stepprice": 1.0,
+        "minstep": 1.0,
+        "volume": 8563.0,
+        "trades": 4442.0,
+        "oi": 246096.0
+      },
+      "conservative_sum_leg_im_rub": 27837.61,
+      "holdout_events": 23,
+      "holdout_positive_pct": 95.65217391304348,
+      "median_net_rub": 12.86,
+      "aggregate_net_rub": 379.78,
+      "worst_net_rub": -6.140000000000001,
+      "median_event_return_on_sum_im_pct": 0.04619649459849462,
+      "aggregate_holdout_return_on_sum_im_pct": 1.3642694182438793,
+      "worst_event_return_on_sum_im_pct": -0.022056491200214388,
+      "risk_adjusted_score": 54.58782799372589,
       "note": "Capital denominator is conservative sum of current leg IM; actual exchange calendar-spread margin may differ and is not assumed."
     }
   ],
-  "count": 5
+  "count": 6
 }
