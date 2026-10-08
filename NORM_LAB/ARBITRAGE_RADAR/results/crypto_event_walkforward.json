@@ -2,7 +2,7 @@
   {
     "kind": "PERP",
     "cutoff_ts": 1790773200000,
-    "train_unique_hours": 138,
+    "train_unique_hours": 137,
     "holdout_unique_hours": 60,
     "selected_routes": [
       {
@@ -315,6 +315,34 @@
       },
       {
         "kind": "PERP",
+        "base": "DOT",
+        "venue_a": "BITGET",
+        "venue_b": "HTX",
+        "selected_entry_z": 2.5,
+        "train_score": 18.568608055268562,
+        "train": {
+          "n": 9,
+          "positive_pct": 88.88888888888889,
+          "median_net_bps": 6.963228020725712,
+          "mean_net_bps": 9.473210747699383,
+          "aggregate_net_bps": 85.25889672929445,
+          "worst_net_bps": -17.514694537477975,
+          "best_net_bps": 50.24698793295725
+        },
+        "holdout": {
+          "n": 3,
+          "positive_pct": 100.0,
+          "median_net_bps": 12.003906683069307,
+          "mean_net_bps": 10.54275865881385,
+          "aggregate_net_bps": 31.628275976441554,
+          "worst_net_bps": 5.352962569830343,
+          "best_net_bps": 14.271406723541904
+        },
+        "cutoff_ts": 1790773200000,
+        "holdout_pass": true
+      },
+      {
+        "kind": "PERP",
         "base": "AVAX",
         "venue_a": "HTX",
         "venue_b": "OKX",
@@ -337,34 +365,6 @@
           "aggregate_net_bps": 29.678281469600087,
           "worst_net_bps": -1.3453731985708401,
           "best_net_bps": 15.13040685043812
-        },
-        "cutoff_ts": 1790773200000,
-        "holdout_pass": true
-      },
-      {
-        "kind": "PERP",
-        "base": "DOT",
-        "venue_a": "BITGET",
-        "venue_b": "HTX",
-        "selected_entry_z": 3.0,
-        "train_score": 16.39321221993173,
-        "train": {
-          "n": 6,
-          "positive_pct": 83.33333333333333,
-          "median_net_bps": 8.031001036798127,
-          "mean_net_bps": 12.078883309998538,
-          "aggregate_net_bps": 72.47329985999123,
-          "worst_net_bps": -17.514694537477975,
-          "best_net_bps": 50.24698793295725
-        },
-        "holdout": {
-          "n": 2,
-          "positive_pct": 100.0,
-          "median_net_bps": 13.137656703305606,
-          "mean_net_bps": 13.137656703305606,
-          "aggregate_net_bps": 26.27531340661121,
-          "worst_net_bps": 12.003906683069307,
-          "best_net_bps": 14.271406723541904
         },
         "cutoff_ts": 1790773200000,
         "holdout_pass": true
