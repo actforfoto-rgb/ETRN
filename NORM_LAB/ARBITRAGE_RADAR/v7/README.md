@@ -10,8 +10,27 @@ This directory belongs to the **existing** NORM ARBITRAGE RADAR project. It is n
 - Waits for `HANDSHAKE_SUCCESS` before subscribing; subscribes to up to six symbols.
 - Captures only `ORDER_BOOK` market-data payloads and whitelisted event metadata; excludes account information, errors' free-form text, raw tokens and order streams.
 - Saves a new per-run JSONL file with SHA-256 digest; refuses to overwrite existing evidence.
+- Hard-caps recorded evidence at 10,000 messages / 20 MB; returns a non-success status for truncated files, premature data or stream errors.
+- Rejects non-integral exchange envelope timestamps; unrecognized market-data fields and account payloads never enter the evidence log.
 - The saved messages must be independently reconciled to REST bootstrap snapshots before interpreting book updates as executable top-of-book.
 - No real broker stream has yet been verified **for this V7 module**. Unit tests use synthetic messages; do not confuse test PASS with access or profit.
+
+### Book reconstruction and current CI gate
+
+`book_replay.py` provides a deterministic, Decimal-based REST snapshot + explicit
+ORDER_BOOK WS add/update/remove replay. It rejects ambiguous/partial updates,
+crossed books, out-of-order timestamps and updates arriving before bootstrap.
+A connection interruption invalidates the book until a new REST snapshot is
+obtained. The normalized view **always** reports continuity_verified=false and
+executable=false; a best BID/ASK never means broker FOK would fill.
+
+The module is prepared for integration but is **not yet wired to live
+WebSocket frames or an authenticated secure server runtime**. All examples and
+replay fixtures are synthetic; the private strategy and client data are
+excluded from this public repository.
+
+Current remote baseline: 32/32 tests passed in
+[GitHub Actions run 38805413157](https://github.com/actforfoto-rgb/ETRN/actions/runs/38805413157).
 
 ### Fast development loop
 
