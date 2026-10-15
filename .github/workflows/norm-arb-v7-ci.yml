@@ -1,0 +1,34 @@
+name: NORM ARB V7 CI — Fast read-only core checks
+
+on:
+  push:
+    branches: [norm-arb-v7-dev]
+    paths:
+      - 'NORM_LAB/ARBITRAGE_RADAR/v7/**'
+      - '.github/workflows/norm-arb-v7-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-gates:
+    name: Compile and deterministic evidence tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    defaults:
+      run:
+        working-directory: NORM_LAB/ARBITRAGE_RADAR/v7
+    steps:
+      - name: Checkout existing NORM repository branch
+        uses: actions/checkout@v4
+        with:
+          ref: norm-arb-v7-dev
+      - name: Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Syntax validation
+        run: python -m compileall -q finam_ws_collector.py tests
+      - name: Test read-only gates and stream envelope integrity
+        run: python -m unittest discover -s tests -v
