@@ -30,6 +30,8 @@ DEFAULT_SYMBOLS = (
 )
 MAX_SUBSCRIPTIONS = 6
 MAX_SECONDS = 300
+MAX_EVIDENCE_RECORDS = 10000
+MAX_EVIDENCE_BYTES = 20_000_000
 SCHEMA_VERSION = "NORM_FINAM_WS_EVIDENCE_V7_1"
 
 
@@ -164,9 +166,14 @@ def sanitize_envelope(message: dict[str, Any], subscribed: tuple[str, ...]) -> d
     for book in payload.get("order_book", []):
         if book["symbol"] not in allowed:
             return None
+    provider_time = message.get("timestamp")
+    # The official WS envelope defines an integer unix timestamp.
+    # bool and NaN/Infinity are not valid timestamps and must not become evidence.
+    if type(provider_time) is not int or not 0 <= provider_time < 2**53:
+        provider_time = None
     return {
         "kind": "DATA", "subscription_type": "ORDER_BOOK",
-        "provider_timestamp": message.get("timestamp") if isinstance(message.get("timestamp"), (int, float)) else None,
+        "provider_timestamp": provider_time,
         "payload": payload,
     }
 
@@ -192,6 +199,9 @@ async def capture_stream(
     data_count = 0
     error_count = 0
     event_count = 0
+    written_records = 0
+    written_bytes = 0
+    bounded_out = False
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as outfile:
             async with connector(FINAM_WS, ping_interval=20, ping_timeout=20, max_size=2**20, open_timeout=15) as socket:
@@ -211,9 +221,22 @@ async def capture_stream(
                     entry = sanitize_envelope(msg, symbols)
                     if entry is None:
                         continue
+                    # A DATA envelope before a confirmed subscribe cannot prove
+                    # the subscriptions were established. Exclude it from tape.
+                    if entry["kind"] == "DATA" and not subscribed:
+                        error_count += 1
+                        continue
                     entry["captured_utc"] = datetime.now(timezone.utc).isoformat()
                     entry["schema"] = SCHEMA_VERSION
-                    outfile.write(json.dumps(entry, ensure_ascii=False, separators=(",", ":")) + "\n")
+                    line = json.dumps(entry, ensure_ascii=False, allow_nan=False, separators=(",", ":")) + "\n"
+                    encoded_bytes = len(line.encode("utf-8"))
+                    if (written_records >= MAX_EVIDENCE_RECORDS or
+                            written_bytes + encoded_bytes > MAX_EVIDENCE_BYTES):
+                        bounded_out = True
+                        break
+                    outfile.write(line)
+                    written_records += 1
+                    written_bytes += encoded_bytes
                     if entry["kind"] == "EVENT":
                         event_count += 1
                         if entry["event"] == "HANDSHAKE_SUCCESS" and not subscribed:
@@ -239,8 +262,15 @@ async def capture_stream(
         "subscribed": subscribed, "symbols_count": len(symbols),
         "market_messages": data_count, "events": event_count, "errors": error_count,
         "file": str(destination), "sha256": sha256,
+        "records": written_records, "bytes": written_bytes,
+        "limits_reached": bounded_out,
         "orders": 0, "realized_pnl": 0,
-        "status": "DATA_RECORDED" if data_count else ("NO_MARKET_MESSAGES" if subscribed else "NO_HANDSHAKE"),
+        "status": (
+            "BOUNDED_OUT" if bounded_out else
+            "DATA_RECORDED_WITH_ERRORS_UNVERIFIED" if data_count and error_count else
+            "DATA_RECORDED" if data_count else
+            ("NO_MARKET_MESSAGES" if subscribed else "NO_HANDSHAKE")
+        ),
     }
 
 
@@ -260,7 +290,7 @@ def run_cli(argv: list[str] | None = None) -> int:
         destination = Path(args.output_dir) / ("finam_ws_" + timestamp + ".jsonl")
         summary = asyncio.run(capture_stream(jwt, symbols, args.seconds, destination))
         print(json.dumps(summary, ensure_ascii=False))
-        return 0 if summary["market_messages"] > 0 else 2
+        return 0 if summary["status"] == "DATA_RECORDED" else 2
     except ControlledFailure as exc:
         print(json.dumps({"status": str(exc), "orders": 0, "realized_pnl": 0}, ensure_ascii=False))
         return 3
