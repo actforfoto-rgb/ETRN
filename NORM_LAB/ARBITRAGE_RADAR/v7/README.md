@@ -29,8 +29,17 @@ WebSocket frames or an authenticated secure server runtime**. All examples and
 replay fixtures are synthetic; the private strategy and client data are
 excluded from this public repository.
 
-Current remote baseline: 32/32 tests passed in
-[GitHub Actions run 38805413157](https://github.com/actforfoto-rgb/ETRN/actions/runs/38805413157).
+Current remote baseline: 49/49 deterministic offline tests passed in
+[GitHub Actions run 38861921926](https://github.com/actforfoto-rgb/ETRN/actions/runs/38861921926).
+
+
+### Offline triangle discrepancy gate — no VPS or trading credentials needed
+
+`triangle_gate.py` checks **both algebraic directions** of an A–B + B–C = A–C native-calendar-spread triangle. It evaluates simultaneous BID/ASK and 3-order top-of-book depth with exact Decimal arithmetic, side-specific account rights, separately confirmed instrument identities and orientations, identical RUB price multipliers/lot rules, and three separate one-way broker + exchange + slippage + failed-hedge cost allowances. It refuses to infer missing tariffs or invent a third contract.
+
+Any positive result is labeled **MODEL_ONLY_ATOMIC_EXECUTION_UNPROVEN**, not booked PnL, and depends on independently verified additivity/orientation. The six broker observations on 15 October contain an adjacent W4V6–W4X6 and W4X6–W4Z6 pair but **do not** contain the required direct W4V6–W4Z6 quote; therefore this evidence does not yield a confirmed triangle candidate. This is a structural research gap, not an instruction to trade or to assume the missing contract exists.
+
+Offline entry point: import `scan_triangles` and supply quotes with explicit verified metadata and the broker's actual per-order cost fields. No external traffic, secret, balance or orders are needed for deterministic tests. The GitHub repository is PUBLIC; private account market tape and any proprietary strategy parameters must remain outside it.
 
 ### Fast development loop
 
@@ -43,7 +52,7 @@ python -m unittest discover -s tests -v
 
 ### Bounded live observation (only after secure deployment)
 
-Requirements: Python 3.12+, `websockets>=14,<17`, and a **NEW** Finam read-only secret stored exclusively as a protected environment variable on a trusted runtime. Never place API secrets in code, GitHub commits, GitHub issues, workflow YAML, screenshots or chat messages. Do not reuse any key previously posted in chat.
+Requirements: Python 3.12+, `websockets>=14,<17`, and an existing Finam read-only secret stored exclusively as a protected environment variable on a trusted runtime. Never place API secrets in code, GitHub commits, GitHub issues, workflow YAML, screenshots or chat messages. The recorder never embeds or prints the read-only secret.
 
 ```sh
 python -m pip install "websockets>=14,<17"
