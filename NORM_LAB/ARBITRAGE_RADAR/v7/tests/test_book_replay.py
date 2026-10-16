@@ -115,7 +115,7 @@ class DeltaTests(unittest.TestCase):
     def test_remove_level_makes_one_sided(self):
         self.boot()
         s = self.replay.apply_delta(SYM, {
-            "rows": [{"price": {"value": "0.196"}, "action": "ACTION_REMOVE"}]
+            "rows": [{"price": {"value": "0.196"}, "buy_size": {"value":"0"}, "action": "ACTION_REMOVE"}]
         }, NOW, 1792080000)
         self.assertEqual(s["status"], "ONE_SIDED")
 

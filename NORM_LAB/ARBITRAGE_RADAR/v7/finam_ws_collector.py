@@ -9,11 +9,13 @@ import argparse
 import asyncio
 from datetime import datetime, timezone
 import hashlib
+from decimal import Decimal, InvalidOperation
 import json
 import os
 from pathlib import Path
 import re
 import sys
+import ssl
 from time import monotonic
 from typing import Any, Callable
 import urllib.error
@@ -29,9 +31,14 @@ DEFAULT_SYMBOLS = (
     "UCZ6UCH7@RTSX", "W4V6W4X6@RTSX", "W4X6W4Z6@RTSX",
 )
 MAX_SUBSCRIPTIONS = 6
+# Relevant market PRINTS to model maker fills; not account trades.
+DEFAULT_TRADE_SYMBOLS = ("W4V6W4X6@RTSX", "W4X6W4Z6@RTSX")
 MAX_SECONDS = 300
-MAX_EVIDENCE_RECORDS = 10000
-MAX_EVIDENCE_BYTES = 20_000_000
+MAX_FILE_BYTES = 12 * 1024 * 1024
+MAX_DATA_MESSAGES = 10000
+# Legacy test injection points; enforce these too as stricter data caps.
+MAX_EVIDENCE_BYTES = MAX_FILE_BYTES
+MAX_EVIDENCE_RECORDS = MAX_DATA_MESSAGES
 SCHEMA_VERSION = "NORM_FINAM_WS_EVIDENCE_V7_1"
 
 
@@ -61,7 +68,13 @@ def broker_json(path: str, payload: dict[str, Any], timeout: int = 15) -> dict[s
             result = json.loads(response.read(1_000_000))
     except urllib.error.HTTPError as exc:
         raise ControlledFailure(f"FINAM_AUTH_HTTP_{exc.code}") from None
-    except (urllib.error.URLError, TimeoutError, OSError):
+    except urllib.error.URLError as exc:
+        if isinstance(exc.reason, ssl.SSLCertVerificationError):
+            raise ControlledFailure("FINAM_TLS_CERTIFICATE_UNTRUSTED") from None
+        raise ControlledFailure("FINAM_AUTH_NETWORK_FAILURE") from None
+    except ssl.SSLCertVerificationError:
+        raise ControlledFailure("FINAM_TLS_CERTIFICATE_UNTRUSTED") from None
+    except (TimeoutError, OSError):
         raise ControlledFailure("FINAM_AUTH_NETWORK_FAILURE") from None
     except (json.JSONDecodeError, UnicodeDecodeError):
         raise ControlledFailure("FINAM_AUTH_INVALID_JSON") from None
@@ -132,24 +145,24 @@ def scrub_market_payload(payload: Any) -> dict[str, Any]:
     clean: list[dict[str, Any]] = []
     for book in books:
         if not isinstance(book, dict):
-            continue
+            return {"unrecognized": True}
         sym = book.get("symbol")
         if not isinstance(sym, str) or not FINAM_SYMBOL_PATTERN.fullmatch(sym):
-            continue
+            return {"unrecognized": True}
         rows = book.get("rows")
-        if not isinstance(rows, list) or len(rows) > 200:
-            continue
+        if not isinstance(rows, list) or not rows or len(rows) > 200:
+            return {"unrecognized": True}
         normalized_rows: list[dict[str, Any]] = []
         for row in rows:
             if not isinstance(row, dict):
-                continue
+                return {"unrecognized": True}
             price = _number_string(row.get("price"))
             if price is None:
-                continue
+                return {"unrecognized": True}
             # Refuse conflicting duplicate protobuf and ProtoJSON alias values.
             if (("buySize" in row and "buy_size" in row and row["buySize"] != row["buy_size"]) or
                     ("sellSize" in row and "sell_size" in row and row["sellSize"] != row["sell_size"])):
-                continue
+                return {"unrecognized": True}
             buy_value = row["buySize"] if "buySize" in row else row.get("buy_size")
             sell_value = row["sellSize"] if "sellSize" in row else row.get("sell_size")
             buy = _number_string(buy_value)
@@ -158,9 +171,9 @@ def scrub_market_payload(payload: Any) -> dict[str, Any]:
             if action is not None and action not in (
                 "ACTION_ADD", "ACTION_UPDATE", "ACTION_REMOVE", "ACTION_UNSPECIFIED"
             ):
-                continue
+                return {"unrecognized": True}
             if buy is None and sell is None and action != "ACTION_REMOVE":
-                continue
+                return {"unrecognized": True}
             rr: dict[str, Any] = {"price": price}
             if buy is not None:
                 rr["buy_size"] = buy
@@ -173,18 +186,65 @@ def scrub_market_payload(payload: Any) -> dict[str, Any]:
                 rr["timestamp"] = timestamp
             normalized_rows.append(rr)
         if not normalized_rows:
-            continue
+            return {"unrecognized": True}
         result_book: dict[str, Any] = {"symbol": sym, "rows": normalized_rows,
                                         "row_count": len(normalized_rows)}
         if "isDataSnapshot" in book and "is_data_snapshot" in book and (book["isDataSnapshot"] != book["is_data_snapshot"]):
-            continue
+            return {"unrecognized": True}
         flag = book["isDataSnapshot"] if "isDataSnapshot" in book else book.get("is_data_snapshot")
         if isinstance(flag, bool):
             result_book["is_data_snapshot"] = flag
         clean.append(result_book)
     return {"order_book": clean} if clean else {"unrecognized": True}
 
-def sanitize_envelope(message: dict[str, Any], subscribed: tuple[str, ...]) -> dict[str, Any] | None:
+
+def scrub_market_trades(payload: Any, allowed: tuple[str, ...]) -> dict[str, Any]:
+    """Never mistake public instrument trades for private account TRADES.
+
+    Finam SubscribeLatestTradesResponse: symbol, repeated trades. ProtoJSON
+    may camel-case tradeId and decimal values. Preserve only market prices,
+    positive sizes and timestamps, with SHA256-shortened public trade id.
+    """
+    if isinstance(payload, str):
+        if len(payload)>200_000:
+            return {'unrecognized':True}
+        try:
+            payload=json.loads(payload)
+        except (ValueError,TypeError):
+            return {'unrecognized':True}
+    if not isinstance(payload,dict):
+        return {'unrecognized':True}
+    sym=payload.get('symbol')
+    trades=payload.get('trades')
+    if not isinstance(sym,str) or sym not in allowed or not isinstance(trades,list) or len(trades)>200:
+        return {'unrecognized':True}
+    items=[]
+    for item in trades:
+        if not isinstance(item,dict):
+            continue
+        price=_number_string(item.get('price'))
+        size=_number_string(item.get('size'))
+        stamp=item.get('timestamp')
+        if price is None or size is None or not isinstance(stamp,str) or not TIME_PATTERN.fullmatch(stamp):
+            continue
+        try:
+            if Decimal(size)<=0:
+                continue
+        except (InvalidOperation,ValueError):
+            continue
+        value={'price':price,'size':size,'timestamp':stamp}
+        side=item.get('side')
+        if side in ('SIDE_BUY','SIDE_SELL','BUY','SELL'):
+            value['side']=side
+        tid=item.get('tradeId',item.get('trade_id'))
+        if isinstance(tid,str) and 1<=len(tid)<=100:
+            value['public_trade_id_hash']=hashlib.sha256(tid.encode('utf-8')).hexdigest()[:24]
+        items.append(value)
+    return {'symbol':sym,'trades':items} if items else {'unrecognized':True}
+
+
+def sanitize_envelope(message: dict[str, Any], subscribed: tuple[str, ...],
+                      trade_symbols: tuple[str,...] = ()) -> dict[str, Any] | None:
     """Reject account/order streams and remove unknown fields, tokens and free-text errors."""
     typ = message.get("type")
     if typ == "EVENT":
@@ -197,23 +257,29 @@ def sanitize_envelope(message: dict[str, Any], subscribed: tuple[str, ...]) -> d
         err = message.get("error_info")
         code = err.get("code") if isinstance(err, dict) else None
         return {"kind": "ERROR", "error_code": code if isinstance(code, int) else None}
-    if typ != "DATA" or message.get("subscription_type") != "ORDER_BOOK":
+    if typ != 'DATA':
         return None
-    payload = scrub_market_payload(message.get("payload"))
+    if message.get('subscription_type')=='INSTRUMENT_TRADES':
+        if not trade_symbols:
+            return None
+        market=scrub_market_trades(message.get('payload'),trade_symbols)
+        if market.get('unrecognized'):
+            return None
+        return {'kind':'TRADE_PRINTS','subscription_type':'INSTRUMENT_TRADES',
+            'provider_timestamp':message.get('timestamp') if type(message.get('timestamp')) is int and message.get('timestamp')>=0 else None,
+            'payload':market}
+    if message.get('subscription_type') != 'ORDER_BOOK':
+        return None
+    payload = scrub_market_payload(message.get('payload'))
     if payload.get("unrecognized") or not payload.get("order_book"):
         return None
     allowed = set(subscribed)
     for book in payload.get("order_book", []):
         if book["symbol"] not in allowed:
             return None
-    provider_time = message.get("timestamp")
-    # The official WS envelope defines an integer unix timestamp.
-    # bool and NaN/Infinity are not valid timestamps and must not become evidence.
-    if type(provider_time) is not int or not 0 <= provider_time < 2**53:
-        provider_time = None
     return {
         "kind": "DATA", "subscription_type": "ORDER_BOOK",
-        "provider_timestamp": provider_time,
+        "provider_timestamp": message.get("timestamp") if type(message.get("timestamp")) is int and message.get("timestamp") >= 0 else None,
         "payload": payload,
     }
 
@@ -221,98 +287,160 @@ def sanitize_envelope(message: dict[str, Any], subscribed: tuple[str, ...]) -> d
 async def capture_stream(
     jwt: str, symbols: tuple[str, ...], seconds: int, destination: Path,
     connector: Callable[..., Any] | None = None,
+    trade_symbols: tuple[str,...] = (),
 ) -> dict[str, Any]:
-    """Short bounded WebSocket session, authenticated only after read-only gate."""
-    if not isinstance(seconds, int) or not (1 <= seconds <= MAX_SECONDS):
-        raise ControlledFailure("DURATION_OUT_OF_BOUNDS")
-    symbols = validate_symbols(symbols)
+    """Bounded Finam read-only stream, allowlisted tape, independent book QA.
+
+    The only emitted book data are sanitized market-only fields. Missing valid
+    WS snapshots, dropped rows, stale level times and no sequence numbers make
+    the book NON-EXECUTABLE by construction. An in-memory reconstructor reads
+    the same allowlisted events, not raw authenticated envelopes.
+    """
+    from book_replay import BookReplay
+    if not isinstance(seconds,int) or not 1 <= seconds <= MAX_SECONDS:
+        raise ControlledFailure('DURATION_OUT_OF_BOUNDS')
+    symbols=validate_symbols(symbols)
+    if not isinstance(trade_symbols,tuple) or len(set(trade_symbols))!=len(trade_symbols) or any(s not in symbols for s in trade_symbols):
+        raise ControlledFailure('INVALID_MARKET_TRADE_UNIVERSE')
+    if not isinstance(jwt,str) or not jwt:
+        raise ControlledFailure('ACCESS_TOKEN_MISSING')
     if connector is None:
         try:
-            from websockets.asyncio.client import connect as connector  # type: ignore[no-redef]
+            from websockets.asyncio.client import connect as connector
         except ImportError:
-            raise ControlledFailure("DEPENDENCY_WEBSOCKETS_MISSING") from None
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    # Do not permit overwriting an evidence file (creates a unique record per run).
-    fd = os.open(str(destination), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-    started = datetime.now(timezone.utc).isoformat()
-    subscribed = False
-    data_count = 0
-    error_count = 0
-    event_count = 0
-    written_records = 0
-    written_bytes = 0
-    bounded_out = False
+            raise ControlledFailure('DEPENDENCY_WEBSOCKETS_MISSING') from None
+    destination.parent.mkdir(parents=True,exist_ok=True)
+    fd=os.open(str(destination),os.O_WRONLY | os.O_CREAT | os.O_EXCL,0o600)
+    started=datetime.now(timezone.utc).isoformat()
+    sent=False
+    ndata=errors=events=records=byte_count=unknown=unsolicited=0
+    ntrades=trade_prints=0
+    truncated=False
+    snapshots=0
+    book_rows=0
+    last_data_utc=None
+    stop_reason='TIME_LIMIT'
+    digest=hashlib.sha256()
+    replay=BookReplay(symbols)
     try:
-        with os.fdopen(fd, "w", encoding="utf-8") as outfile:
-            async with connector(FINAM_WS, ping_interval=20, ping_timeout=20, max_size=2**20, open_timeout=15) as socket:
-                deadline = monotonic() + seconds
-                while monotonic() < deadline:
+        with os.fdopen(fd,'w',encoding='utf-8',buffering=1) as out:
+            async with connector(FINAM_WS,ping_interval=20,ping_timeout=20,
+                                 max_size=1024*1024,open_timeout=15) as ws:
+                deadline=monotonic()+seconds
+                while monotonic()<deadline:
                     try:
-                        raw = await asyncio.wait_for(socket.recv(), max(0.01, deadline - monotonic()))
-                    except (TimeoutError, asyncio.TimeoutError):
+                        frame=await asyncio.wait_for(ws.recv(),max(.01,deadline-monotonic()))
+                    except (TimeoutError,asyncio.TimeoutError):
                         break
+                    except Exception:
+                        errors+=1
+                        stop_reason='WS_READ_DISCONNECTED'
+                        break
+                    if not isinstance(frame,(str,bytes)) or len(frame)>1024*1024:
+                        errors+=1
+                        continue
                     try:
-                        msg = json.loads(raw)
-                    except (json.JSONDecodeError, UnicodeDecodeError, TypeError):
-                        error_count += 1
+                        msg=json.loads(frame)
+                    except (ValueError,TypeError,UnicodeError):
+                        errors+=1
                         continue
-                    if not isinstance(msg, dict):
+                    if not isinstance(msg,dict):
+                        errors+=1
                         continue
-                    entry = sanitize_envelope(msg, symbols)
+                    entry=sanitize_envelope(msg,symbols,trade_symbols)
                     if entry is None:
+                        if msg.get('type')=='DATA' and msg.get('subscription_type') in ('ORDER_BOOK','INSTRUMENT_TRADES'):
+                            unknown+=1
+                            if msg.get('subscription_type')=='ORDER_BOOK':
+                                # A missing/malformed delta makes all books untrusted.
+                                # Never silently skip it and retain fake continuity.
+                                replay.invalidate_all('UNPARSEABLE_WS_FRAME')
                         continue
-                    # A DATA envelope before a confirmed subscribe cannot prove
-                    # the subscriptions were established. Exclude it from tape.
-                    if entry["kind"] == "DATA" and not subscribed:
-                        error_count += 1
+                    if entry['kind'] in ('DATA','TRADE_PRINTS') and not sent:
+                        unsolicited+=1
+                        errors+=1  # Data arrived without a confirmed subscription.
                         continue
-                    entry["captured_utc"] = datetime.now(timezone.utc).isoformat()
-                    entry["schema"] = SCHEMA_VERSION
-                    line = json.dumps(entry, ensure_ascii=False, allow_nan=False, separators=(",", ":")) + "\n"
-                    encoded_bytes = len(line.encode("utf-8"))
-                    if (written_records >= MAX_EVIDENCE_RECORDS or
-                            written_bytes + encoded_bytes > MAX_EVIDENCE_BYTES):
-                        bounded_out = True
+                    # Read-only evidence is tightly allowlisted; never pass
+                    # raw frames, error free text, JWT or account data here.
+                    received=datetime.now(timezone.utc)
+                    entry['captured_utc']=received.isoformat()
+                    entry['schema']=SCHEMA_VERSION
+                    line=json.dumps(entry,ensure_ascii=False,allow_nan=False,separators=(',',':'))+'\n'
+                    raw_line=line.encode('utf-8')
+                    if records>=min(MAX_DATA_MESSAGES,MAX_EVIDENCE_RECORDS) or byte_count+len(raw_line)>min(MAX_FILE_BYTES,MAX_EVIDENCE_BYTES):
+                        truncated=True
+                        stop_reason='EVIDENCE_LIMIT'
                         break
-                    outfile.write(line)
-                    written_records += 1
-                    written_bytes += encoded_bytes
-                    if entry["kind"] == "EVENT":
-                        event_count += 1
-                        if entry["event"] == "HANDSHAKE_SUCCESS" and not subscribed:
+                    out.write(line)
+                    digest.update(raw_line)
+                    records+=1
+                    byte_count+=len(raw_line)
+                    if entry['kind']=='EVENT':
+                        events+=1
+                        if entry['event']=='HANDSHAKE_SUCCESS' and not sent:
                             for symbol in symbols:
-                                await socket.send(json.dumps({
-                                    "action": "SUBSCRIBE", "type": "ORDER_BOOK",
-                                    "data": {"symbol": symbol}, "token": jwt,
-                                }, separators=(",", ":")))
-                            subscribed = True
-                    elif entry["kind"] == "DATA":
-                        data_count += 1
-                    elif entry["kind"] == "ERROR":
-                        error_count += 1
+                                await ws.send(json.dumps({'action':'SUBSCRIBE','type':'ORDER_BOOK',
+                                    'data':{'symbol':symbol},'token':jwt},separators=(',',':')))
+                            for symbol in trade_symbols:
+                                await ws.send(json.dumps({'action':'SUBSCRIBE','type':'INSTRUMENT_TRADES',
+                                     'data':{'symbol':symbol},'token':jwt},separators=(',',':')))
+                            sent=True
+                        elif entry['event']=='CONNECTION_CLOSED':
+                            stop_reason='SERVER_CONNECTION_CLOSED'
+                            replay.invalidate_all(stop_reason)
+                            break
+                    elif entry['kind']=='ERROR':
+                        errors+=1
+                        stop_reason='BROKER_EVENT_ERROR'
+                        replay.invalidate_all(stop_reason)
+                    elif entry['kind']=='TRADE_PRINTS':
+                        ntrades+=1
+                        trade_prints+=len(entry['payload']['trades'])
+                    elif entry['kind']=='DATA':
+                        ndata+=1
+                        last_data_utc=received.isoformat()
+                        books=entry['payload'].get('order_book',[])
+                        for b in books:
+                            book_rows+=len(b.get('rows',[]))
+                            if b.get('is_data_snapshot') is True:
+                                snapshots+=1
+                        replay.on_sanitized_event(entry,received)
+                    if errors>=5:
+                        stop_reason='ERROR_BUDGET_REACHED'
+                        break
     except Exception as exc:
-        if isinstance(exc, ControlledFailure):
+        if isinstance(exc,ControlledFailure):
             raise
-        # Never log repr(exception): external libraries may include URL headers/tokens.
-        raise ControlledFailure("FINAM_WEBSOCKET_CONNECTION_FAILED") from None
-    sha256 = hashlib.sha256(destination.read_bytes()).hexdigest()
+        raise ControlledFailure('FINAM_WEBSOCKET_CONNECTION_FAILED') from None
+    # Output numbers are telemetry, not proof of executable prices/profit.
+    views=[replay.view(s) for s in symbols]
+    valid_top=sum(v['bid'] is not None and v['ask'] is not None for v in views)
+    last_status={v['symbol']:v['status'] for v in views}
+    status=('BOUNDED_OUT' if truncated else
+            'DATA_RECORDED_WITH_ERRORS_UNVERIFIED' if ndata and errors else
+            'STREAM_ERRORS_UNVERIFIED' if errors else
+            'DATA_RECORDED' if ndata else
+            'TRADE_PRINTS_ONLY_BOOK_NOT_VERIFIED' if ntrades else
+            'SUBSCRIPTIONS_SENT_NO_MARKET_DATA' if sent else 'NO_HANDSHAKE')
     return {
-        "schema": SCHEMA_VERSION, "started_utc": started,
-        "ended_utc": datetime.now(timezone.utc).isoformat(),
-        "subscribed": subscribed, "symbols_count": len(symbols),
-        "market_messages": data_count, "events": event_count, "errors": error_count,
-        "file": str(destination), "sha256": sha256,
-        "records": written_records, "bytes": written_bytes,
-        "limits_reached": bounded_out,
-        "orders": 0, "realized_pnl": 0,
-        "status": (
-            "BOUNDED_OUT" if bounded_out else
-            "DATA_RECORDED_WITH_ERRORS_UNVERIFIED" if data_count and error_count else
-            "DATA_RECORDED" if data_count else
-            ("NO_MARKET_MESSAGES" if subscribed else "NO_HANDSHAKE")
-        ),
+        'schema':SCHEMA_VERSION,'started_utc':started,
+        'ended_utc':datetime.now(timezone.utc).isoformat(),
+        'subscribed':sent,'subscriptions_sent':len(symbols)+len(trade_symbols) if sent else 0,
+        'symbols_count':len(symbols),'market_messages':ndata,
+        'market_trade_messages':ntrades,'public_market_trades':trade_prints,
+        'book_rows_received':book_rows,'ws_snapshots_seen':snapshots,
+        'orderbook_tops_reconstructed':valid_top,
+        'book_quality_by_symbol':last_status,
+        'missing_or_unrecognized_data_frames':unknown,
+        'unsolicited_data_frames':unsolicited,
+        'last_data_utc':last_data_utc,
+        'events':events,'errors':errors,'file':str(destination),
+        'sha256':digest.hexdigest(),'records':records,'bytes':byte_count,
+        'limits_reached':truncated,'stop_reason':stop_reason,
+        'orders':0,'realized_pnl':0,
+        'continuity_verified':False,'executable':False,'profit_proven':False,
+        'status':status,
     }
-
 
 def run_cli(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="NORM ARB V7 short read-only Finam WebSocket capture")
