@@ -38,7 +38,7 @@ MAX_NESTED_STRING = 200_000
 SYM = re.compile(r"^[A-Z0-9_.-]{1,40}@[A-Z0-9]{4}$")
 NUM = re.compile(r"^[+-]?(?:[0-9]{1,18})(?:\.[0-9]{1,12})?(?:[eE][+-]?[0-9]{1,3})?$")
 ALLOWED_ACTIONS = {"ACTION_UNSPECIFIED", "ACTION_REMOVE", "ACTION_ADD", "ACTION_UPDATE"}
-SAFE_DATA_NAMES = ("order_book", "orderbook", "quote", "quotes", "rows")
+SAFE_DATA_NAMES = ("orderBook", "order_book", "orderbook", "quote", "quotes", "rows")
 
 
 def utc() -> str:
@@ -126,7 +126,7 @@ def find_payload(frame: dict, count: Counter) -> Any:
             return value
     else:
         count["data_field_missing"] += 1
-    for name in ("order_book", "orderbook", "quote", "quotes"):
+    for name in ("orderBook", "order_book", "orderbook", "quote", "quotes"):
         if name in frame:
             val = normalize_blob(frame.get(name), "top_" + name, count)
             if val is not None:
@@ -138,7 +138,7 @@ def find_payload(frame: dict, count: Counter) -> Any:
 def select_market(blob: Any, kind: str, count: Counter) -> list[dict]:
     """Extract only venue market arrays; never account/order streams."""
     if kind == "ORDER_BOOK":
-        names = ("order_book", "orderbook")
+        names = ("orderBook", "order_book", "orderbook")
     elif kind == "QUOTES":
         names = ("quote", "quotes")
     else:
@@ -170,6 +170,25 @@ def select_market(blob: Any, kind: str, count: Counter) -> list[dict]:
     return []
 
 
+def _proto_field(row: dict, snake: str, camel: str, count: Counter) -> tuple[Any, bool]:
+    """ProtoJSON default uses lowerCamelCase; accept original proto names too.
+
+    Ambiguous duplicate names with different values must not silently select a
+    side or size. Real values are NEVER written to counters or error messages.
+    """
+    old = snake in row
+    new = camel in row
+    if old and new and row[snake] != row[camel]:
+        count["conflicting_protojson_alias"] += 1
+        return None, False
+    if new:
+        count["protojson_camel_field_" + camel] += 1
+        return row[camel], True
+    if old:
+        return row[snake], True
+    return None, False
+
+
 def sanitize_orderbooks(entries: list[dict], count: Counter) -> list[dict]:
     out = []
     for item in entries:
@@ -195,8 +214,16 @@ def sanitize_orderbooks(entries: list[dict], count: Counter) -> list[dict]:
             if action is not None and action not in ALLOWED_ACTIONS:
                 count["book_invalid_action"] += 1
                 continue
-            buy = as_decimal(row.get("buy_size"), qty=True) if "buy_size" in row else None
-            sell = as_decimal(row.get("sell_size"), qty=True) if "sell_size" in row else None
+            braw, bfound = _proto_field(row, "buy_size", "buySize", count)
+            sraw, sfound = _proto_field(row, "sell_size", "sellSize", count)
+            buy = as_decimal(braw, qty=True) if bfound else None
+            sell = as_decimal(sraw, qty=True) if sfound else None
+            # Proto defines oneof side. For a live WS delta, a simultaneous
+            # buySize+sellSize can only be accepted after separate provenance
+            # verification, not assumed a valid side-specific update.
+            if bfound and sfound:
+                count["book_row_two_sides_ambiguous"] += 1
+                continue
             # Finam order book row protobuf uses ONEOF buy/sell. Omitted other
             # side cannot be treated as an explicit zero.
             if action != "ACTION_REMOVE" and buy is None and sell is None:
@@ -217,8 +244,8 @@ def sanitize_orderbooks(entries: list[dict], count: Counter) -> list[dict]:
             count["book_rows_sanitized"] += 1
         if safe_rows:
             ev = {"symbol": sym, "rows": safe_rows}
-            snapshot = item.get("is_data_snapshot")
-            if isinstance(snapshot, bool):
+            snapshot, snapfound = _proto_field(item, "is_data_snapshot", "isDataSnapshot", count)
+            if snapfound and isinstance(snapshot, bool):
                 ev["is_data_snapshot"] = snapshot
             out.append(ev)
             count["book_messages_sanitized"] += 1
