@@ -29,8 +29,8 @@ WebSocket frames or an authenticated secure server runtime**. All examples and
 replay fixtures are synthetic; the private strategy and client data are
 excluded from this public repository.
 
-Current remote baseline: 49/49 deterministic offline tests passed in
-[GitHub Actions run 38861921926](https://github.com/actforfoto-rgb/ETRN/actions/runs/38861921926).
+Current remote baseline: **78/78** deterministic offline tests passed in
+[GitHub Actions run 38863007944](https://github.com/actforfoto-rgb/ETRN/actions/runs/38863007944).
 
 
 ### Offline triangle discrepancy gate — no VPS or trading credentials needed
@@ -40,6 +40,25 @@ Current remote baseline: 49/49 deterministic offline tests passed in
 Any positive result is labeled **MODEL_ONLY_ATOMIC_EXECUTION_UNPROVEN**, not booked PnL, and depends on independently verified additivity/orientation. The six broker observations on 15 October contain an adjacent W4V6–W4X6 and W4X6–W4Z6 pair but **do not** contain the required direct W4V6–W4Z6 quote; therefore this evidence does not yield a confirmed triangle candidate. This is a structural research gap, not an instruction to trade or to assume the missing contract exists.
 
 Offline entry point: import `scan_triangles` and supply quotes with explicit verified metadata and the broker's actual per-order cost fields. No external traffic, secret, balance or orders are needed for deterministic tests. The GitHub repository is PUBLIC; private account market tape and any proprietary strategy parameters must remain outside it.
+
+
+### Native calendar spread versus both outright futures — closer to venue mechanics
+
+The Moscow Exchange officially describes **synthetic matching**: a native
+calendar spread may match liquidity from the separate books of its two
+constituent futures. Source: https://www.moex.com/ru/spreads
+
+`spread_leg_parity.py` evaluates both illustrative parity directions:
+BUY native calendar vs SELL synthetic (SELL far future / BUY near future),
+and SELL native vs BUY synthetic (BUY far / SELL near). It checks three
+simultaneous bid/ask books, same monetary point value, verified constituent
+identities and sign, single-contract lot ratios, permissions, depth and
+three complete sets of declared one-way fees/slippage/failure reserves.
+**It is not a proven arbitrage**, and synthetic matching may already remove
+precisely these discrepancies inside the exchange. All modeled positives
+are labeled non-atomic/non-executable pending live confirmation. It contains
+no brokerage execution or real account information; 16 offline tests cover
+both directional formulas and fail-closed guards.
 
 ### Fast development loop
 
