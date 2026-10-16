@@ -130,12 +130,15 @@ class DeltaTests(unittest.TestCase):
         }, NOW, 1792080001)
         self.assertEqual(later["updates"], 0)
 
-    def test_incomplete_quantity_cannot_zero_out_other_side(self):
+    def test_oneof_buy_update_preserves_untouched_ask(self):
         self.boot()
         bad = row("0.196", "2", 0, action="ACTION_UPDATE")
         bad.pop("sell_size")
         s = self.replay.apply_delta(SYM, {"rows": [bad]}, NOW, 1792080000)
-        self.assertEqual(s["status"], "INVALIDATED_REQUIRES_REST_BOOTSTRAP")
+        self.assertEqual(s["status"], "TWO_SIDED_NO_SEQUENCE_OR_FILL_PROOF")
+        self.assertEqual(s["bid_qty"], "2")
+        self.assertEqual(s["ask"], "0.198")
+        self.assertEqual(s["ask_qty"], "82")
 
     def test_out_of_order_envelope_invalidates(self):
         self.boot()
