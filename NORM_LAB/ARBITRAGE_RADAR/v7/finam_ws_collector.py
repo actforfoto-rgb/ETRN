@@ -104,45 +104,85 @@ def _number_string(value: Any) -> str | None:
 
 
 def scrub_market_payload(payload: Any) -> dict[str, Any]:
-    """Allowlist only market row fields; never serialize arbitrary broker envelopes."""
+    """Parse Finam ProtoJSON and keep only explicit market-side fields.
+
+    WebSocket payload is a JSON STRING containing proto-json, and proto's
+    order_book/buy_size/sell_size/is_data_snapshot are encoded by default as
+    orderBook/buySize/sellSize/isDataSnapshot. Ignore account fields and JWTs.
+    """
+    if isinstance(payload, str):
+        if len(payload) > 200_000:
+            return {"unrecognized": True}
+        try:
+            payload = json.loads(payload)
+        except (ValueError, TypeError):
+            return {"unrecognized": True}
     if not isinstance(payload, dict):
         return {"unrecognized": True}
-    books = payload.get("order_book")
-    if books is None:
-        books = payload.get("orderbook")
+
+    aliases = ("orderBook", "order_book", "orderbook")
+    keys = [key for key in aliases if key in payload]
+    if len(keys) != 1:
+        return {"unrecognized": True}
+    books = payload[keys[0]]
     if isinstance(books, dict):
         books = [books]
-    if not isinstance(books, list):
-        return {"unrecognized": True, "payload_fields": sorted(k for k in payload if k in ("order_book", "orderbook"))}
-    clean = []
-    for book in books[:MAX_SUBSCRIPTIONS]:
+    if not isinstance(books, list) or not books or len(books) > MAX_SUBSCRIPTIONS:
+        return {"unrecognized": True}
+    clean: list[dict[str, Any]] = []
+    for book in books:
         if not isinstance(book, dict):
             continue
         sym = book.get("symbol")
         if not isinstance(sym, str) or not FINAM_SYMBOL_PATTERN.fullmatch(sym):
             continue
         rows = book.get("rows")
-        clean_rows = []
-        if isinstance(rows, list):
-            for row in rows[:100]:
-                if not isinstance(row, dict):
-                    continue
-                clean_row = {
-                    key: _number_string(row.get(key))
-                    for key in ("price", "buy_size", "sell_size")
-                }
-                action = row.get("action")
-                if isinstance(action, str) and action in (
-                    "ACTION_ADD", "ACTION_UPDATE", "ACTION_REMOVE", "ACTION_UNSPECIFIED"
-                ):
-                    clean_row["action"] = action
-                timestamp = row.get("timestamp")
-                if isinstance(timestamp, str) and TIME_PATTERN.fullmatch(timestamp):
-                    clean_row["timestamp"] = timestamp
-                clean_rows.append(clean_row)
-        clean.append({"symbol": sym, "rows": clean_rows, "row_count": len(clean_rows)})
-    return {"order_book": clean}
-
+        if not isinstance(rows, list) or len(rows) > 200:
+            continue
+        normalized_rows: list[dict[str, Any]] = []
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            price = _number_string(row.get("price"))
+            if price is None:
+                continue
+            # Refuse conflicting duplicate protobuf and ProtoJSON alias values.
+            if (("buySize" in row and "buy_size" in row and row["buySize"] != row["buy_size"]) or
+                    ("sellSize" in row and "sell_size" in row and row["sellSize"] != row["sell_size"])):
+                continue
+            buy_value = row["buySize"] if "buySize" in row else row.get("buy_size")
+            sell_value = row["sellSize"] if "sellSize" in row else row.get("sell_size")
+            buy = _number_string(buy_value)
+            sell = _number_string(sell_value)
+            action = row.get("action")
+            if action is not None and action not in (
+                "ACTION_ADD", "ACTION_UPDATE", "ACTION_REMOVE", "ACTION_UNSPECIFIED"
+            ):
+                continue
+            if buy is None and sell is None and action != "ACTION_REMOVE":
+                continue
+            rr: dict[str, Any] = {"price": price}
+            if buy is not None:
+                rr["buy_size"] = buy
+            if sell is not None:
+                rr["sell_size"] = sell
+            if action is not None:
+                rr["action"] = action
+            timestamp = row.get("timestamp")
+            if isinstance(timestamp, str) and TIME_PATTERN.fullmatch(timestamp):
+                rr["timestamp"] = timestamp
+            normalized_rows.append(rr)
+        if not normalized_rows:
+            continue
+        result_book: dict[str, Any] = {"symbol": sym, "rows": normalized_rows,
+                                        "row_count": len(normalized_rows)}
+        if "isDataSnapshot" in book and "is_data_snapshot" in book and (book["isDataSnapshot"] != book["is_data_snapshot"]):
+            continue
+        flag = book["isDataSnapshot"] if "isDataSnapshot" in book else book.get("is_data_snapshot")
+        if isinstance(flag, bool):
+            result_book["is_data_snapshot"] = flag
+        clean.append(result_book)
+    return {"order_book": clean} if clean else {"unrecognized": True}
 
 def sanitize_envelope(message: dict[str, Any], subscribed: tuple[str, ...]) -> dict[str, Any] | None:
     """Reject account/order streams and remove unknown fields, tokens and free-text errors."""
