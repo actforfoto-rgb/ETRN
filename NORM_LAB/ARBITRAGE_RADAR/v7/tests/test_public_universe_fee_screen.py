@@ -40,11 +40,11 @@ class MarketPrescreen(unittest.TestCase):
   a,b=[analyze_pair(s,{near['short_name']:near,far['short_name']:far},S,
      spread_captured_utc=t,futures_captured_utc='2026-10-13T13:17:08Z')
      for s,t in zip(books,['2026-10-13T13:11:28Z','2026-10-13T13:22:12Z'])]
-  self.assertEqual(a['ideal_two_maker_upper_rub'],'25.087000')
-  self.assertEqual(b['ideal_two_maker_upper_rub'],'25.087000')
+  self.assertEqual(Decimal(a['ideal_two_maker_upper_rub']),Decimal('25.0870'))
+  self.assertEqual(Decimal(b['ideal_two_maker_upper_rub']),Decimal('25.0870'))
   self.assertEqual(books[1]['trades']-books[0]['trades'],0)
-  self.assertEqual(a['ideal_one_taker_upper_rub'],'-8.113000')
-  self.assertEqual(a['ideal_two_taker_upper_rub'],'-41.313000')
+  self.assertEqual(Decimal(a['ideal_one_taker_upper_rub']),Decimal('-8.1130'))
+  self.assertEqual(Decimal(a['ideal_two_taker_upper_rub']),Decimal('-41.3130'))
 
  def test_expected_conditional_wheat_numbers(self):
   x=analyze_pair(W, {N['short_name']:N,F['short_name']:F}, S,
