@@ -70,7 +70,7 @@ def normal_cycle():
     return [
         book_event(0),
         print_event(1, price="99", size="2", side="SIDE_SELL", tid="a"*24),
-        book_event(2),
+        book_event(2, snapshot=False, delta=True),
         print_event(3, price="111", size="2", side="SIDE_BUY", tid="b"*24),
     ]
 
@@ -109,7 +109,7 @@ class ReplayCausality(unittest.TestCase):
 
     def test_two_snapshots_nlmk_price_move_is_not_trade(self):
         a = book_event(0, bid="207", ask="230")
-        b = book_event(11, bid="228", ask="231")
+        b = book_event(11, bid="228", ask="231", snapshot=False, delta=True)
         r = run([a, b], min_width_points=Decimal("1"))
         self.assertEqual(r["conditionally_closed_two_print_cycles"], 0)
         self.assertGreaterEqual(r["hypothetical_orders_cancelled"], 1)
@@ -171,7 +171,7 @@ class ReplayCausality(unittest.TestCase):
 
     def test_partial_exit_is_open_risk(self):
         r = run([book_event(0), print_event(1),
-                 book_event(2),
+                 book_event(2, snapshot=False, delta=True),
                  print_event(3, price="111", size="1.5", side="SIDE_BUY",
                              tid="b"*24)])
         self.assertEqual(r["open_conditional_lots"], "0.5")
@@ -180,7 +180,7 @@ class ReplayCausality(unittest.TestCase):
 
     def test_identical_print_id_cannot_fill_both_entry_and_exit(self):
         r = run([book_event(0), print_event(1),
-                 book_event(2), print_event(3, price="111", side="SIDE_BUY",
+                 book_event(2, snapshot=False, delta=True), print_event(3, price="111", side="SIDE_BUY",
                              tid="a"*24)])
         self.assertEqual(r["conditionally_closed_two_print_cycles"], 0)
         self.assertIn("CONFLICTING_EXCHANGE_TRADE_ID",
@@ -210,11 +210,13 @@ class ReplayCausality(unittest.TestCase):
 
     def test_max_holding_force_exit_uses_bbo_only_not_second_trade(self):
         r = run([book_event(0), print_event(1),
-                 book_event(5)], max_position_hold_ms=2000)
+                 book_event(5, snapshot=False, delta=True)], max_position_hold_ms=2000)
         self.assertEqual(r["conditionally_closed_two_print_cycles"], 0)
         self.assertEqual(len(r["forced_exit_bbo_only_scenarios"]), 1)
         self.assertEqual(r["forced_exit_bbo_only_scenarios"][0]["classification"],
                          "FORCED_TAKER_BBO_ONLY_NO_PRINT")
+        self.assertTrue(r["unresolved_exposure"])
+        self.assertEqual(r["open_conditional_lots"], "1")
         self.assertFalse(r["profitability_proven"])
 
     def test_missing_costs_yields_no_net_even_if_two_proxy_fills(self):
@@ -242,7 +244,7 @@ class ReplayCausality(unittest.TestCase):
     def test_negative_spread_price_is_valid_arithmetic(self):
         r = run([book_event(0, bid="-40", ask="-20"),
                  print_event(1, price="-41"),
-                 book_event(2, bid="-40", ask="-20"),
+                 book_event(2, bid="-40", ask="-20", snapshot=False, delta=True),
                  print_event(3, price="-19", side="SIDE_BUY", tid="b"*24)],
                 min_width_points=Decimal("5"))
         self.assertEqual(r["conditionally_closed_two_print_cycles"], 1)
@@ -262,6 +264,61 @@ class ReplayCausality(unittest.TestCase):
                               "missing_or_unrecognized_data_frames":0})
         self.assertIn("SHA256_NOT_EXTERNALLY_ATTESTED",
                       r["invalid_or_unverified_evidence_reasons"])
+
+
+    def test_forced_bbo_quote_does_not_release_inventory_or_enable_reentry(self):
+        r = run([book_event(0), print_event(1),
+                 book_event(5, snapshot=False, delta=True),
+                 book_event(6, snapshot=False, delta=True)],
+                max_position_hold_ms=2000)
+        self.assertEqual(len(r["forced_exit_bbo_only_scenarios"]),1)
+        self.assertEqual(r["conditionally_closed_two_print_cycles"],0)
+        self.assertEqual(r["hypothetical_orders_posted"],1)
+        self.assertEqual(r["open_conditional_lots"],"1")
+        self.assertIn("FORCED_TAKER_BBO_ONLY_NO_EXECUTION_OPEN_RISK",
+                      r["invalid_or_unverified_evidence_reasons"])
+
+    def test_order_reprice_cancels_without_ack_and_does_not_create_new_order(self):
+        r = run([book_event(0),
+                 book_event(2, bid="101", ask="110", snapshot=False, delta=True),
+                 book_event(3, bid="102", ask="110", snapshot=False, delta=True)])
+        self.assertEqual(r["hypothetical_orders_posted"],1)
+        self.assertEqual(r["hypothetical_orders_cancelled"],1)
+        self.assertIn("REPRICE_ORDER_CANCEL_NOT_ACKNOWLEDGED",
+                      r["invalid_or_unverified_evidence_reasons"])
+
+    def test_second_snapshot_with_live_order_blocks_session_proof(self):
+        r = run([book_event(0), print_event(1), book_event(2)])
+        self.assertEqual(r["conditionally_closed_two_print_cycles"],0)
+        self.assertTrue(r["unresolved_exposure"])
+        self.assertIn("BOOK_RESNAPSHOT_SESSION_CONTINUITY_UNVERIFIED",
+                      r["invalid_or_unverified_evidence_reasons"])
+
+    def test_quote_degrades_while_order_resting_stop_not_reenter(self):
+        old = book_event(3, snapshot=False, delta=True)
+        for row in old["payload"]["order_book"][0]["rows"]:
+            row["timestamp"] = stamp(0)
+        r = run([book_event(0),old,book_event(4, snapshot=False, delta=True)])
+        self.assertEqual(r["hypothetical_orders_posted"],1)
+        self.assertIn("BOOK_DEGRADED_CANCEL_NOT_ACKNOWLEDGED",
+                      r["invalid_or_unverified_evidence_reasons"])
+
+    def test_timed_out_pending_order_does_not_restart_without_cancel_ack(self):
+        r = run([book_event(0),book_event(3, snapshot=False, delta=True)],
+                max_order_wait_ms=1500)
+        self.assertEqual(r["hypothetical_orders_posted"],1)
+        self.assertIn("TIMED_OUT_ORDER_CANCEL_NOT_ACKNOWLEDGED",
+                      r["invalid_or_unverified_evidence_reasons"])
+
+    def test_exit_reprice_after_entry_leaves_position_open(self):
+        r = run([book_event(0),print_event(1),
+                 book_event(2, snapshot=False, delta=True),
+                 book_event(3, bid="100",ask="112",snapshot=False,delta=True)])
+        self.assertTrue(r["unresolved_exposure"])
+        self.assertEqual(r["conditionally_closed_two_print_cycles"],0)
+        self.assertIn("REPRICE_ORDER_CANCEL_NOT_ACKNOWLEDGED",
+                      r["invalid_or_unverified_evidence_reasons"])
+
 
 
 class InputAndSafety(unittest.TestCase):

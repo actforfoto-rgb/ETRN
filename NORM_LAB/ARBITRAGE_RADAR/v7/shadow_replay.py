@@ -281,21 +281,30 @@ def replay_sanitized_events(events: Iterable[dict[str, Any]], config: ShadowConf
             if event.get("subscription_type") != "ORDER_BOOK":
                 quality.append("UNRECOGNIZED_MARKET_EVENT")
                 break
+            previous_snapshots = book.books[config.symbol].snapshots
             try:
                 vals = book.on_sanitized_event(event, at)
                 book_view = book.view(config.symbol)
             except Exception:
                 quality.append("BOOK_REPLAY_REJECTED")
                 break
+            if book.books[config.symbol].snapshots > previous_snapshots and previous_snapshots:
+                # A second snapshot may signal resubscription/reconnect. Without
+                # live order acknowledgements, do not carry a virtual queue or
+                # outstanding position across a possible stream reset.
+                quality.append("BOOK_RESNAPSHOT_SESSION_CONTINUITY_UNVERIFIED")
+                break
             if not vals:
                 continue
             accepted_book_events += 1
             latest_book_at = at
             if not usable(book_view):
-                # Do not infer fills from a stale, broken, unsnapshotted book.
+                # A locally cancelled hypothetical order has no exchange
+                # cancellation acknowledgement. Prevent shadow overtrading.
                 if pending is not None:
                     cancels += 1
-                    pending = None
+                    quality.append("BOOK_DEGRADED_CANCEL_NOT_ACKNOWLEDGED")
+                    break
                 if pos is not None:
                     quality.append("OPEN_POSITION_WITH_UNRELIABLE_BOOK")
                     break
@@ -309,10 +318,10 @@ def replay_sanitized_events(events: Iterable[dict[str, Any]], config: ShadowConf
                 if (at - pos.entered_at).total_seconds() * 1000 >= config.max_position_hold_ms:
                     if dec(book_view["bid_qty"]) >= pos.qty:
                         forced.append(close_proxy(at, latest_bid, (), "FORCED_TAKER_BBO_ONLY_NO_PRINT", full_two_print=False))
-                        pos = None
-                        pending = None
-                        state = "IDLE"
-                        continue
+                        # A top-of-book quote is NOT a broker fill. Keep the
+                        # position OPEN and stop; never free or reuse its capital.
+                        quality.append("FORCED_TAKER_BBO_ONLY_NO_EXECUTION_OPEN_RISK")
+                        break
                     quality.append("FORCED_EXIT_DEPTH_NOT_VERIFIED")
                     break
             if pending is not None:
@@ -321,16 +330,16 @@ def replay_sanitized_events(events: Iterable[dict[str, Any]], config: ShadowConf
                     if pending.model_filled > 0:
                         quality.append("PARTIAL_POSITION_PRICE_MOVED_UNRESOLVED")
                         break
-                    pending = None
                     cancels += 1
-                    state = "IDLE" if pos is None else "WAIT_EXIT_BOOK"
+                    quality.append("REPRICE_ORDER_CANCEL_NOT_ACKNOWLEDGED")
+                    break
                 elif (at - pending.at).total_seconds() * 1000 >= config.max_order_wait_ms:
                     if pending.model_filled > 0:
                         quality.append("PARTIAL_EXECUTION_TIMED_OUT_UNRESOLVED")
                         break
-                    pending = None
                     cancels += 1
-                    state = "IDLE" if pos is None else "WAIT_EXIT_BOOK"
+                    quality.append("TIMED_OUT_ORDER_CANCEL_NOT_ACKNOWLEDGED")
+                    break
             if pending is None and capital_gate != "INSUFFICIENT_CAPITAL":
                 if state == "WAIT_EXIT_BOOK" and pos is not None:
                     pending = place("SELL", at, book_view)
