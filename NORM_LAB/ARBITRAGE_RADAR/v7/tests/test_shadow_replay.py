@@ -311,9 +311,14 @@ class ReplayCausality(unittest.TestCase):
                       r["invalid_or_unverified_evidence_reasons"])
 
     def test_exit_reprice_after_entry_leaves_position_open(self):
+        moved = book_event(3, bid="100",ask="112",snapshot=False,delta=True)
+        # An L2 update at 112 does NOT delete the old 110 ask automatically.
+        # The exchange must explicitly remove the former best ask.
+        moved["payload"]["order_book"][0]["rows"].append(
+            {"price":"110","sell_size":"0",
+             "timestamp":stamp(3),"action":"ACTION_REMOVE"})
         r = run([book_event(0),print_event(1),
-                 book_event(2, snapshot=False, delta=True),
-                 book_event(3, bid="100",ask="112",snapshot=False,delta=True)])
+                 book_event(2, snapshot=False, delta=True),moved])
         self.assertTrue(r["unresolved_exposure"])
         self.assertEqual(r["conditionally_closed_two_print_cycles"],0)
         self.assertIn("REPRICE_ORDER_CANCEL_NOT_ACKNOWLEDGED",
