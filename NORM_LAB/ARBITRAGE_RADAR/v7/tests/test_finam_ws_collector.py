@@ -5,6 +5,7 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
+import finam_ws_collector as fc
 
 from finam_ws_collector import (
     ControlledFailure, authorize_readonly, capture_stream, sanitize_envelope,
