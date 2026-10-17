@@ -251,6 +251,18 @@ def scrub_market_trades(payload: Any, allowed: tuple[str, ...]) -> dict[str, Any
         except (InvalidOperation,ValueError):
             continue
         value={'price':price,'size':size,'timestamp':stamp}
+        # The OFFICIAL Finam marketdata Trade proto has a PER-TRADE
+        # is_data_snapshot bool (field 8). Do not drop it: historic/batch
+        # trades must not satisfy a newly posted hypothetical order.
+        if ('isDataSnapshot' in item and 'is_data_snapshot' in item
+                and item['isDataSnapshot'] != item['is_data_snapshot']):
+            continue
+        raw_snapshot = (item['isDataSnapshot'] if 'isDataSnapshot' in item
+                        else item.get('is_data_snapshot', False))
+        if type(raw_snapshot) is not bool:
+            continue
+        # Absence represents proto3's FALSE default for trusted ProtoJSON.
+        value['is_data_snapshot'] = raw_snapshot
         side=item.get('side')
         if side in ('SIDE_BUY','SIDE_SELL','BUY','SELL'):
             value['side']=side

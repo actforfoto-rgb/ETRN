@@ -193,13 +193,15 @@ def replay_sanitized_events(events: Iterable[dict[str, Any]], config: ShadowConf
     pending: HypOrder | None = None
     pos: HypPosition | None = None
     state = "IDLE"
-    observed_trades: dict[str, tuple[str, str, str, str]] = {}
+    observed_trades: dict[str, tuple[str, str, str, str, str]] = {}
     used_trades: set[str] = set()
     orders_proposed = 0
     cancels = 0
     accepted_book_events = 0
     accepted_trade_events = 0
     ignored_trade_events = 0
+    historical_snapshot_trades_ignored = 0
+    unclassified_snapshot_flag_trades_ignored = 0
     proxy_partial_quantity = Decimal(0)
     completed: list[dict[str, Any]] = []
     forced: list[dict[str, Any]] = []
@@ -377,7 +379,9 @@ def replay_sanitized_events(events: Iterable[dict[str, Any]], config: ShadowConf
             if not isinstance(tid, str) or not TRADE_HASH.fullmatch(tid):
                 ignored_trade_events += 1
                 continue
-            fingerprint = (str(price), str(volume), trade_at.isoformat(), str(side))
+            snapshot_marker = trade.get("is_data_snapshot")
+            fingerprint = (str(price), str(volume), trade_at.isoformat(),
+                           str(side), str(snapshot_marker))
             prior = observed_trades.setdefault(tid, fingerprint)
             if prior != fingerprint:
                 quality.append("CONFLICTING_EXCHANGE_TRADE_ID")
@@ -386,6 +390,16 @@ def replay_sanitized_events(events: Iterable[dict[str, Any]], config: ShadowConf
                 ignored_trade_events += 1
                 continue
             used_trades.add(tid)
+            if snapshot_marker is not False:
+                # Old V7 tapes dropped this field; fail closed on unknown.
+                # Even a well-timestamped historical snapshot must NEVER
+                # be used to infer a post-subscription conditional fill.
+                if snapshot_marker is True:
+                    historical_snapshot_trades_ignored += 1
+                else:
+                    unclassified_snapshot_flag_trades_ignored += 1
+                ignored_trade_events += 1
+                continue
             if (trade_at > at or (at - trade_at).total_seconds() * 1000 > config.max_print_delay_ms
                     or latest_book_at is None or latest_book_at > at
                     or pending is None):
@@ -457,6 +471,10 @@ def replay_sanitized_events(events: Iterable[dict[str, Any]], config: ShadowConf
             quality.append("COLLECTOR_LOSS_OR_TRUNCATION")
     if not trusted_receipt:
         quality.append("SHA256_NOT_EXTERNALLY_ATTESTED")
+    if unclassified_snapshot_flag_trades_ignored:
+        quality.append("PUBLIC_TRADE_SNAPSHOT_FLAG_NOT_RECORDED")
+    if historical_snapshot_trades_ignored:
+        quality.append("HISTORICAL_PUBLIC_TRADE_SNAPSHOTS_IGNORED")
     if not config.public_trade_units_verified or not config.aggressor_side_semantics_verified:
         quality.append("TRADE_QUANTITY_OR_AGGRESSOR_SEMANTICS_NOT_VERIFIED")
     if config.maker_cost() is None:
@@ -481,6 +499,8 @@ def replay_sanitized_events(events: Iterable[dict[str, Any]], config: ShadowConf
         "orderbook_messages_replayed": accepted_book_events,
         "public_trade_rows_received": accepted_trade_events,
         "public_trade_rows_ignored": ignored_trade_events,
+        "historical_public_trade_rows_ignored": historical_snapshot_trades_ignored,
+        "unknown_snapshot_flag_rows_ignored": unclassified_snapshot_flag_trades_ignored,
         "unique_public_trade_ids": len(observed_trades),
         "hypothetical_orders_posted": orders_proposed,
         "hypothetical_orders_cancelled": cancels,

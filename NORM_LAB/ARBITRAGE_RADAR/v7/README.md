@@ -110,3 +110,16 @@ Regression suite: \`tests/test_shadow_replay.py\` (synthetic market data only).
 A true strategy-level economic verdict still REQUIRES a future, continuous,
 account-eligible, fee-verified recording and conservative follow-through on
 unclosed positions. Never copy private account tapes into this PUBLIC repo.
+
+
+#### Fail-closed safety follow-up
+
+The official Finam public-trade protobuf has a per-trade
+\`is_data_snapshot\` field. The sanitized collector now preserves it;
+the replay ignores historical snapshot prints and rejects legacy tapes
+that had lost the bit. The documented buy/sell \`Trade.side\` is **not**
+by itself evidence of taker/aggressor direction, and public trade size
+is **not** automatically identical to spread-order lots. Those gates
+remain OFF until separately verified. Cancellation without ACK,
+mid-stream resnapshots and forced best-bid-only exit never free
+hypothetical capital. See method documentation for exact limitations.

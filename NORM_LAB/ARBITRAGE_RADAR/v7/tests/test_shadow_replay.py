@@ -10,6 +10,8 @@ from hashlib import sha256
 import json
 import unittest
 
+from finam_ws_collector import scrub_market_trades
+
 from shadow_replay import (
     ShadowConfig, ShadowError, read_sanitized_tape, replay_file,
     replay_sanitized_events, dec,
@@ -56,11 +58,13 @@ def book_event(s: float, *, bid="100", ask="110", bid_qty="1",
 
 
 def print_event(s: float, *, price="99", size="2", side="SIDE_SELL",
-                tid="a"*24, symbol=SYM, print_at=None, items=None):
+                tid="a"*24, symbol=SYM, print_at=None, items=None,
+                is_snapshot=False):
     if items is None:
         items = [{"price": price, "size": size,
                   "timestamp": stamp(s if print_at is None else print_at),
-                  "side": side, "public_trade_id_hash": tid}]
+                  "side": side, "public_trade_id_hash": tid,
+                  "is_data_snapshot": is_snapshot}]
     return {"kind": "TRADE_PRINTS", "schema": "v7_test_synthetic",
             "captured_utc": stamp(s), "subscription_type": "INSTRUMENT_TRADES",
             "payload": {"symbol": symbol, "trades": items}}
@@ -322,6 +326,52 @@ class ReplayCausality(unittest.TestCase):
         self.assertTrue(r["unresolved_exposure"])
         self.assertEqual(r["conditionally_closed_two_print_cycles"],0)
         self.assertIn("REPRICE_ORDER_CANCEL_NOT_ACKNOWLEDGED",
+                      r["invalid_or_unverified_evidence_reasons"])
+
+
+
+    def test_historical_trade_snapshot_never_completes_new_order(self):
+        r = run([book_event(0),
+                 print_event(1, price="99",size="20",is_snapshot=True),
+                 book_event(2,snapshot=False,delta=True),
+                 print_event(3,price="111",side="SIDE_BUY",tid="b"*24)])
+        self.assertEqual(r["conditionally_closed_two_print_cycles"],0)
+        self.assertEqual(r["historical_public_trade_rows_ignored"],1)
+        self.assertIn("HISTORICAL_PUBLIC_TRADE_SNAPSHOTS_IGNORED",
+                      r["invalid_or_unverified_evidence_reasons"])
+
+    def test_legacy_tape_without_snapshot_metadata_must_fail_closed(self):
+        raw=normal_cycle()
+        raw[1]["payload"]["trades"][0].pop("is_data_snapshot")
+        r=run(raw)
+        self.assertEqual(r["conditionally_closed_two_print_cycles"],0)
+        self.assertEqual(r["unknown_snapshot_flag_rows_ignored"],1)
+        self.assertIn("PUBLIC_TRADE_SNAPSHOT_FLAG_NOT_RECORDED",
+                      r["invalid_or_unverified_evidence_reasons"])
+
+    def test_public_trade_protojson_snapshot_bit_is_retained(self):
+        p={"symbol":SYM,"trades":[
+            {"price":"99","size":"1","timestamp":stamp(1),
+             "side":"SIDE_SELL","tradeId":"exchange-1","isDataSnapshot":True},
+            {"price":"98","size":"2","timestamp":stamp(2),
+             "side":"SIDE_SELL","tradeId":"exchange-2"}
+        ]}
+        x=scrub_market_trades(p,(SYM,))
+        self.assertEqual([q["is_data_snapshot"] for q in x["trades"]],[True,False])
+        self.assertNotIn("exchange-1",json.dumps(x))
+        self.assertNotIn("exchange-2",json.dumps(x))
+
+    def test_conflicting_snapshot_flag_aliases_are_discarded(self):
+        p={"symbol":SYM,"trades":[{"price":"99","size":"1","timestamp":stamp(1),
+                                   "isDataSnapshot":True,"is_data_snapshot":False}]}
+        self.assertTrue(scrub_market_trades(p,(SYM,)).get("unrecognized"))
+
+    def test_duplicate_public_trade_id_in_snapshot_and_delta_is_not_new_fill(self):
+        r=run([book_event(0),
+               print_event(1,tid="a"*24,is_snapshot=True),
+               print_event(2,tid="a"*24,is_snapshot=False)])
+        self.assertEqual(r["conditionally_closed_two_print_cycles"],0)
+        self.assertIn("CONFLICTING_EXCHANGE_TRADE_ID",
                       r["invalid_or_unverified_evidence_reasons"])
 
 
