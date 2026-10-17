@@ -2,7 +2,7 @@
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 import unittest
-from economic_gate import AccountEconomics,quote_width_upper_bound,cost_per_roundtrip,conservative_trade_through
+from economic_gate import AccountEconomics,quote_width_upper_bound,cost_per_roundtrip,conservative_trade_through,TradeAllocationLedger
 
 SYM='W4X6W4Z6@RTSX'
 T=datetime(2026,10,16,14,0,tzinfo=timezone.utc)
@@ -78,24 +78,110 @@ class MoneyFirstTests(unittest.TestCase):
     def test_negative_spread_price_works(self):
         r=quote_width_upper_bound(book(bid='-50',ask='-20'),spec(),10000)
         self.assertEqual(r['width_points'],'30')
+    def _trade(self, price='99', size='5', seconds=1, symbol=SYM,
+               session='2026-10-16:RTSX', tid='a'*24):
+        return {'symbol':symbol,'session_id':session,'price':price,'size':size,
+                'timestamp':(T+timedelta(seconds=seconds)).isoformat(),
+                'public_trade_id_hash':tid}
+
+    def _through(self, prints, ledger=None, **kw):
+        args={'instrument_symbol':SYM,'requested_volume':'1',
+              'ledger':ledger or TradeAllocationLedger('2026-10-16:RTSX'),
+              'volume_units_verified':True}
+        args.update(kw)
+        return conservative_trade_through('BUY','100',T,prints,**args)
+
+    def test_old_unscoped_api_fails_closed(self):
+        self.assertEqual(conservative_trade_through('BUY','100',T,[self._trade()])['status'],
+                         'INSTRUMENT_CONTEXT_REQUIRED')
+
     def test_trade_touch_not_fill(self):
-        prints=[{'price':'100','size':'1','timestamp':(T+timedelta(seconds=1)).isoformat()}]
-        r=conservative_trade_through('BUY','100',T,prints)
-        self.assertEqual(r['status'],'NO_TRADE_THROUGH')
+        self.assertEqual(self._through([self._trade(price='100')])['status'],'NO_TRADE_THROUGH')
+
     def test_trade_through_is_still_not_fill(self):
-        prints=[{'price':'99','size':'5','timestamp':(T+timedelta(seconds=1)).isoformat()}]
-        r=conservative_trade_through('BUY','100',T,prints)
+        r=self._through([self._trade()])
         self.assertEqual(r['status'],'TRADE_THROUGH_PROXY_NO_FILL_PROOF')
         self.assertFalse(r['actual_fill_proven'])
+        self.assertFalse(r['executable'])
+
     def test_trade_print_before_posting_cannot_fill(self):
-        prints=[{'price':'99','size':'5','timestamp':(T-timedelta(seconds=1)).isoformat()}]
-        self.assertEqual(conservative_trade_through('BUY','100',T,prints)['status'],'NO_TRADE_THROUGH')
+        self.assertEqual(self._through([self._trade(seconds=-1)])['status'],'NO_TRADE_THROUGH')
+
     def test_sell_through(self):
-        prints=[{'price':'101','size':'1','timestamp':(T+timedelta(seconds=1)).isoformat()}]
-        self.assertEqual(conservative_trade_through('SELL','100',T,prints)['status'],'TRADE_THROUGH_PROXY_NO_FILL_PROOF')
+        t=self._trade(price='101')
+        r=conservative_trade_through('SELL','100',T,[t],instrument_symbol=SYM,
+                                    requested_volume='1',ledger=TradeAllocationLedger('2026-10-16:RTSX'),
+                                    volume_units_verified=True)
+        self.assertEqual(r['status'],'TRADE_THROUGH_PROXY_NO_FILL_PROOF')
+
     def test_invalid_time_latency_stops(self):
         self.assertEqual(conservative_trade_through('BUY','100',T,[],0)['status'],'INVALID_LATENCY_BOUND')
+
     def test_no_fabrication_if_no_trades(self):
-        self.assertEqual(conservative_trade_through('BUY','100',T,[])['status'],'NO_TRADE_THROUGH')
+        self.assertEqual(self._through([])['status'],'NO_TRADE_THROUGH')
+
+    def test_other_instrument_print_cannot_satisfy_wheat(self):
+        r=self._through([self._trade(symbol='NLMKZ6NLMKH7@RTSX')])
+        self.assertEqual(r['status'],'NO_TRADE_THROUGH')
+
+    def test_other_session_print_is_rejected(self):
+        self.assertEqual(self._through([self._trade(session='2026-10-15:RTSX')])['status'],
+                         'NO_TRADE_THROUGH')
+
+    def test_same_trade_id_counted_only_once_within_batch(self):
+        t=self._trade(size='1')
+        r=self._through([t,dict(t)],requested_volume='2')
+        self.assertEqual(r['status'],'INSUFFICIENT_UNCONSUMED_TRADE_VOLUME')
+
+    def test_conflicting_duplicate_ids_are_not_usable(self):
+        a=self._trade(size='10')
+        b=dict(a);b['price']='98'
+        self.assertEqual(self._through([a,b])['status'],'NO_TRADE_THROUGH')
+
+    def test_shared_ledger_prevents_double_use_across_orders(self):
+        ledger=TradeAllocationLedger('2026-10-16:RTSX')
+        rows=[self._trade(size='1')]
+        self.assertEqual(self._through(rows,ledger=ledger)['status'],'TRADE_THROUGH_PROXY_NO_FILL_PROOF')
+        self.assertEqual(self._through(rows,ledger=ledger)['status'],'NO_TRADE_THROUGH')
+        self.assertEqual(ledger.used_volume[(SYM,'a'*24)],Decimal('1'))
+
+    def test_trade_volume_allocates_only_once_across_different_orders(self):
+        ledger=TradeAllocationLedger('2026-10-16:RTSX')
+        t=[self._trade(size='5')]
+        self.assertEqual(self._through(t,ledger=ledger,requested_volume='2')['status'],
+                         'TRADE_THROUGH_PROXY_NO_FILL_PROOF')
+        self.assertEqual(self._through(t,ledger=ledger,requested_volume='3')['status'],
+                         'TRADE_THROUGH_PROXY_NO_FILL_PROOF')
+        self.assertEqual(self._through(t,ledger=ledger,requested_volume='1')['status'],
+                         'NO_TRADE_THROUGH')
+        self.assertEqual(ledger.used_volume[(SYM,'a'*24)],Decimal('5'))
+
+    def test_partial_volume_fails_without_reserving(self):
+        ledger=TradeAllocationLedger('2026-10-16:RTSX')
+        r=self._through([self._trade(size='2')],ledger=ledger,requested_volume='3')
+        self.assertEqual(r['status'],'INSUFFICIENT_UNCONSUMED_TRADE_VOLUME')
+        self.assertEqual(ledger.used_volume,{})
+
+    def test_two_distinct_trade_ids_can_jointly_cover_size(self):
+        ledger=TradeAllocationLedger('2026-10-16:RTSX')
+        rows=[self._trade(size='2',tid='a'*24),self._trade(size='3',tid='b'*24)]
+        r=self._through(rows,ledger=ledger,requested_volume='5')
+        self.assertEqual(r['status'],'TRADE_THROUGH_PROXY_NO_FILL_PROOF')
+        self.assertEqual(r['independent_trade_ids_used'],2)
+        self.assertEqual(sum(ledger.used_volume.values()),Decimal('5'))
+
+    def test_missing_print_id_never_counts(self):
+        self.assertEqual(self._through([self._trade(tid='')])['status'],'NO_TRADE_THROUGH')
+
+    def test_unknown_trade_unit_cannot_generate_proxy(self):
+        r=self._through([self._trade()],volume_units_verified=False)
+        self.assertEqual(r['status'],'PRINT_VOLUME_UNITS_UNVERIFIED')
+
+    def test_invalid_requested_volume_and_missing_ledger_fail(self):
+        self.assertEqual(self._through([self._trade()],requested_volume=None)['status'],
+                         'INVALID_REQUESTED_VOLUME')
+        r=conservative_trade_through('BUY','100',T,[self._trade()],instrument_symbol=SYM,
+                                     requested_volume='1',volume_units_verified=True)
+        self.assertEqual(r['status'],'SHARED_SESSION_LEDGER_REQUIRED')
 
 if __name__=='__main__':unittest.main()

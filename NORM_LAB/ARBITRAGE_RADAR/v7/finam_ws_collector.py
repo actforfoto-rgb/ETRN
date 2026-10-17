@@ -55,6 +55,24 @@ def validate_symbols(raw: str | list[str] | tuple[str, ...]) -> tuple[str, ...]:
     return symbols
 
 
+def select_trade_symbols(book_symbols: tuple[str, ...], raw: str | None = None) -> tuple[str, ...]:
+    """Default to available WHEAT trade subscriptions; opt in explicitly for other RTSX symbols.
+
+    An empty --trade-symbols disables print capture; every trade subscription
+    MUST also be in the user-selected book universe.
+    """
+    if raw is None:
+        return tuple(symbol for symbol in DEFAULT_TRADE_SYMBOLS if symbol in book_symbols)
+    if not isinstance(raw, str):
+        raise ControlledFailure('INVALID_TRADE_SYMBOL_ARGUMENT')
+    if not raw.strip():
+        return ()
+    selected = validate_symbols(raw)
+    if not set(selected).issubset(set(book_symbols)):
+        raise ControlledFailure('TRADE_SYMBOLS_MUST_HAVE_ORDER_BOOK_SUBSCRIPTION')
+    return selected
+
+
 def broker_json(path: str, payload: dict[str, Any], timeout: int = 15) -> dict[str, Any]:
     if path not in ("/v1/sessions", "/v1/sessions/details"):
         raise ControlledFailure("NON_READONLY_AUTH_ROUTE_DENIED")
@@ -446,17 +464,21 @@ def run_cli(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="NORM ARB V7 short read-only Finam WebSocket capture")
     parser.add_argument("--symbols", default=",".join(DEFAULT_SYMBOLS))
     parser.add_argument("--seconds", type=int, default=90)
+    parser.add_argument("--trade-symbols", default=None,
+                        help="Comma-separated public RTSX trade symbols; empty disables; default eligible WHEAT")
     parser.add_argument("--output-dir", default="evidence")
     args = parser.parse_args(argv)
     try:
         symbols = validate_symbols(args.symbols)
+        trade_symbols = select_trade_symbols(symbols, args.trade_symbols)
         if not 1 <= args.seconds <= MAX_SECONDS:
             raise ControlledFailure("DURATION_OUT_OF_BOUNDS")
         api_secret = os.environ.get("FINAM_READONLY_API_KEY", "")
         jwt = authorize_readonly(api_secret)
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         destination = Path(args.output_dir) / ("finam_ws_" + timestamp + ".jsonl")
-        summary = asyncio.run(capture_stream(jwt, symbols, args.seconds, destination))
+        summary = asyncio.run(capture_stream(jwt, symbols, args.seconds, destination,
+                                                 trade_symbols=trade_symbols))
         print(json.dumps(summary, ensure_ascii=False))
         return 0 if summary["status"] == "DATA_RECORDED" else 2
     except ControlledFailure as exc:

@@ -141,5 +141,23 @@ class CollectorTests(unittest.TestCase):
             self.assertEqual(p.read_text(), "original")
 
 
+
+class TradeSubscriptionSelectionTests(unittest.TestCase):
+    def test_default_cli_market_prints_include_wheat(self):
+        books=fc.DEFAULT_SYMBOLS
+        self.assertEqual(fc.select_trade_symbols(books),fc.DEFAULT_TRADE_SYMBOLS)
+
+    def test_explicit_subset_and_empty_disable(self):
+        chosen=(SYMBOL,'W4V6W4X6@RTSX')
+        self.assertEqual(fc.select_trade_symbols(chosen,'W4V6W4X6@RTSX'),('W4V6W4X6@RTSX',))
+        self.assertEqual(fc.select_trade_symbols(chosen,''),())
+
+    def test_other_book_default_does_not_subscribe_unrelated_trade_stream(self):
+        self.assertEqual(fc.select_trade_symbols(('SRZ6SRH7@RTSX',)),())
+
+    def test_trade_subscription_outside_books_is_rejected(self):
+        with self.assertRaises(fc.ControlledFailure):
+            fc.select_trade_symbols((SYMBOL,), 'SRZ6SRH7@RTSX')
+
 if __name__ == "__main__":
     unittest.main()
