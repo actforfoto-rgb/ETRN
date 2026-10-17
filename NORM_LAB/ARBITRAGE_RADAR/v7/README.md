@@ -8,9 +8,9 @@ This directory belongs to the **existing** NORM ARBITRAGE RADAR project. It is n
 
 - Verifies `readonly=true`, exactly one account, and non-delayed RTSX permissions before opening a socket.
 - Waits for `HANDSHAKE_SUCCESS` before subscribing; subscribes to up to six symbols.
-- Captures only `ORDER_BOOK` market-data payloads and whitelisted event metadata; excludes account information, errors' free-form text, raw tokens and order streams.
+- Captures sanitized `ORDER_BOOK` plus explicitly allowlisted public `INSTRUMENT_TRADES` and whitelisted event metadata; excludes account information, errors' free-form text, raw tokens and private order/trade streams.
 - Saves a new per-run JSONL file with SHA-256 digest; refuses to overwrite existing evidence.
-- Hard-caps recorded evidence at 10,000 messages / 20 MB; returns a non-success status for truncated files, premature data or stream errors.
+- Hard-caps recorded evidence at 10,000 messages / 12 MB; returns a non-success status for truncated files, premature data or stream errors.
 - Rejects non-integral exchange envelope timestamps; unrecognized market-data fields and account payloads never enter the evidence log.
 - The saved messages must be independently reconciled to REST bootstrap snapshots before interpreting book updates as executable top-of-book.
 - No real broker stream has yet been verified **for this V7 module**. Unit tests use synthetic messages; do not confuse test PASS with access or profit.
@@ -24,13 +24,13 @@ A connection interruption invalidates the book until a new REST snapshot is
 obtained. The normalized view **always** reports continuity_verified=false and
 executable=false; a best BID/ASK never means broker FOK would fill.
 
-The module is prepared for integration but is **not yet wired to live
-WebSocket frames or an authenticated secure server runtime**. All examples and
-replay fixtures are synthetic; the private strategy and client data are
-excluded from this public repository.
+The local `capture_stream` calls `BookReplay` for sanitized WS frames, but this
+public GitHub code and its offline fixtures are **not proof of a secure continuous
+live stream**. Account-specific tape remains private, outside public GitHub.
 
-Current remote baseline: **78/78** deterministic offline tests passed in
-[GitHub Actions run 38863007944](https://github.com/actforfoto-rgb/ETRN/actions/runs/38863007944).
+Current verification is recorded by the latest GitHub Actions run for branch
+`norm-arb-v7-dev`; only its verified CI status, never test count alone,
+should be treated as code QA, not proof of market profitability.
 
 
 ### Offline triangle discrepancy gate — no VPS or trading credentials needed
@@ -89,3 +89,24 @@ The collector fails closed if `FINAM_READONLY_API_KEY` is absent. It does not au
 5. Only after independent positive net cycles and explicit authorization consider a separate trading adapter.
 
 **Real orders: 0. Realized PnL: 0. LIVE trading: disabled.**
+
+### Full causal event replay (17 October 2026)
+
+\`shadow_replay.py\` is the first **OFFLINE ONLY** market-event simulator for the
+existing V7. It consumes a bounded *already captured* sanitized Finam JSONL tape,
+reconstructs books, conditionally places passive entry and exit orders in causal
+order, models latency, visible queue-ahead, unique public trade IDs, partial/open
+risk, and forced-taker-BBO-only scenarios. It NEVER calls broker trading APIs.
+Its default gating **rejects conditional fills** until public-trade units and
+aggressor-side semantics are explicitly verified. A real-time book/print or
+positive *conditional* net is NOT a broker execution. All outputs keep
+\`realized_pnl_rub=null\`, \`actual_orders=0\`, \`profitability_proven=false\`.
+
+The user-approved methodological correction and strict acceptance protocol
+are documented at:
+\`research/SHADOW_EVENT_REPLAY_METHOD_20261017.md\`.
+
+Regression suite: \`tests/test_shadow_replay.py\` (synthetic market data only).
+A true strategy-level economic verdict still REQUIRES a future, continuous,
+account-eligible, fee-verified recording and conservative follow-through on
+unclosed positions. Never copy private account tapes into this PUBLIC repo.
