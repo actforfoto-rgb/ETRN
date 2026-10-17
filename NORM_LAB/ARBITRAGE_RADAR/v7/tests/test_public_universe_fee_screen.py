@@ -8,6 +8,44 @@ F={'symbol':'W4Z6','short_name':'WHEAT-12.26','stepprice_rub':10,'minstep':10,'m
 W={'symbol':'WHEAT-11.26-12.26','bid':860,'ask':890,'trades':102}
 
 class MarketPrescreen(unittest.TestCase):
+ def test_static_taker_cannot_capture_positive_book_width(self):
+  r=analyze_pair(W,{N['short_name']:N,F['short_name']:F},S,
+     spread_captured_utc='2026-10-13T13:11:28Z',futures_captured_utc='2026-10-13T13:17:08Z')
+  fee=Decimal(r['public_exchange_taker_each_spread_fill_rub'])
+  broker=Decimal(r['public_broker_scenario_cost_rub'])
+  width=Decimal(r['gross_bid_ask_width_rub'])
+  self.assertEqual(Decimal(r['ideal_one_taker_upper_rub']),-broker-fee)
+  self.assertEqual(Decimal(r['ideal_two_taker_upper_rub']),-width-broker-2*fee)
+  self.assertLess(Decimal(r['ideal_two_taker_upper_rub']),0)
+  self.assertEqual(r['scenario_price_basis'],'SAME_BBO_STATIC_PRICE_IDENTITY_NOT_FILL_PROOF')
+ def test_any_two_taker_static_positive_spread_is_loss(self):
+  for spread in ({**W,'bid':860,'ask':890},{**W,'bid':880,'ask':890},{**W,'bid':885,'ask':890}):
+   r=analyze_pair(spread,{N['short_name']:N,F['short_name']:F},S,
+      spread_captured_utc='2026-10-13T13:11:28Z',futures_captured_utc='2026-10-13T13:17:08Z')
+   self.assertLess(Decimal(r['ideal_two_taker_upper_rub']),0)
+   self.assertLess(Decimal(r['ideal_one_taker_upper_rub']),0)
+ def test_scan_one_and_two_taker_positive_counts_are_zero(self):
+  base={'retrieved_utc':'2026-10-13T13:11:28Z','rows':[W]}
+  fut={'sample_utc':'2026-10-13T13:17:08Z','rows':[N,F]}
+  r=scan_public_snapshot(base,fut,S)
+  self.assertEqual(r['maker_upper_positive_with_100_trades'],1)
+  self.assertEqual(r['one_taker_upper_positive_with_100_trades'],0)
+  self.assertEqual(r['two_taker_upper_positive_with_100_trades'],0)
+ def test_actual_oct13_futures_and_two_spread_slices(self):
+  # Frozen PRIMARY data points from project Drive; no temporal fill assumption.
+  near={**N,'bid':11840,'ask':11850,'margin_rub':1503.28,'buy_sell_fee_rub':1.55}
+  far={**F,'bid':12710,'ask':12730,'margin_rub':1574.79,'buy_sell_fee_rub':1.65}
+  books=[{**W,'bid':860,'ask':890,'trades':102},
+         {**W,'bid':860,'ask':890,'trades':102}]
+  a,b=[analyze_pair(s,{near['short_name']:near,far['short_name']:far},S,
+     spread_captured_utc=t,futures_captured_utc='2026-10-13T13:17:08Z')
+     for s,t in zip(books,['2026-10-13T13:11:28Z','2026-10-13T13:22:12Z'])]
+  self.assertEqual(a['ideal_two_maker_upper_rub'],'25.087000')
+  self.assertEqual(b['ideal_two_maker_upper_rub'],'25.087000')
+  self.assertEqual(books[1]['trades']-books[0]['trades'],0)
+  self.assertEqual(a['ideal_one_taker_upper_rub'],'-8.113000')
+  self.assertEqual(a['ideal_two_taker_upper_rub'],'-41.313000')
+
  def test_expected_conditional_wheat_numbers(self):
   x=analyze_pair(W, {N['short_name']:N,F['short_name']:F}, S,
                  spread_captured_utc='2026-10-13T13:11:28Z',futures_captured_utc='2026-10-13T13:17:08Z')

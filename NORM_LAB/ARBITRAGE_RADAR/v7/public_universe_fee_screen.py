@@ -117,11 +117,17 @@ def analyze_pair(spread: dict, futures: dict[str, dict], scenario: PublicCostSce
     fee_one_taker = num(near.get("buy_sell_fee_rub"))+num(far.get("buy_sell_fee_rub"))
     if fee_one_taker<0:
         raise UnverifiedInput("NEGATIVE_EXCHANGE_FEE")
-    # Two passive spread fills each touch two futures; one maker fee per spread fill is an explicit scenario parameter.
+    # A STATIC, SAME-BOOK BBO quote cannot be crossed twice for a profit.
+    # Both maker: BUY resting at BID, SELL resting at ASK => positive width, but
+    #             this requires two future, independent queue-aware fills.
+    # One maker + one taker: both legs execute on SAME book side => zero gross.
+    # Both taker: BUY at ASK and SELL at BID => NEGATIVE gross width.
+    # These are price identities, not simulations of fills at different times.
     gross = (ask-bid)*factor
-    both_maker = gross-broker_full-2*num(scenario.exchange_maker_fee_rub_per_fill)
-    maker_taker = gross-broker_full-fee_one_taker-num(scenario.exchange_maker_fee_rub_per_fill)
-    both_taker = gross-broker_full-2*fee_one_taker
+    maker_charge = num(scenario.exchange_maker_fee_rub_per_fill)
+    both_maker = gross-broker_full-2*maker_charge
+    maker_taker = -broker_full-fee_one_taker-maker_charge
+    both_taker = -gross-broker_full-2*fee_one_taker
     adverse_tick = max(num(near.get("minstep")),num(far.get("minstep")))*factor
     capital_proxy = num(near.get("margin_rub"))+num(far.get("margin_rub"))
     if capital_proxy<=0:
@@ -141,6 +147,7 @@ def analyze_pair(spread: dict, futures: dict[str, dict], scenario: PublicCostSce
         "symbol":name,"near":near.get("symbol"),"far":far.get("symbol"),
         "trades_reported_venue_day":int(trades),
         "gross_bid_ask_width_rub":str(gross),
+        "scenario_price_basis":"SAME_BBO_STATIC_PRICE_IDENTITY_NOT_FILL_PROOF",
         "public_broker_scenario_cost_rub":str(broker_full),
         "public_exchange_taker_each_spread_fill_rub":str(fee_one_taker),
         "ideal_two_maker_upper_rub":str(both_maker),
