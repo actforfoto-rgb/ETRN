@@ -1,12 +1,32 @@
 {
   "updated_from_research": true,
   "crypto_perp": {
+    "APT|HTX|OKX": {
+      "base": "APT",
+      "venue_a": "HTX",
+      "venue_b": "OKX",
+      "entry_z": 2.5,
+      "train_score": 59.778954270832756,
+      "holdout": {
+        "n": 7,
+        "positive_pct": 100.0,
+        "median_net_bps": 24.04387467024918,
+        "mean_net_bps": 25.094573281644955,
+        "aggregate_net_bps": 175.66201297151468,
+        "worst_net_bps": 12.809157547772259,
+        "best_net_bps": 40.98269508812693
+      },
+      "stress10_pass": true,
+      "stress10_median_proxy_bps": 14.043874670249181,
+      "stress10_aggregate_proxy_bps": 105.66201297151468,
+      "status": "VALIDATED_STRESS10"
+    },
     "APT|GATE|HTX": {
       "base": "APT",
       "venue_a": "GATE",
       "venue_b": "HTX",
       "entry_z": 2.5,
-      "train_score": 79.919047387595,
+      "train_score": 78.19815610223765,
       "holdout": {
         "n": 6,
         "positive_pct": 100.0,
@@ -26,7 +46,7 @@
       "venue_a": "HTX",
       "venue_b": "MEXC",
       "entry_z": 2.0,
-      "train_score": 53.29175943327609,
+      "train_score": 51.43435261132861,
       "holdout": {
         "n": 9,
         "positive_pct": 100.0,
@@ -86,7 +106,7 @@
       "venue_a": "BITGET",
       "venue_b": "HTX",
       "entry_z": 3.0,
-      "train_score": 49.73620770255382,
+      "train_score": 52.43128519857445,
       "holdout": {
         "n": 3,
         "positive_pct": 100.0,
@@ -99,26 +119,6 @@
       "stress10_pass": true,
       "stress10_median_proxy_bps": 13.307822447177468,
       "stress10_aggregate_proxy_bps": 48.23742296594736,
-      "status": "VALIDATED_STRESS10"
-    },
-    "APT|HTX|OKX": {
-      "base": "APT",
-      "venue_a": "HTX",
-      "venue_b": "OKX",
-      "entry_z": 3.0,
-      "train_score": 59.778954270832756,
-      "holdout": {
-        "n": 3,
-        "positive_pct": 100.0,
-        "median_net_bps": 24.04387467024918,
-        "mean_net_bps": 24.334670702152362,
-        "aggregate_net_bps": 73.00401210645708,
-        "worst_net_bps": 16.447743787044075,
-        "best_net_bps": 32.512393649163826
-      },
-      "stress10_pass": true,
-      "stress10_median_proxy_bps": 14.043874670249181,
-      "stress10_aggregate_proxy_bps": 43.00401210645708,
       "status": "VALIDATED_STRESS10"
     },
     "ICP|GATE|HTX": {
@@ -165,20 +165,40 @@
       "base": "DOT",
       "venue_a": "HTX",
       "venue_b": "OKX",
-      "entry_z": 2.5,
-      "train_score": 24.13822869231455,
+      "entry_z": 2.0,
+      "train_score": 13.006589200757286,
       "holdout": {
-        "n": 5,
-        "positive_pct": 60.0,
-        "median_net_bps": 6.489797570169898,
-        "mean_net_bps": 4.043400010774103,
-        "aggregate_net_bps": 20.217000053870514,
+        "n": 7,
+        "positive_pct": 71.42857142857143,
+        "median_net_bps": 4.436812084218001,
+        "mean_net_bps": 3.7362446497490795,
+        "aggregate_net_bps": 26.153712548243558,
         "worst_net_bps": -36.07462171058182,
         "best_net_bps": 40.6027125933999
       },
       "stress10_pass": false,
-      "stress10_median_proxy_bps": -3.5102024298301018,
-      "stress10_aggregate_proxy_bps": -29.782999946129486,
+      "stress10_median_proxy_bps": -5.563187915781999,
+      "stress10_aggregate_proxy_bps": -43.84628745175644,
+      "status": "VALIDATED_SHADOW"
+    },
+    "DOT|GATE|HTX": {
+      "base": "DOT",
+      "venue_a": "GATE",
+      "venue_b": "HTX",
+      "entry_z": 2.5,
+      "train_score": 17.156557245517106,
+      "holdout": {
+        "n": 5,
+        "positive_pct": 60.0,
+        "median_net_bps": 2.2648702626120425,
+        "mean_net_bps": 0.9989706240301182,
+        "aggregate_net_bps": 4.994853120150591,
+        "worst_net_bps": -30.0335517466894,
+        "best_net_bps": 18.8613512309648
+      },
+      "stress10_pass": false,
+      "stress10_median_proxy_bps": -7.7351297373879575,
+      "stress10_aggregate_proxy_bps": -45.005146879849406,
       "status": "VALIDATED_SHADOW"
     },
     "OP|GATE|OKX": {
@@ -218,7 +238,7 @@
       "venue_a": "GATE",
       "venue_b": "HTX",
       "entry_z": 2.0,
-      "train_score": 111.32042689600195,
+      "train_score": 114.765882752085,
       "holdout": {
         "n": 6,
         "positive_pct": 83.33333333333333,
