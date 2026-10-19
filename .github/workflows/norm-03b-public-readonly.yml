@@ -1,0 +1,60 @@
+name: NORM 03B - public read-only economic evidence
+
+on:
+  schedule:
+    - cron: '37 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: norm-03b-public-readonly
+  cancel-in-progress: false
+
+jobs:
+  causal-public-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    defaults:
+      run:
+        working-directory: NORM_LAB/ECONOMIC_LAB_03B
+    steps:
+      - name: Checkout isolated research sources
+        uses: actions/checkout@v4
+        with:
+          ref: norm-03b-public-research-v1
+      - name: Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Unit tests - time order, CRC32, no touch-as-fill
+        run: python -m unittest discover -s tests -v
+      - name: Install public stream dependency
+        run: python -m pip install --disable-pip-version-check --quiet 'websockets>=13,<17'
+      - name: Capture bounded public websocket tape and model-only replay
+        shell: bash
+        env:
+          RAW_03B: ${{ runner.temp }}/03b_raw_ephemeral.jsonl
+          SUMMARY_03B: ${{ runner.temp }}/03b_aggregate_public.json
+        run: |
+          set -u
+          python research.py capture --seconds 150 --path "$RAW_03B" --symbols BTC/USD,ETH/USD,SOL/USD || true
+          if test -s "$RAW_03B"; then
+            python research.py replay --seconds 150 --path "$RAW_03B" --out "$SUMMARY_03B" || true
+          fi
+          if ! test -s "$SUMMARY_03B"; then
+            printf '{"schema":"NORM_03B_PUBLIC_M6_V1","status":"DATA_BLOCKED","orders":0,"reason":"PUBLIC_WS_NO_USABLE_FRAMES"}\n' > "$SUMMARY_03B"
+          fi
+          python -c 'import json,os; p=os.environ["SUMMARY_03B"]; d=json.load(open(p)); print(json.dumps({"stage":d.get("status"),"book_valid_updates":d.get("book_valid_updates",0),"closed_proxy_cycles":d.get("closed_proxy_cycles",0),"orders":0},sort_keys=True))'
+      - name: Upload sanitized aggregate only - never the public raw packet tape
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NORM_03B_PUBLIC_AGGREGATE
+          path: ${{ runner.temp }}/03b_aggregate_public.json
+          retention-days: 3
+          if-no-files-found: warn
+      - name: Destroy ephemeral raw tape
+        if: always()
+        run: rm -f "${{ runner.temp }}/03b_raw_ephemeral.jsonl"
