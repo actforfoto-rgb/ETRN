@@ -1,0 +1,63 @@
+name: NORM 03B - fully paired arb forward (read only)
+
+on:
+  schedule:
+    - cron: '43 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: norm03b-paired-forward-shadow
+  cancel-in-progress: false
+
+jobs:
+  paired-public-observation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: NORM_LAB/ECONOMIC_LAB_03B
+    steps:
+      - name: Check out isolated research branch (no personal tokens)
+        uses: actions/checkout@v4
+        with:
+          ref: norm-03b-hedged-shadow-20261022
+          persist-credentials: false
+      - name: Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test paired mechanism and no-orders gates
+        run: python -m unittest discover -s tests -p 'test_arb_forward.py' -v
+      - name: Observe independent exchange events for 90 seconds
+        env:
+          REPORT_03B: ${{ runner.temp }}/norm03b_m4_forward_aggregate.json
+        run: |
+          set -eu
+          python arb_forward.py --seconds 90 --interval 8 --out "$REPORT_03B"
+          python - <<'PY'
+          import json, os
+          d = json.load(open(os.environ["REPORT_03B"],encoding="utf-8"))
+          valid = sum(int(s["valid_books"]) for s in d["quotes"])
+          print(json.dumps({
+              "market_book_observations": valid,
+              "windows": len(d["quotes"]),
+              "positive_initial_quotes": d["positive_first_quote_unique"],
+              "positive_newer_quote_witnesses": len(d["episodes_with_positive_next_quote"]),
+              "closed_cycles": d["full_closed_arbitrage_cycles"],
+              "real_orders": d["real_orders"],
+              "rub_balance_unchanged": d["virtual_rub_balance_unmodified"]
+          }))
+          if valid == 0:
+              raise SystemExit("No usable live public data; no claims of working collector")
+          PY
+      - name: Upload sanitized aggregate only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NORM03B_PAIR_FORWARD_PUBLIC_SUMMARY
+          path: ${{ runner.temp }}/norm03b_m4_forward_aggregate.json
+          retention-days: 7
+          if-no-files-found: warn
