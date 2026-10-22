@@ -51,6 +51,8 @@ jobs:
           print(json.dumps({
               "market_book_observations": valid,
               "windows": len(d["quotes"]),
+              "universe_size": d.get("universe_size"),
+              "selected_assets": d.get("selected_assets"),
               "positive_initial_quotes": d["positive_first_quote_unique"],
               "positive_newer_quote_witnesses": len(d["episodes_with_positive_next_quote"]),
               "closed_cycles": d["full_closed_arbitrage_cycles"],
