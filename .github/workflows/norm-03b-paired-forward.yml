@@ -1,6 +1,11 @@
 name: NORM 03B - fully paired arb forward (read only)
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/norm-03b-paired-forward.yml'
   schedule:
     - cron: '43 * * * *'
   workflow_dispatch:
