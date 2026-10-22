@@ -19,6 +19,15 @@ class Acceptance(unittest.TestCase):
         self.assertFalse(hasattr(x, "place_order"))
         self.assertFalse(hasattr(x, "mutate_balance"))
 
+    def test_frozen_basket_rotation(self):
+        self.assertEqual(len(x.SYMBOL_GROUPS),3)
+        self.assertEqual(sum(len(g) for g in x.SYMBOL_GROUPS),30)
+        self.assertEqual(len(set(x.SYMBOLS)),30)
+        self.assertEqual(x.basket_for_utc_hour(0),x.basket_for_utc_hour(3))
+        self.assertNotEqual(x.basket_for_utc_hour(0),x.basket_for_utc_hour(1))
+        self.assertIn("BTC",x.basket_for_utc_hour(2))
+        self.assertNotIn("BTC",x.basket_for_utc_hour(0))
+
     def test_allowed_urls(self):
         self.assertIn("market/books", x.url("LINK","OKX"))
         self.assertRaises(ValueError,x.url,"BAD","OKX")
