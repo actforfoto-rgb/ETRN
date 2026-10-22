@@ -16,7 +16,17 @@ from pathlib import Path
 import time
 from urllib.request import Request, urlopen
 
-SYMBOLS = ("DOGE", "AVAX", "LINK", "LTC", "NEAR", "SUI", "TRX", "BCH", "APT", "ETC")
+# Explore thirty underlying assets without tripling request rate.
+# Each cloud run freezes one basket BEFORE receiving new quotes.
+SYMBOL_GROUPS = (
+    ("DOGE", "AVAX", "LINK", "LTC", "NEAR", "SUI", "TRX", "BCH", "APT", "ETC"),
+    ("XRP", "ADA", "DOT", "ATOM", "FIL", "UNI", "AAVE", "OP", "ARB", "XLM"),
+    ("BTC", "ETH", "SOL", "SHIB", "PEPE", "TON", "ICP", "POL", "INJ", "SEI"),
+)
+SYMBOLS = tuple(symbol for group in SYMBOL_GROUPS for symbol in group)
+
+def basket_for_utc_hour(utc_hour):
+    return SYMBOL_GROUPS[int(utc_hour) % len(SYMBOL_GROUPS)]
 VENUES = ("Gate", "Bitget", "OKX")
 FEE = {"Gate": Decimal("0.001"), "Bitget": Decimal("0.001"), "OKX": Decimal("0.002")}
 AMOUNTS = (Decimal("100"), Decimal("250"))
@@ -146,12 +156,13 @@ def evaluate(buy, sell, notional):
         "skew_ms":skew, "buy_sha256":buy.sha256, "sell_sha256":sell.sha256,
         "model":"UNEXECUTED_PAIRED_BOOK_SCREEN"}
 
-def snapshot(workers=9):
+def snapshot(workers=9, assets=None):
+    assets = tuple(assets) if assets is not None else SYMBOL_GROUPS[0]
     books = {}
     errors = {}
     with ThreadPoolExecutor(max_workers=workers) as ex:
         jobs = {ex.submit(fetch, asset, venue):(asset, venue)
-                for asset in SYMBOLS for venue in VENUES}
+                for asset in assets for venue in VENUES}
         for result in as_completed(jobs):
             name = jobs[result]
             try:
@@ -162,7 +173,7 @@ def snapshot(workers=9):
             except Exception as err:
                 errors["UNEXPECTED_" + type(err).__name__] = errors.get("UNEXPECTED_" + type(err).__name__, 0) + 1
     routes = []
-    for asset in SYMBOLS:
+    for asset in assets:
         for b in VENUES:
             for s in VENUES:
                 if b == s or (asset,b) not in books or (asset,s) not in books:
@@ -185,6 +196,7 @@ def key(r):
     return (r["asset"], r["buy"], r["sell"], r["amount_usdt"])
 
 def capture(seconds, interval):
+    selected = basket_for_utc_hour(time.gmtime().tm_hour)
     start = time.monotonic()
     pending = {}
     witness = []
@@ -192,7 +204,7 @@ def capture(seconds, interval):
     summaries = []
     unique_positive = set()
     while time.monotonic() - start < seconds and len(summaries) < 16:
-        overview, routes = snapshot()
+        overview, routes = snapshot(assets=selected)
         best = overview["best_routes"][0] if overview["best_routes"] else None
         summaries.append({**{k:v for k,v in overview.items() if k!="best_routes"},
                           "best_net_route":best,
@@ -221,6 +233,7 @@ def capture(seconds, interval):
     return {
         "schema":"NORM03B_HEDGED_M4_FWD_V1", "created_utc_ms":now_ms(),
         "mode":"PUBLIC_READONLY_ZERO_ORDERS",
+        "universe_size":len(SYMBOLS),"selected_assets":list(selected),
         "quotes":summaries, "episodes_with_positive_next_quote":witness[:10],
         "positive_first_quote_unique":len(unique_positive),
         "forward_negative_or_lost_opportunities":missed,
