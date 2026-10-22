@@ -1,0 +1,94 @@
+import sys
+from pathlib import Path
+import unittest
+from decimal import Decimal as D
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+import funding_gate as f
+
+def spot_book(ts=1_000_000, ask="1.001", bid="1.000", qty="2000"):
+    return {"update":ts,"asks":[[ask,qty]],"bids":[[bid,qty]]}
+
+def fut_book(ts=1000.100, ask="1.0006", bid="1.0005", n=3000):
+    return {"update":ts,"bids":[{"p":bid,"s":n}],"asks":[{"p":ask,"s":n}]}
+
+def contract(rate="0.001",mult="1",typ="direct",interval=28800):
+    return {"name":"TEST_USDT","type":typ,"quanto_multiplier":mult,
+        "order_size_min":1,"funding_rate":rate,"funding_interval":interval,
+        "funding_next_apply":2000,"in_delisting":False}
+
+class FundingGateTests(unittest.TestCase):
+    def test_no_order_placement_possible(self):
+        self.assertFalse(hasattr(f,"place_order"))
+        self.assertFalse(hasattr(f,"send_order"))
+        self.assertFalse(hasattr(f,"authorize_account"))
+
+    def test_only_approved_public_endpoint(self):
+        self.assertRaises(ValueError,f.public_json,"https://example.com/path")
+        self.assertRaises(ValueError,f.public_json,"http://api.gateio.ws/api/v4/foo")
+
+    def test_shortlist_requires_matching_spot_pair(self):
+        fut=[{"contract":"CATL_USDT","funding_rate":"0.01","highest_bid":"44","quanto_multiplier":"0.1"},
+             {"contract":"TEST_USDT","funding_rate":"0.001","highest_bid":"1.005","quanto_multiplier":"1"}]
+        spot=[{"currency_pair":"TEST_USDT","lowest_ask":"1"}]
+        result=f.shortlist(fut,spot)
+        self.assertEqual(len(result),1)
+        self.assertEqual(result[0]["pair"],"TEST_USDT")
+
+    def test_shortlist_denies_noncomparable_price(self):
+        fut=[{"contract":"TEST_USDT","funding_rate":"0.01","highest_bid":"0.5","quanto_multiplier":"1"}]
+        spot=[{"currency_pair":"TEST_USDT","lowest_ask":"1"}]
+        self.assertEqual(f.shortlist(fut,spot),[])
+
+    def test_shortlist_denies_low_funding_rate(self):
+        fut=[{"contract":"TEST_USDT","funding_rate":"0.00001","highest_bid":"1","quanto_multiplier":"1"}]
+        spot=[{"currency_pair":"TEST_USDT","lowest_ask":"1"}]
+        self.assertEqual(f.shortlist(fut,spot),[])
+
+    def test_contract_multiplier_and_ladders(self):
+        sp=spot_book()
+        fu=fut_book(n=500)
+        ct=contract(mult="10")
+        hist=[{"t":500,"r":"0.001"}]
+        out=f.economic(sp,fu,ct,hist,1_000_120,1_000_140)
+        self.assertEqual(out["status"],"FORWARD_WATCH_NOT_FILL")
+        self.assertEqual(out["qty_base"],"90")
+        self.assertEqual(out["contract_count"],9)
+        self.assertLess(D(out["immediate_liquidation_net_usdt"]),0)
+
+    def test_books_forward_time_rejected(self):
+        s=spot_book(ts=2_020_000)
+        p=fut_book(ts=2000)
+        good,reason=f.valid_time(s,p,2_000_000,2_000_000)
+        self.assertFalse(good)
+
+    def test_stale_or_async_books_rejected(self):
+        out=f.economic(spot_book(1_000_000),fut_book(1040),contract(),[],1_000_100,1_040_100)
+        self.assertEqual(out["status"],"STALE_OR_DESYNCHRONIZED_BOOK")
+
+    def test_malformed_non_direct_futures_rejected(self):
+        self.assertIsNone(f.economic(spot_book(),fut_book(),contract(typ="inverse"),[],1_000_200,1_000_200))
+
+    def test_hist_rates_sorted_no_future_or_duplicates(self):
+        h=[{"t":910,"r":"0.004"},{"t":901,"r":"0.001"},
+           {"t":910,"r":"0.004"},{"t":1200,"r":"0.9"}]
+        self.assertEqual(f.rates(h,1_000_000),[(910,D(".004")),(901,D(".001"))])
+
+    def test_one_payment_not_complete_cycle(self):
+        sp=spot_book(); fu=fut_book()
+        out=f.economic(sp,fu,contract(rate=".003"),[{"t":900,"r":"0.002"}],1_000_200,1_000_200)
+        self.assertEqual(out["status"],"FORWARD_WATCH_NOT_FILL")
+        self.assertEqual(out["trade_status"],"ZERO_ORDERS_NO_PAPER_FILL")
+        self.assertFalse(out["owner_eligible"])
+        self.assertEqual(D(out["four_taker_fees_usdt"]),D(out["four_taker_fees_usdt"]))
+
+    def test_gate_future_levels_converted_by_contract_multiplier(self):
+        lv=f.levels({"bids":[{"p":"2","s":3},{"p":"1.9","s":10}]},True,"bids")
+        self.assertEqual(f.walk(lv,D("40"),D("10")),D("3")*D("10")*D("2")+D("10")*D("1.9"))
+
+    def test_reject_less_than_contract_min_size(self):
+        c=contract()
+        c["order_size_min"]=1000
+        out=f.economic(spot_book(),fut_book(),c,[],1_000_200,1_000_200)
+        self.assertEqual(out["status"],"BELOW_MIN_CONTRACTS")
+
+if __name__=="__main__":unittest.main()
