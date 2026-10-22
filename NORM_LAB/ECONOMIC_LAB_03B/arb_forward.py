@@ -175,8 +175,10 @@ def snapshot(workers=9):
     return {
         "time_utc_ms":now_ms(), "valid_books":len(books), "errors":errors,
         "paired_routes":len(routes), "gross_positive":sum(dec(r["gross_usdt"])>0 for r in routes),
+        "positive_after_taker_before_rebalancing":sum(dec(r["gross_usdt"])-dec(r["trade_fees_usdt"])>0 for r in routes),
         "positive_after_costs":sum(dec(r["net_scenario_usdt"])>0 for r in routes),
-        "best_routes":routes[:8]
+        "best_gross_route":max(routes,key=lambda r:dec(r["gross_usdt"])) if routes else None,
+        "best_routes":routes[:4]
     }, routes
 
 def key(r):
@@ -191,7 +193,10 @@ def capture(seconds, interval):
     unique_positive = set()
     while time.monotonic() - start < seconds and len(summaries) < 16:
         overview, routes = snapshot()
-        summaries.append({k:v for k,v in overview.items() if k!="best_routes"})
+        best = overview["best_routes"][0] if overview["best_routes"] else None
+        summaries.append({**{k:v for k,v in overview.items() if k!="best_routes"},
+                          "best_net_route":best,
+                          "best_net_gap_bp_linked":str(max(dec(0),-dec(best["net_scenario_usdt"]))/dec(best["linked_usdt_equivalent"])*10000) if best else None})
         bykey = {key(r):r for r in routes}
         for k, previous in list(pending.items()):
             latest = bykey.get(k)
