@@ -20,7 +20,7 @@ concurrency:
 jobs:
   paired-public-observation:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     defaults:
       run:
         working-directory: NORM_LAB/ECONOMIC_LAB_03B
@@ -36,6 +36,8 @@ jobs:
           python-version: '3.12'
       - name: Test paired mechanism and no-orders gates
         run: python -m unittest discover -s tests -p 'test_arb_forward.py' -v
+      - name: Test M2 spot-perpetual funding gates
+        run: python -m unittest discover -s tests -p 'test_funding_gate.py' -v
       - name: Observe independent exchange events for 90 seconds
         env:
           REPORT_03B: ${{ runner.temp }}/norm03b_m4_forward_aggregate.json
@@ -58,11 +60,26 @@ jobs:
           if valid == 0:
               raise SystemExit("No usable live public data; no claims of working collector")
           PY
+      - name: Evaluate public same-venue funding and historical settlements (no orders)
+        env:
+          REPORT_M2: ${{ runner.temp }}/norm03b_m2_funding_aggregate.json
+        run: |
+          set -u
+          python funding_gate.py --out "$REPORT_M2" || echo '{"status":"DATA_BLOCKED","schema":"NORM03B_M2_GATE_FUNDING_FORWARD_READONLY_V1","real_orders":0,"paper_fills":0}' > "$REPORT_M2"
+          python - <<'PY'
+          import os,json
+          r=json.load(open(os.environ["REPORT_M2"],encoding="utf-8"))
+          print(json.dumps({k:r.get(k) for k in ["status","all_perpetuals","all_spots","screened_positive_rate_and_matching_pair","forward_watches","positive_projected_one_payment_after_all_exit_costs","positive_historic_11_refund_of_current_liquidation","paper_fills","real_orders"]},sort_keys=True))
+          if r.get("real_orders",0)!=0 or r.get("paper_fills",0)!=0:
+              raise SystemExit("NO_ORDERS_INVARIANT_BROKEN")
+          PY
       - name: Upload sanitized aggregate only
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: NORM03B_PAIR_FORWARD_PUBLIC_SUMMARY
-          path: ${{ runner.temp }}/norm03b_m4_forward_aggregate.json
+          path: |
+            ${{ runner.temp }}/norm03b_m4_forward_aggregate.json
+            ${{ runner.temp }}/norm03b_m2_funding_aggregate.json
           retention-days: 7
           if-no-files-found: warn
