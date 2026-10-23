@@ -30,6 +30,7 @@ ISS = (
  "marketdata.columns=SECID,BID,OFFER,UPDATETIME,SYSTIME&limit=1000"
 )
 PAGE = "https://www.moex.com/ru/derivatives/spreads/calendar-spreads.aspx"
+ALT_PAGE = "https://www.moex.com/ru/spreads"
 DOC = "https://www.moex.com/files/4h3j47jf4g2dnswvk6fb4ggfcc"
 QUOTE_RE = re.compile(
  r'<td nowrap="nowrap">([^<]+)</td><td>([^<]+)</td><td>([^<]+)</td><td>([^<]+)</td>'
@@ -50,7 +51,7 @@ def d(value):
 
 
 def fetch(url):
-    if url not in {ISS, PAGE}:
+    if url not in {ISS, PAGE, ALT_PAGE}:
         raise ValueError("unexpected source")
     req = Request(url, headers={"User-Agent": "NORM03B-MOEX-M1/1", "Accept": "application/json,text/html"}, method="GET")
     with urlopen(req, timeout=15) as res:
@@ -272,7 +273,20 @@ def main():
     ns=arg.parse_args()
     iss, h1=fetch(ISS)
     page,h2=fetch(PAGE)
+    parsed=native_quotes(page)
+    html_source=PAGE
+    fallback_digest=None
+    if not parsed:
+        alt,fallback_digest=fetch(ALT_PAGE)
+        if native_quotes(alt):
+            page=alt
+            html_source=ALT_PAGE
     report=analyse(json.loads(iss),page)
+    report["source_html"] = html_source
+    report["source_data_quality"] = ("SOURCE_HTML_EMPTY_NO_NATIVE_QUOTES"
+        if not native_quotes(page) else "UNSTAMPED_HTML_QUOTES")
+    if not native_quotes(page):
+        report["status"]="DATA_UNAVAILABLE_NATIVE_SPREAD_HTML"
     today=datetime.now(timezone.utc).date().isoformat()
     listing_checks=[]
     for indication in report.get("best_indications",[]):
@@ -285,7 +299,7 @@ def main():
         listing_checks.append(listing["state"])
     report["native_iss_active_after_fee_only_indications"]=listing_checks.count("ISS_ACTIVE")
     report["native_iss_reported_inactive_fee_only_indications"]=listing_checks.count("ISS_REPORTED_INACTIVE")
-    report["source_sha256"]={"public_iss":h1,"native_web":h2}
+    report["source_sha256"]={"public_iss":h1,"native_web":h2,"alt_web":fallback_digest}
     ns.out.parent.mkdir(parents=True,exist_ok=True)
     ns.out.write_text(json.dumps(report,indent=2,ensure_ascii=False),encoding="utf-8")
     print(json.dumps({x:report[x] for x in [
