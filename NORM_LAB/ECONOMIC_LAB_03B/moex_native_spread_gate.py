@@ -220,6 +220,52 @@ def analyse(future, page):
     }
 
 
+
+def native_listing_state(rows, utc_date):
+    """Official MOEX RFUD instrument listing gate, independent of HTML quote.
+
+    The API can lag its web HTML page; an inactive flag is decisive for
+    rejection of a trade inference, not definitive proof the contract vanished.
+    """
+    if not isinstance(rows, list) or not rows:
+        return "NOT_LISTED_IN_ISS"
+    rfud = [x for x in rows if x.get("boardid")=="RFUD"]
+    if len(rfud)!=1:
+        return "RFUD_MISSING_OR_AMBIGUOUS"
+    x=rfud[0]
+    if x.get("is_traded") != 1:
+        return "ISS_REPORTED_INACTIVE"
+    valid_till=x.get("listed_till")
+    if not isinstance(valid_till,str) or valid_till < utc_date:
+        return "EXPIRED_OR_UNVERIFIED_LISTING_DATE"
+    return "ISS_ACTIVE"
+
+def verify_native_listing(near_code, far_code, utc_date):
+    if (not re.fullmatch(r"[A-Za-z0-9]{2,12}",near_code) or
+        not re.fullmatch(r"[A-Za-z0-9]{2,12}",far_code)):
+        return {"state":"INVALID_SYMBOLS","source_sha256":None}
+    code=near_code+far_code
+    url=("https://iss.moex.com/iss/securities/"+code+
+         ".json?iss.meta=off&iss.only=boards&"
+         "boards.columns=secid,boardid,is_traded,listed_from,listed_till")
+    try:
+        req=Request(url,headers={"User-Agent":"NORM03B-MOEX-M1/1",
+              "Accept":"application/json"},method="GET")
+        with urlopen(req,timeout=9) as res:
+            if res.status!=200:
+                return {"state":"HTTP_NOT_OK","source_sha256":None}
+            buf=res.read(15001)
+        if len(buf)>15000:
+            return {"state":"OVERSIZE","source_sha256":None}
+        j=json.loads(buf)
+        rows=list(table_rows(j["boards"]))
+        return {"state":native_listing_state(rows,utc_date),
+            "source_sha256":hashlib.sha256(buf).hexdigest(),
+            "rows":rows[:2]}
+    except (OSError,ValueError,TypeError,KeyError,IndexError):
+        return {"state":"ISS_LISTING_UNAVAILABLE","source_sha256":None}
+
+
 def main():
     arg=argparse.ArgumentParser()
     arg.add_argument("--out",type=Path,required=True)
@@ -227,6 +273,18 @@ def main():
     iss, h1=fetch(ISS)
     page,h2=fetch(PAGE)
     report=analyse(json.loads(iss),page)
+    today=datetime.now(timezone.utc).date().isoformat()
+    listing_checks=[]
+    for indication in report.get("best_indications",[]):
+        listing=verify_native_listing(indication["near_contract"],
+                                       indication["far_contract"],today)
+        indication["native_iss_board_status"]=listing["state"]
+        indication["native_iss_listing_source_sha256"]=listing["source_sha256"]
+        indication["native_iss_listing_detail"]=listing.get("rows",[])
+        indication["portfolio_executable"]=False
+        listing_checks.append(listing["state"])
+    report["native_iss_active_after_fee_only_indications"]=listing_checks.count("ISS_ACTIVE")
+    report["native_iss_reported_inactive_fee_only_indications"]=listing_checks.count("ISS_REPORTED_INACTIVE")
     report["source_sha256"]={"public_iss":h1,"native_web":h2}
     ns.out.parent.mkdir(parents=True,exist_ok=True)
     ns.out.write_text(json.dumps(report,indent=2,ensure_ascii=False),encoding="utf-8")
