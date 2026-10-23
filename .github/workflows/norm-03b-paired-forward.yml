@@ -40,6 +40,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_funding_gate.py' -v
       - name: Test M1 native-vs-synthetic MOEX calendar spreads
         run: python -m unittest discover -s tests -p 'test_moex_native_spread_gate.py' -v
+      - name: Test M8 MOEX RUB stock-spot and future cash carry
+        run: python -m unittest discover -s tests -p 'test_moex_rub_cash_carry.py' -v
       - name: Test M7 three-leg triangular arbitrage
         run: python -m unittest discover -s tests -p 'test_cex_triangle_gate.py' -v
       - name: Observe independent exchange events for 90 seconds
@@ -115,11 +117,29 @@ jobs:
               "positive_post_fees_sum":sum(x.get("positive_after_3_taker_fees_and_lot_rounding",0) for x in snapshots),
               "later_quote_positive":len(r.get("later_independent_positive_quote_witnesses",[])),
               "conditional_regional_fee_positive":sum(x.get("regional_promo_positive_quote_screens",0) for x in snapshots),
+              "positive_zero_fee_gross":sum(x.get("positive_without_taker_fees_after_bid_ask_and_lots",0) for x in snapshots),
+              "best_uniform_fee_bp_per_leg":max((float(x["best_uniform_fee_frontier"][0]["uniform_fee_break_even_bp_per_leg"]) for x in snapshots if x.get("best_uniform_fee_frontier")),default=None),
               "conditional_promo_owner_verified":r.get("regional_fee_owner_eligibility_verified"),
               "real_orders":r.get("real_orders",0),"paper_fills":r.get("paper_fills",0)
           },sort_keys=True))
           if r.get("real_orders",0)!=0 or r.get("paper_fills",0)!=0:
               raise SystemExit("M7_NO_ORDERS_INVARIANT_BROKEN")
+          PY
+      - name: Evaluate M8 MOEX ruble cash-and-carry (no orders)
+        env:
+          REPORT_M8: ${{ runner.temp }}/norm03b_m8_rub_carry_aggregate.json
+        run: |
+          set -u
+          python moex_rub_cash_carry.py --out "$REPORT_M8" || echo '{"schema":"NORM03B_M8_MOEX_RUB_SPOT_FUTURES_CASH_CARRY_READONLY_V1","status":"DATA_BLOCKED","paper_fills":0,"real_orders":0}' > "$REPORT_M8"
+          python - <<'PY'
+          import os,json
+          r=json.load(open(os.environ["REPORT_M8"],encoding="utf-8"))
+          names=["total_futures","total_tqbr_shares","valid_rub_financeable_constructions",
+                 "false_underlying_collisions","positive_14pct_capital_cost",
+                 "positive_18pct_capital_cost","paper_fills","real_orders","status"]
+          print(json.dumps({x:r.get(x) for x in names},sort_keys=True))
+          if r.get("real_orders",0)!=0 or r.get("paper_fills",0)!=0:
+              raise SystemExit("M8_NO_ORDERS_INVARIANT_BROKEN")
           PY
       - name: Upload sanitized aggregate only
         if: always()
@@ -131,5 +151,6 @@ jobs:
             ${{ runner.temp }}/norm03b_m2_funding_aggregate.json
             ${{ runner.temp }}/norm03b_m1_moex_spread_aggregate.json
             ${{ runner.temp }}/norm03b_m7_cex_triangle_aggregate.json
+            ${{ runner.temp }}/norm03b_m8_rub_carry_aggregate.json
           retention-days: 7
           if-no-files-found: warn
