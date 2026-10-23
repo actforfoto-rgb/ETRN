@@ -176,7 +176,7 @@ def uniform_fee_breakeven(path, markets, notional):
     if pnl0<=0:
         return None
     low=Decimal(0)
-    high=Decimal("0.001")
+    high=Decimal("0.02")  # 2% per leg hard upper limit for fee sensitivity
     for _ in range(24):
         mid=(low+high)/2
         result=evaluate(path,markets,notional,{h[2]:mid for h in path})
@@ -189,6 +189,7 @@ def uniform_fee_breakeven(path, markets, notional):
         "notional_usdt":str(notional),
         "zero_fee_gross_net_usdt_after_lot_round":str(pnl0),
         "uniform_fee_break_even_bp_per_leg":str(low*10000),
+        "break_even_is_lower_bound_due_to_2pct_cap":low>=Decimal("0.01999999"),
         "default_fee_bp_per_leg":str(TAKER_FEE*10000),
         "owner_fee_verified":False,
         "status":"THEORETICAL_FEE_FRONTIER_NO_FILL"
