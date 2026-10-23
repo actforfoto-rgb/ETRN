@@ -88,7 +88,10 @@ jobs:
           r=json.load(open(os.environ["REPORT_M1"],encoding="utf-8"))
           names=["status","number_of_futures","number_of_native_spread_html_quotes",
                  "matched_native_vs_synthetic_comparisons","gross_apparent_crosses",
-                 "exchange_fee_only_positive_indications","paper_fills","real_orders"]
+                 "exchange_fee_only_positive_indications",
+                 "native_iss_active_after_fee_only_indications",
+                 "native_iss_reported_inactive_fee_only_indications",
+                 "paper_fills","real_orders"]
           print(json.dumps({k:r.get(k) for k in names},sort_keys=True))
           if r.get("real_orders",0)!=0 or r.get("paper_fills",0)!=0:
               raise SystemExit("M1_NO_ORDERS_INVARIANT_BROKEN")
