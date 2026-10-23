@@ -97,6 +97,16 @@ class Triangle(unittest.TestCase):
         l=[{"instType":"SPOT","state":"suspend","instId":"A-USDT","baseCcy":"A","quoteCcy":"USDT","minSz":"0.01","lotSz":"0.001"}]
         self.assertEqual(m.instruments_map(l),{})
 
+    def test_regional_fee_sensitivity_not_a_fill(self):
+        self.assertEqual(m.REGIONAL_PROMO_SCENARIO["USDC-USDT"],D("0"))
+        self.assertEqual(m.REGIONAL_PROMO_SCENARIO["USDG-USDT"],D("0.0004"))
+        mk=triangle()
+        path=next(q for q in m.triangles(mk) if q[0][1]=="A")
+        default=m.evaluate(path,mk,"100")
+        region=m.evaluate(path,mk,"100",{"A-USDT":D("0")})
+        self.assertGreater(D(region["net_usdt_conservative"]),D(default["net_usdt_conservative"]))
+        self.assertEqual(region["paper_fills"],0)
+
     def test_large_profit_scenario_is_still_not_fill(self):
         mk=triangle()
         path=next(p for p in m.triangles(mk) if p[0][1]=="A")
