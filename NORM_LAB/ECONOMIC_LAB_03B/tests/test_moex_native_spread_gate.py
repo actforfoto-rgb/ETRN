@@ -74,6 +74,15 @@ class M1Tests(unittest.TestCase):
         self.assertEqual(q["BRM-11.26-12.26"]["bid"],D("-4.6"))
         self.assertEqual(q["BRM-11.26-12.26"]["ask"],D("-4.51"))
 
+    def test_native_iss_tradability(self):
+        current=[{"boardid":"RFUD","is_traded":1,"listed_till":"2026-10-23"}]
+        yesterday=[{"boardid":"RFUD","is_traded":0,"listed_till":"2026-10-22"}]
+        expired=[{"boardid":"RFUD","is_traded":1,"listed_till":"2026-10-22"}]
+        self.assertEqual(g.native_listing_state(current,"2026-10-23"),"ISS_ACTIVE")
+        self.assertEqual(g.native_listing_state(yesterday,"2026-10-23"),"ISS_REPORTED_INACTIVE")
+        self.assertEqual(g.native_listing_state(expired,"2026-10-23"),"EXPIRED_OR_UNVERIFIED_LISTING_DATE")
+        self.assertEqual(g.native_listing_state([],"2026-10-23"),"NOT_LISTED_IN_ISS")
+
     def test_no_trade_account_always(self):
         a=future("NGZ6","NG-12.26","NG",7310.12,.001,8.11255,3.91)
         b=future("NGF7","NG-1.27","NG",7216.24,.001,8.11255,3.60)
