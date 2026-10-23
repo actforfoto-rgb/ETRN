@@ -38,6 +38,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_arb_forward.py' -v
       - name: Test M2 spot-perpetual funding gates
         run: python -m unittest discover -s tests -p 'test_funding_gate.py' -v
+      - name: Test M1 native-vs-synthetic MOEX calendar spreads
+        run: python -m unittest discover -s tests -p 'test_moex_native_spread_gate.py' -v
       - name: Observe independent exchange events for 90 seconds
         env:
           REPORT_03B: ${{ runner.temp }}/norm03b_m4_forward_aggregate.json
@@ -75,6 +77,22 @@ jobs:
           if r.get("real_orders",0)!=0 or r.get("paper_fills",0)!=0:
               raise SystemExit("NO_ORDERS_INVARIANT_BROKEN")
           PY
+      - name: Evaluate MOEX native vs synthetic spread (indicative only)
+        env:
+          REPORT_M1: ${{ runner.temp }}/norm03b_m1_moex_spread_aggregate.json
+        run: |
+          set -u
+          python moex_native_spread_gate.py --out "$REPORT_M1" || echo '{"schema":"NORM03B_M1_MOEX_NATIVE_VS_SYNTHETIC_READONLY_V1","status":"DATA_BLOCKED","paper_fills":0,"real_orders":0,"virtual_rub_equity":"50000"}' > "$REPORT_M1"
+          python - <<'PY'
+          import os,json
+          r=json.load(open(os.environ["REPORT_M1"],encoding="utf-8"))
+          names=["status","number_of_futures","number_of_native_spread_html_quotes",
+                 "matched_native_vs_synthetic_comparisons","gross_apparent_crosses",
+                 "exchange_fee_only_positive_indications","paper_fills","real_orders"]
+          print(json.dumps({k:r.get(k) for k in names},sort_keys=True))
+          if r.get("real_orders",0)!=0 or r.get("paper_fills",0)!=0:
+              raise SystemExit("M1_NO_ORDERS_INVARIANT_BROKEN")
+          PY
       - name: Upload sanitized aggregate only
         if: always()
         uses: actions/upload-artifact@v4
@@ -83,5 +101,6 @@ jobs:
           path: |
             ${{ runner.temp }}/norm03b_m4_forward_aggregate.json
             ${{ runner.temp }}/norm03b_m2_funding_aggregate.json
+            ${{ runner.temp }}/norm03b_m1_moex_spread_aggregate.json
           retention-days: 7
           if-no-files-found: warn
