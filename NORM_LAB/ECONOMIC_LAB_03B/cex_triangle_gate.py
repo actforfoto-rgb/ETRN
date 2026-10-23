@@ -161,6 +161,39 @@ def evaluate(path,markets,notional,fee_by_symbol=None):
             "requires_three_fill_confirmation":True,
             "real_orders":0,"paper_fills":0}
 
+
+def uniform_fee_breakeven(path, markets, notional):
+    """The greatest *equal taker fee on each leg* allowing >0 final USDT.
+
+    This is a mathematical counterfactual, not a personalized fee tier or
+    executable IOC. Exact lot-rounding and top-level size are re-evaluated.
+    """
+    fees0={hop[2]:Decimal("0") for hop in path}
+    zerocost=evaluate(path,markets,notional,fees0)
+    if zerocost is None:
+        return None
+    pnl0=num(zerocost["net_usdt_conservative"])
+    if pnl0<=0:
+        return None
+    low=Decimal(0)
+    high=Decimal("0.001")
+    for _ in range(24):
+        mid=(low+high)/2
+        result=evaluate(path,markets,notional,{h[2]:mid for h in path})
+        if result is not None and num(result["net_usdt_conservative"])>0:
+            low=mid
+        else:
+            high=mid
+    return {
+        "route": [(h[2],h[3]) for h in path],
+        "notional_usdt":str(notional),
+        "zero_fee_gross_net_usdt_after_lot_round":str(pnl0),
+        "uniform_fee_break_even_bp_per_leg":str(low*10000),
+        "default_fee_bp_per_leg":str(TAKER_FEE*10000),
+        "owner_fee_verified":False,
+        "status":"THEORETICAL_FEE_FRONTIER_NO_FILL"
+    }
+
 def one_scan():
     with ThreadPoolExecutor(max_workers=2) as pool:
         future_def=pool.submit(fetch,INSTRUMENTS)
@@ -172,16 +205,21 @@ def one_scan():
     paths=triangles(markets)
     valid=[]
     regional=[]
+    fee_frontier=[]
     for path in paths:
         for amount in AMOUNTS:
             r=evaluate(path,markets,amount)
             if r is not None:valid.append(r)
+            zero_all=uniform_fee_breakeven(path,markets,amount)
+            if zero_all is not None:
+                fee_frontier.append(zero_all)
             alternative=evaluate(path,markets,amount,REGIONAL_PROMO_SCENARIO)
             if alternative is not None and num(alternative["net_usdt_conservative"])>0:
                 alternative["fee_scenario"]="JURISDICTION_CONDITIONAL_NOT_OWNER_VERIFIED"
                 regional.append(alternative)
     valid.sort(key=lambda r:num(r["net_usdt_conservative"]),reverse=True)
     regional.sort(key=lambda r:num(r["net_usdt_conservative"]),reverse=True)
+    fee_frontier.sort(key=lambda r:num(r["uniform_fee_break_even_bp_per_leg"]),reverse=True)
     return {
         "received_at_ms":recv,"listed_live_instruments":len(definitions),
         "fresh_usable_ticker_markets":len(markets),
@@ -194,6 +232,9 @@ def one_scan():
         "regional_promo_positive_quote_screens":len(regional),
         "regional_promo_best_quote_screens":regional[:5],
         "regional_promo_owner_eligible":False,
+        "positive_without_taker_fees_after_bid_ask_and_lots":len(fee_frontier),
+        "best_uniform_fee_frontier":fee_frontier[:6],
+        "fee_frontier_is_not_a_fill":True,
         "digest_instruments":def_digest,"digest_tickers":tick_digest},valid
 
 def track(seconds,interval):
