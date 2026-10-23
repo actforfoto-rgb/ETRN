@@ -107,6 +107,21 @@ class Triangle(unittest.TestCase):
         self.assertGreater(D(region["net_usdt_conservative"]),D(default["net_usdt_conservative"]))
         self.assertEqual(region["paper_fills"],0)
 
+    def test_fee_frontier_positive_and_decreasing(self):
+        markets=triangle()
+        path=next(p for p in m.triangles(markets) if p[0][1]=="A")
+        f=m.uniform_fee_breakeven(path,markets,"100")
+        self.assertIsNotNone(f)
+        self.assertGreater(D(f["zero_fee_gross_net_usdt_after_lot_round"]),0)
+        self.assertGreater(D(f["uniform_fee_break_even_bp_per_leg"]),D("10"))
+        self.assertFalse(f["owner_fee_verified"])
+
+    def test_fee_frontier_no_hypothetical_profit(self):
+        markets=triangle()
+        markets["B-USDT"]["bid"]=D("18")
+        path=next(p for p in m.triangles(markets) if p[0][1]=="A")
+        self.assertIsNone(m.uniform_fee_breakeven(path,markets,"100"))
+
     def test_large_profit_scenario_is_still_not_fill(self):
         mk=triangle()
         path=next(p for p in m.triangles(mk) if p[0][1]=="A")
