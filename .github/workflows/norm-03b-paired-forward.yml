@@ -114,6 +114,8 @@ jobs:
               "full_quote_cycles_sum":sum(x.get("fully_priced_roundtrips",0) for x in snapshots),
               "positive_post_fees_sum":sum(x.get("positive_after_3_taker_fees_and_lot_rounding",0) for x in snapshots),
               "later_quote_positive":len(r.get("later_independent_positive_quote_witnesses",[])),
+              "conditional_regional_fee_positive":sum(x.get("regional_promo_positive_quote_screens",0) for x in snapshots),
+              "conditional_promo_owner_verified":r.get("regional_fee_owner_eligibility_verified"),
               "real_orders":r.get("real_orders",0),"paper_fills":r.get("paper_fills",0)
           },sort_keys=True))
           if r.get("real_orders",0)!=0 or r.get("paper_fills",0)!=0:
