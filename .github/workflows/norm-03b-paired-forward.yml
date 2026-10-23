@@ -20,7 +20,7 @@ concurrency:
 jobs:
   paired-public-observation:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: NORM_LAB/ECONOMIC_LAB_03B
@@ -40,6 +40,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_funding_gate.py' -v
       - name: Test M1 native-vs-synthetic MOEX calendar spreads
         run: python -m unittest discover -s tests -p 'test_moex_native_spread_gate.py' -v
+      - name: Test M7 three-leg triangular arbitrage
+        run: python -m unittest discover -s tests -p 'test_cex_triangle_gate.py' -v
       - name: Observe independent exchange events for 90 seconds
         env:
           REPORT_03B: ${{ runner.temp }}/norm03b_m4_forward_aggregate.json
@@ -96,6 +98,27 @@ jobs:
           if r.get("real_orders",0)!=0 or r.get("paper_fills",0)!=0:
               raise SystemExit("M1_NO_ORDERS_INVARIANT_BROKEN")
           PY
+      - name: Observe M7 same-exchange triangular arbitrage (45 seconds)
+        env:
+          REPORT_M7: ${{ runner.temp }}/norm03b_m7_cex_triangle_aggregate.json
+        run: |
+          set -u
+          python cex_triangle_gate.py --seconds 44 --interval 8 --out "$REPORT_M7" || echo '{"schema":"NORM03B_OKX_M7_SAME_VENUE_TRIANGLE_READONLY_V1","mode":"DATA_BLOCKED","paper_fills":0,"real_orders":0,"snapshots":[]}' > "$REPORT_M7"
+          python - <<'PY'
+          import os,json
+          r=json.load(open(os.environ["REPORT_M7"],encoding="utf-8"))
+          snapshots=r.get("snapshots",[])
+          print(json.dumps({
+              "mode":r.get("mode"),"snapshots":len(snapshots),
+              "triangle_paths_max":max((x.get("possible_triangle_paths",0) for x in snapshots),default=0),
+              "full_quote_cycles_sum":sum(x.get("fully_priced_roundtrips",0) for x in snapshots),
+              "positive_post_fees_sum":sum(x.get("positive_after_3_taker_fees_and_lot_rounding",0) for x in snapshots),
+              "later_quote_positive":len(r.get("later_independent_positive_quote_witnesses",[])),
+              "real_orders":r.get("real_orders",0),"paper_fills":r.get("paper_fills",0)
+          },sort_keys=True))
+          if r.get("real_orders",0)!=0 or r.get("paper_fills",0)!=0:
+              raise SystemExit("M7_NO_ORDERS_INVARIANT_BROKEN")
+          PY
       - name: Upload sanitized aggregate only
         if: always()
         uses: actions/upload-artifact@v4
@@ -105,5 +128,6 @@ jobs:
             ${{ runner.temp }}/norm03b_m4_forward_aggregate.json
             ${{ runner.temp }}/norm03b_m2_funding_aggregate.json
             ${{ runner.temp }}/norm03b_m1_moex_spread_aggregate.json
+            ${{ runner.temp }}/norm03b_m7_cex_triangle_aggregate.json
           retention-days: 7
           if-no-files-found: warn
