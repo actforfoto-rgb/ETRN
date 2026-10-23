@@ -24,6 +24,16 @@ INSTRUMENTS = ROOT + "/public/instruments?instType=SPOT"
 START_CURRENCY = "USDT"
 AMOUNTS = ("100", "250")
 TAKER_FEE = Decimal("0.001")  # 0.10% default-cost stress; client/account not known
+# Conditional scenario only: some jurisdictions have 0% DAI/PYUSD/USDC USDT fees;
+# OKX announced 0.04% taker on USDG/RLUSD-USDT from 22 June 2026.
+# Does NOT imply availability for a resident of Russia or owner's account.
+REGIONAL_PROMO_SCENARIO={
+    "DAI-USDT": Decimal("0"),
+    "PYUSD-USDT": Decimal("0"),
+    "USDC-USDT": Decimal("0"),
+    "USDG-USDT": Decimal("0.0004"),
+    "RLUSD-USDT": Decimal("0.0004")
+}
 CLOCK_MAX_AGE_MS = 5000
 CLOCK_MAX_FUTURE_MS = 1100
 MAX_TRIANGLE_SKEW_MS = 1500
@@ -124,20 +134,22 @@ def hop(m,source,amount,side,fee=TAKER_FEE):
         return quantity*(1-fee)
     raise ValueError("INVALID_HOP")
 
-def evaluate(path,markets,notional):
+def evaluate(path,markets,notional,fee_by_symbol=None):
     current=num(notional)
     stamps=[]
     markets_in_order=[]
     for src,dst,symbol,side in path:
         m=markets.get(symbol)
         if m is None:return None
-        amount=hop(m,src,current,side)
+        assumed_fee=fee_by_symbol.get(symbol,TAKER_FEE) if fee_by_symbol is not None else TAKER_FEE
+        amount=hop(m,src,current,side,fee=assumed_fee)
         if amount is None or amount<=0:return None
         current=amount
         stamps.append(m["exchange_ms"])
         markets_in_order.append({"symbol":symbol,"side":side,
                                  "source":src,"destination":dst,
-                                 "exchange_ms":m["exchange_ms"]})
+                                 "exchange_ms":m["exchange_ms"],
+                                 "fee_assumed":str(assumed_fee)})
     if max(stamps)-min(stamps)>MAX_TRIANGLE_SKEW_MS:return None
     return {"starting_usdt":str(notional),
             "end_usdt_conservative":str(current),
@@ -159,11 +171,17 @@ def one_scan():
     markets,bad=quote_map(definitions,ticks,recv)
     paths=triangles(markets)
     valid=[]
+    regional=[]
     for path in paths:
         for amount in AMOUNTS:
             r=evaluate(path,markets,amount)
             if r is not None:valid.append(r)
+            alternative=evaluate(path,markets,amount,REGIONAL_PROMO_SCENARIO)
+            if alternative is not None and num(alternative["net_usdt_conservative"])>0:
+                alternative["fee_scenario"]="JURISDICTION_CONDITIONAL_NOT_OWNER_VERIFIED"
+                regional.append(alternative)
     valid.sort(key=lambda r:num(r["net_usdt_conservative"]),reverse=True)
+    regional.sort(key=lambda r:num(r["net_usdt_conservative"]),reverse=True)
     return {
         "received_at_ms":recv,"listed_live_instruments":len(definitions),
         "fresh_usable_ticker_markets":len(markets),
@@ -173,6 +191,9 @@ def one_scan():
         "positive_after_3_taker_fees_and_lot_rounding":
             sum(num(x["net_usdt_conservative"])>0 for x in valid),
         "top_roundtrips":valid[:7],
+        "regional_promo_positive_quote_screens":len(regional),
+        "regional_promo_best_quote_screens":regional[:5],
+        "regional_promo_owner_eligible":False,
         "digest_instruments":def_digest,"digest_tickers":tick_digest},valid
 
 def track(seconds,interval):
@@ -217,6 +238,8 @@ def track(seconds,interval):
        "negative_or_gone_after_next_quotes":rejected,
        "pending_at_end":len(pending),"snapshots":overviews,
        "fees_each_leg":str(TAKER_FEE),
+       "regional_promo_sensitivity_only":{k:str(v) for k,v in REGIONAL_PROMO_SCENARIO.items()},
+       "regional_fee_owner_eligibility_verified":False,
        "not_atomic":True,"orderbook_depth_limited":"TICKER_BEST_BID_ASK_ONLY",
        "owner_exchange_access_verified":False,
        "rub_to_usdt_conversion_verified":False,
@@ -240,6 +263,7 @@ def main():
         "most_valid_cycles":max((s.get("fully_priced_roundtrips",0) for s in r["snapshots"]),default=0),
         "all_snapshot_after_cost_signals":sum(s.get("positive_after_3_taker_fees_and_lot_rounding",0) for s in r["snapshots"]),
         "prospective_price_witnesses":len(r["later_independent_positive_quote_witnesses"]),
+        "conditional_promo_screen_positive":sum(s.get("regional_promo_positive_quote_screens",0) for s in r["snapshots"]),
         "virtual_fills":r["paper_fills"],"real_orders":r["real_orders"]}))
     return 0
 
