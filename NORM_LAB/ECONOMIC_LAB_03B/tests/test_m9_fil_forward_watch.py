@@ -57,6 +57,42 @@ class Validation(unittest.TestCase):
   a=anchor()
   x=m.hypothetical_exit(a,book(".988",".989",SOURCE+3000),book(".989",".99",SOURCE+9000),{"pairs":[]})
   self.assertEqual(x["state"],"DESYNCHRONIZED_MARK")
+ def test_post_exit_funding_cannot_be_credited_against_old_book(self):
+  a=anchor()
+  a["first_observed_utc_ms"]=SOURCE
+  ib=book(".988",".989",SOURCE+3000)
+  lb=book(".989",".990",SOURCE+3200)
+  future=[(SOURCE+4000,".005","-.005")]
+  r=m.hypothetical_exit(a,ib,lb,{"pairs":future},asof_ms=SOURCE+4000)
+  self.assertEqual(r["post_entry_settled_funding_count"],0)
+  self.assertEqual(r["funding_points_excluded_after_exit"],1)
+  self.assertEqual(D(r["post_entry_funding_usdt_proxy"]),D("0"))
+ def test_stale_exit_books_block_mark(self):
+  a=anchor()
+  ib=book(".988",".989",SOURCE+3000)
+  lb=book(".989",".990",SOURCE+3200)
+  r=m.hypothetical_exit(a,ib,lb,{"pairs":[]},asof_ms=SOURCE+23000)
+  self.assertEqual(r["state"],"STALE_OR_FUTURE_EXIT_BOOK")
+ def test_future_dated_exit_books_block_mark(self):
+  a=anchor()
+  ib=book(".988",".989",SOURCE+3000)
+  lb=book(".989",".990",SOURCE+3200)
+  r=m.hypothetical_exit(a,ib,lb,{"pairs":[]},asof_ms=SOURCE+1000)
+  self.assertEqual(r["state"],"STALE_OR_FUTURE_EXIT_BOOK")
+ def test_anchor_timestamp_excludes_pre_signal_settlement(self):
+  a=anchor()
+  a["first_observed_utc_ms"]=SOURCE+4000
+  ib=book(".988",".989",SOURCE+5000)
+  lb=book(".989",".990",SOURCE+5200)
+  r=m.hypothetical_exit(a,ib,lb,{"pairs":[(SOURCE+2000,".001","0")]},asof_ms=SOURCE+5300)
+  self.assertEqual(r["post_entry_settled_funding_count"],0)
+  self.assertEqual(r["funding_points_excluded_pre_anchor"],1)
+ def test_crossed_book_is_not_exit(self):
+  a=anchor()
+  ib=book(".995",".989",SOURCE+3000)
+  lb=book(".989",".990",SOURCE+3200)
+  r=m.hypothetical_exit(a,ib,lb,{"pairs":[]},asof_ms=SOURCE+3500)
+  self.assertEqual(r["state"],"CROSSED_EXIT_BOOK")
  def test_no_real_order_call(self):
   self.assertFalse(hasattr(m,"send_order"))
   self.assertFalse(hasattr(m,"place_order"))
