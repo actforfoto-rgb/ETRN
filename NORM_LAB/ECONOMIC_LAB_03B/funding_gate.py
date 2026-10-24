@@ -222,6 +222,18 @@ def survey(include_fixed_irys=True):
         # IRYS hindsight research is a separate legacy workflow.
         fixed_irys={"status":"OMITTED_IN_PROSPECTIVE_RUN",
                     "paper_fills":0,"real_orders":0}
+    # Independent strict causal replay of ONLY the historically positive
+    # cross-venue spot family. No order, no user account, no first-look hindsight.
+    try:
+        from prefunded_spot_pair_gate import observe as observe_prefunded
+        prefunded_strict=observe_prefunded(rounds=2,seconds_between=1)
+    except (OSError,ValueError,TypeError,KeyError,TimeoutError) as exc:
+        prefunded_strict={"schema":"NORM03B_PREFUNDED_SPOT_PAIR_TIME_GATED_V1",
+                          "status":"DATA_BLOCKED","error_class":type(exc).__name__,
+                          "positive_public_quote_screens":0,
+                          "positive_repeated_same_route_and_cap":0,
+                          "real_orders":0,"paper_fills":0,
+                          "virtual_equity_rub":50000}
     return {
         "schema":"NORM03B_M2_GATE_FUNDING_FORWARD_READONLY_V1",
         "source_timestamp_utc_ms":int(time.time()*1000),
@@ -236,6 +248,7 @@ def survey(include_fixed_irys=True):
             for x in watches),
         "results":out,"bulk_source_digest_sha256":[fd,sd],
         "fixed_irys_forward_watch":fixed_irys,
+        "strict_prefunded_crossvenue_spot":prefunded_strict,
         "model_limitations":["current funding estimate may change before settlement",
           "past 11 funding payments predate the observed quote and are not our executed PnL",
           "no proof of real spot/perp simultaneous fills","ticker match is not proof of identical token",
