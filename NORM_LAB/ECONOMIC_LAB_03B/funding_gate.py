@@ -22,6 +22,7 @@ TARGET_USDT=Decimal("100")
 MAX_BOOK_AGE_MS=15000
 MAX_SKEW_MS=3000
 MIN_RATE=Decimal("0.00020")
+MIN_FUNDING_LEAD_MS=30000  # no edge attributed to a settlement arriving too soon to hedge
 NUM_SELECTED=10
 MIN_HISTORY=8
 
@@ -47,14 +48,18 @@ def shortlist(futures,spots):
         pair=r.get("contract","")
         if not isinstance(pair,str) or not PAIR_RE.fullmatch(pair) or pair not in spot: continue
         try:
-            fund=D(r.get("funding_rate","0")); sa=D(spot[pair]["lowest_ask"])
+            rate_next=r.get("funding_rate_next")
+            rate_source="funding_rate_next" if rate_next not in (None,"") else "funding_rate"
+            fund=D(rate_next if rate_source=="funding_rate_next" else r.get("funding_rate","0"))
+            sa=D(spot[pair]["lowest_ask"])
             fb=D(r["highest_bid"]); mult=D(r.get("quanto_multiplier","0"))
             if min(sa,fb,mult)<=0 or fund<MIN_RATE: continue
             ratio=fb/sa
             if ratio<Decimal("0.95") or ratio>Decimal("1.05"): continue
             out.append({"pair":pair,"asset":pair[:-5],"funding_rate":fund,
                         "spot_ask":sa,"future_bid":fb,"multiplier":mult,
-                        "rate_to_spread_score":fund+(ratio-1)})
+                        "rate_to_spread_score":fund+(ratio-1),
+                        "ticker_rate_field":rate_source})
         except (ValueError,KeyError,InvalidOperation,TypeError):continue
     # Rank by potential same-currency entry premium PLUS known next funding rate.
     out.sort(key=lambda r:r["rate_to_spread_score"],reverse=True)
@@ -110,10 +115,22 @@ def economic(book_spot,book_fut,contract,funding_rates,now_ms_spot,now_ms_fut,am
     rate=D(contract.get("funding_rate",0))
     if multiplier<=0 or rate<=0 or contract.get("in_delisting") is not False:
         return None
-    if contract.get("type")!="direct" or int(contract.get("funding_interval",0))<=0:
+    interval=int(contract.get("funding_interval",0))
+    if contract.get("type")!="direct" or interval<=0:
         return None
+    if contract.get("status") not in (None,"trading"):
+        return {"status":"CONTRACT_NOT_TRADING"}
     valid,clock=valid_time(book_spot,book_fut,now_ms_spot,now_ms_fut)
     if not valid:return {"status":"STALE_OR_DESYNCHRONIZED_BOOK","clock":clock}
+    # Public funding is an *indicative* future payment. Do not count one that
+    # is already over or too close for a sequential two-leg hedge. Reject
+    # missing/inconsistent exchange settlement schedules, not the market.
+    next_apply_s=int(D(contract.get("funding_next_apply",0)))
+    funding_lead_ms=next_apply_s*1000-max(now_ms_spot,now_ms_fut)
+    if not MIN_FUNDING_LEAD_MS<=funding_lead_ms<=(interval+60)*1000:
+        return {"status":"FUNDING_SCHEDULE_NOT_ACTIONABLE","clock":clock,
+            "funding_next_apply_utc_s":next_apply_s,
+            "lead_to_funding_ms":funding_lead_ms}
     sas=levels(book_spot,False,"asks"); sbs=levels(book_spot,False,"bids")
     fbs=levels(book_fut,True,"bids"); fas=levels(book_fut,True,"asks")
     if not (sas and sbs and fbs and fas):return {"status":"EMPTY_BOOK","clock":clock}
@@ -152,7 +169,8 @@ def economic(book_spot,book_fut,contract,funding_rates,now_ms_spot,now_ms_fut,am
         "historic_11_same_notional_usdt":str(historical_11_same_notional),
         "historic_11_vs_today_book_close_net_usdt":str(exit_now+historical_11_same_notional),
         "historical_timestamps_utc_s":[x for x,_ in history],
-        "next_scheduled_funding_utc_s":contract.get("funding_next_apply"),
+        "next_scheduled_funding_utc_s":next_apply_s,
+        "lead_to_funding_ms":funding_lead_ms,
         "funding_interval_seconds":contract.get("funding_interval"),
         "clock":clock, "owner_eligible":False,
         "eligibility_reason":"ACCOUNT_AND_RUB_USDT_ROUTE_NOT_VERIFIED",
@@ -175,6 +193,7 @@ def survey():
             econ=economic(so,fu,ct,hist,srecv,frecv)
             out.append({"asset":pick["asset"],"pair":a,
                 "screened_current_rate":str(pick["funding_rate"]),
+                "ticker_rate_field":pick["ticker_rate_field"],
                 "scanned_entry_spread_bp":str((pick["future_bid"]/pick["spot_ask"]-1)*10000),
                 "economic":econ,"source_digests":[sh,fh,ch,hh]})
         except (ValueError,OSError,TypeError,KeyError,IndexError,InvalidOperation) as err:
@@ -197,7 +216,8 @@ def survey():
           "past 11 funding payments predate the observed quote and are not our executed PnL",
           "no proof of real spot/perp simultaneous fills","ticker match is not proof of identical token",
           "no owner account, RUB conversion, futures margin or borrowing permissions validated",
-          "future basis is not guaranteed to converge"],
+          "future basis is not guaranteed to converge",
+          "30s minimum public indicative funding lead is a screening assumption, not guaranteed hedge completion"],
         "virtual_rub_account_unchanged":"50000", "paper_fills":0,"real_orders":0
     }
 
