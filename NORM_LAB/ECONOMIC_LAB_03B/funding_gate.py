@@ -186,7 +186,7 @@ def economic(book_spot,book_fut,contract,funding_rates,now_ms_spot,now_ms_fut,am
         "trade_status":"ZERO_ORDERS_NO_PAPER_FILL"
     }
 
-def survey():
+def survey(include_fixed_irys=True):
     fut,ft,fd=public_json(ROOT+"/futures/usdt/tickers")
     spot,st,sd=public_json(ROOT+"/spot/tickers")
     chosen=shortlist(fut,spot)
@@ -210,12 +210,18 @@ def survey():
     watches=[x for x in out if isinstance(x.get("economic"),dict) and x["economic"].get("status")=="FORWARD_WATCH_NOT_FILL"]
     # Independently revisit the frozen IRYS quote, even after it falls out
     # of the rolling top-10 ranking. Research-only: never create a fill.
-    try:
-        from m2_irys_fixed_watch import observe as fixed_irys_observe
-        fixed_irys=fixed_irys_observe()
-    except (ValueError,OSError,TypeError,KeyError,TimeoutError) as exc:
-        fixed_irys={"status":"DATA_BLOCKED","error_class":type(exc).__name__,
-                    "paper_fills":0,"real_orders":0,"virtual_rub_equity":50000}
+    if include_fixed_irys:
+        try:
+            from m2_irys_fixed_watch import observe as fixed_irys_observe
+            fixed_irys=fixed_irys_observe()
+        except (ValueError,OSError,TypeError,KeyError,TimeoutError) as exc:
+            fixed_irys={"status":"DATA_BLOCKED","error_class":type(exc).__name__,
+                        "paper_fills":0,"real_orders":0,"virtual_rub_equity":50000}
+    else:
+        # R22 must prioritize *fresh* prospective entry quotes. Previous
+        # IRYS hindsight research is a separate legacy workflow.
+        fixed_irys={"status":"OMITTED_IN_PROSPECTIVE_RUN",
+                    "paper_fills":0,"real_orders":0}
     return {
         "schema":"NORM03B_M2_GATE_FUNDING_FORWARD_READONLY_V1",
         "source_timestamp_utc_ms":int(time.time()*1000),
@@ -242,8 +248,9 @@ def survey():
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--out",type=Path,required=True)
+    ap.add_argument("--skip-fixed-irys",action="store_true")
     args=ap.parse_args()
-    report=survey()
+    report=survey(include_fixed_irys=not args.skip_fixed_irys)
     args.out.parent.mkdir(parents=True,exist_ok=True)
     args.out.write_text(json.dumps(report,indent=2,sort_keys=True,ensure_ascii=False),encoding="utf-8")
     print(json.dumps({**{k:report[k] for k in ["all_perpetuals","all_spots","screened_positive_rate_and_matching_pair","forward_watches","positive_projected_one_payment_after_all_exit_costs","positive_historic_11_refund_of_current_liquidation","paper_fills","real_orders"]},
