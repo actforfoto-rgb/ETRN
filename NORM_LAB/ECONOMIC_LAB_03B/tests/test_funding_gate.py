@@ -125,6 +125,37 @@ class FundingGateTests(unittest.TestCase):
             a["first_observed_utc_ms"]+60000)
         self.assertEqual(x,[])
 
+    def test_mark_price_funding_revalues_actual_changing_notional(self):
+        a,sb,fb=self.irys_fixture()
+        st=a["initial_next_payment_utc_s"]
+        payments=[{"settled_utc_ms":st*1000,"realized_rate":"0.01"},
+                  {"settled_utc_ms":(st+14400)*1000,"realized_rate":"-0.002"}]
+        marks=[{"t":st-60,"o":"0.101","h":"0.105","l":"0.095","c":"0.100"},
+               {"t":st+14400-60,"o":"0.101","h":"0.105","l":"0.095","c":"0.100"}]
+        r=irys.mark_replay_from_candles(a,payments,marks)
+        self.assertEqual(r["status"],"COMPLETE_1M_PRE_SETTLEMENT_MARK_PROXY")
+        self.assertEqual(D(r["total_funding_mark_close_proxy_usdt"]),D("0.56"))
+        self.assertEqual(D(r["total_funding_minute_low_bound_proxy_usdt"]),D("0.518"))
+        self.assertEqual(D(r["total_funding_minute_high_bound_proxy_usdt"]),D("0.602"))
+        self.assertTrue(r["not_actual_funding_receipts"])
+
+    def test_mark_price_after_settlement_is_forbidden_lookahead(self):
+        a,sb,fb=self.irys_fixture()
+        st=a["initial_next_payment_utc_s"]
+        payments=[{"settled_utc_ms":st*1000,"realized_rate":"0.01"}]
+        marks=[{"t":st,"o":"0.1","h":"0.12","l":"0.09","c":"0.11"}]
+        r=irys.mark_replay_from_candles(a,payments,marks)
+        self.assertEqual(r["status"],"INCOMPLETE_CANDLE_DATA_NO_ECONOMIC_PROMOTION")
+        self.assertEqual(r["settlements_missing_mark_price"],[st*1000])
+
+    def test_mark_replay_fail_closed_for_bad_ohlc(self):
+        a,sb,fb=self.irys_fixture()
+        st=a["initial_next_payment_utc_s"]
+        payments=[{"settled_utc_ms":st*1000,"realized_rate":"0.01"}]
+        marks=[{"t":st-60,"o":"0.12","h":"0.1","l":"0.09","c":"0.11"}]
+        r=irys.mark_replay_from_candles(a,payments,marks)
+        self.assertEqual(r["status"],"INCOMPLETE_CANDLE_DATA_NO_ECONOMIC_PROMOTION")
+
     def test_irys_contract_identity_and_multiplier_gate(self):
         a,sb,fb=self.irys_fixture()
         ct={"name":"IRYS_USDT","type":"direct","status":"trading",
