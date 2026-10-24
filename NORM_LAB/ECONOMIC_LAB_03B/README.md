@@ -27,3 +27,17 @@ This isolated research branch also contains the newer **M2 spot/perpetual fundin
 - Tests: GitHub workflow 40083327387 attempt 7 **113/113** isolated tests passed in 7 stages; GitHub evidence artifact 12559874528, archive SHA256 `ee5cd027e6d1ffa4e847914dc991263781ad84faf03c08a9281a0043c4dcc8de`. No actual or virtual fills; ruble account 50,000 RUB unchanged.
 - **Decision: IRYS=FRAGILE/HISTORICAL ONLY, NO PROMOTION.** Legal/account eligibility, tariff, margin, partial fills, alternative yield on truly tied capital, true settlement mark, exact conversion and repeatable precommitted entry/exit rule are not established. Never transfer historical model profit to virtual cash or claim a live trade.
 - Research next gate: freeze future entry **and exit rule before the first settlement**; log all qualifying and rejected candidate events, with source hashes and subsequent chronological quotes; require independent repeatable fee/capital-stressed closed proxies before any user-authorized paper/live step. Do not substitute the old IRYS ex-post exit revaluations for that test.
+
+## R22 / 2026-10-24 — precommitted NEXT-signal evidence
+
+New isolated workflow on repository default branch:
+`.github/workflows/norm-03b-r22-funding.yml` (UTC cron `13,43 * * * *`, no live account access, `contents:read/actions:read` only). Its creation has been independently read back; **do not claim scheduled execution until a completed Actions job/artifact is inspected**.
+
+Code: `prospective_funding.py`, `prior_artifact_lookup.py`; deterministic regression tests: `tests/test_prospective_funding.py` (16/16 PASS locally against exact blob-SHA-verified GitHub source). The existing `test_funding_gate.py` imports these tests for future acceptance runs.
+
+- BEFORE first funding settlement: freeze original entry quote, exact matched contract size, full linked-capital scenario, +5 bp per each of 4 legs, 14% annual opportunity cost, positive screen or explicitly labeled negative near-miss control. Compute an immutable SHA256 anchor.
+- Exit is **not discretionary**: take the **first later valid synchronous pair** actually observed at least 60 seconds and no later than 50 minutes after the *precommitted* first settlement. Timeouts and missing books are preserved as MISSED/DATA_UNAVAILABLE, not discarded; a resolved quote never changes on a later run.
+- Actual Gate **settled** rate must match the pre-frozen funding timestamp, with one-minute **PRE-settlement** mark-price proxy; exit is SELL spot BID depth + BUY back perpetual ASK depth. Inexact settlement mark is labeled explicitly, not booked as owner receipt.
+- Every run searches for the prior **completed successful** same-workflow artifact using restricted GitHub Actions READ. The official download-artifact action restores frozen state; state and each anchor are hash-checked. Missing prior evidence after successful predecessor is a **fail-closed chain discontinuity**, not a blank reset.
+- No broker/user credentials or trading calls; no virtual fills; virtual RUB cash and equity remain 50,000 ₽ and PnL zero. Observed futures cash flows are *counterfactual*; positive backtested proxy alone cannot authorize paper or real trading.
+- Any actual task state requires independent verification of first GitHub Actions completion and retained `NORM03B_R22_FUNDING_STATE` artifact. This cloud pipeline is configured but the first scheduled run has not yet been observed at this handoff.
