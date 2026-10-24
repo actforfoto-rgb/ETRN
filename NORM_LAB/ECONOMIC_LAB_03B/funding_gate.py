@@ -48,9 +48,10 @@ def shortlist(futures,spots):
         pair=r.get("contract","")
         if not isinstance(pair,str) or not PAIR_RE.fullmatch(pair) or pair not in spot: continue
         try:
-            rate_next=r.get("funding_rate_next")
-            rate_source="funding_rate_next" if rate_next not in (None,"") else "funding_rate"
-            fund=D(rate_next if rate_source=="funding_rate_next" else r.get("funding_rate","0"))
+            # Gate API currently documents funding_rate as the indicative
+            # funding rate. funding_rate_next is not a documented ticker field.
+            rate_source="funding_rate" if r.get("funding_rate") not in (None,"") else "funding_rate_indicative"
+            fund=D(r.get(rate_source,"0"))
             sa=D(spot[pair]["lowest_ask"])
             fb=D(r["highest_bid"]); mult=D(r.get("quanto_multiplier","0"))
             if min(sa,fb,mult)<=0 or fund<MIN_RATE: continue
@@ -156,6 +157,13 @@ def economic(book_spot,book_fut,contract,funding_rates,now_ms_spot,now_ms_fut,am
     hist_sum=sum((z for _,z in history),Decimal(0))
     historical_11_same_notional=hist_sum*sellperp
     breakeven=((-exit_now)/upcoming) if upcoming>0 else None
+    from execution_stress import evaluation as stress_evaluation
+    projected_stress=stress_evaluation(
+        net_usdt=exit_now+upcoming,
+        leg_turnover_usdt=(buyspot,sellperp,sellspot,coverperp),
+        linked_capital_usdt=buyspot+sellperp,  # full prefunding SCENARIO
+        start_utc_ms=max(now_ms_spot,now_ms_fut),
+        end_utc_ms=next_apply_s*1000)
     return {
         "status":"FORWARD_WATCH_NOT_FILL", "contract":contract["name"],
         "contract_count":contract_count,"qty_base":str(qty),
@@ -165,6 +173,7 @@ def economic(book_spot,book_fut,contract,funding_rates,now_ms_spot,now_ms_fut,am
         "immediate_liquidation_net_usdt":str(exit_now),
         "quoted_next_funding_rate":str(rate),"quoted_single_payment_usdt":str(upcoming),
         "quoted_payments_for_breakeven":str(breakeven) if breakeven is not None else None,
+        "one_funding_projected_execution_stress":projected_stress,
         "historic_paid_points":len(history),"historic_paid_rate_sum":str(hist_sum),
         "historic_11_same_notional_usdt":str(historical_11_same_notional),
         "historic_11_vs_today_book_close_net_usdt":str(exit_now+historical_11_same_notional),
