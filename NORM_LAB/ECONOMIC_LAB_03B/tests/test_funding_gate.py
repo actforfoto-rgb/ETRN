@@ -4,6 +4,8 @@ import unittest
 from decimal import Decimal as D
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import funding_gate as f
+import m2_irys_fixed_watch as irys
+import json
 
 def spot_book(ts=1_000_000, ask="1.001", bid="1.000", qty="2000"):
     return {"update":ts,"asks":[[ask,qty]],"bids":[[bid,qty]]}
@@ -50,6 +52,69 @@ class FundingGateTests(unittest.TestCase):
         ct["status"]="prelaunch"
         out=f.economic(spot_book(),fut_book(),ct,[],1_000_200,1_000_200)
         self.assertEqual(out["status"],"CONTRACT_NOT_TRADING")
+
+    def irys_fixture(self, ts=1792786000000):
+        original=json.loads(irys.ANCHOR_FILE.read_text(encoding="utf-8"))
+        sb={"update":ts,"bids":[["0.1310","1000"]],"asks":[["0.1315","1000"]]}
+        fb={"update":ts/1000,"bids":[{"p":"0.1309","s":20}],
+            "asks":[{"p":"0.1316","s":20}]}
+        return original,sb,fb
+
+    def test_irys_fixed_forward_is_never_paper_fill(self):
+        a,sb,fb=self.irys_fixture()
+        tm=1792785600
+        r=irys.evaluate(a,sb,fb,[{"t":tm,"r":"0.005845"}],
+                        sb["update"]+200, sb["update"]+200,sb["update"]+450)
+        self.assertEqual(r["status"],"CAUSAL_UNFILLED_COUNTERFACTUAL_MARK")
+        self.assertEqual(r["post_signal_settled_points"],1)
+        self.assertEqual(r["paper_fills"],0)
+        self.assertEqual(r["real_orders"],0)
+        self.assertEqual(r["virtual_cash_rub_unchanged"],50000)
+
+    def test_irys_cannot_credit_settlement_after_exit_quote(self):
+        a,sb,fb=self.irys_fixture()
+        later=sb["update"]//1000+100
+        r=irys.evaluate(a,sb,fb,[{"t":later,"r":"0.5"}],
+                        sb["update"]+200,sb["update"]+200,sb["update"]+450)
+        self.assertEqual(r["post_signal_settled_points"],0)
+        self.assertEqual(r["post_exit_history_excluded"],1)
+        self.assertEqual(D(r["post_signal_settled_rate_sum"]),D("0"))
+
+    def test_irys_cannot_credit_history_before_signal(self):
+        a,sb,fb=self.irys_fixture()
+        old=int(a["first_observed_utc_ms"])//1000-100
+        r=irys.evaluate(a,sb,fb,[{"t":old,"r":"0.05"}],
+                        sb["update"]+200,sb["update"]+200,sb["update"]+450)
+        self.assertEqual(r["post_signal_settled_points"],0)
+        self.assertEqual(r["pre_signal_history_excluded"],1)
+
+    def test_irys_rejects_old_or_desync_books(self):
+        a,sb,fb=self.irys_fixture()
+        stale=irys.evaluate(a,sb,fb,[],sb["update"]+20000,
+                            sb["update"]+200,sb["update"]+20450)
+        self.assertEqual(stale["status"],"STALE_OR_DESYNCHRONIZED_EXIT_BOOK")
+        fb["update"]-=40
+        desync=irys.evaluate(a,sb,fb,[],sb["update"]+200,
+                             sb["update"]+200,sb["update"]+450)
+        self.assertEqual(desync["status"],"STALE_OR_DESYNCHRONIZED_EXIT_BOOK")
+
+    def test_irys_rejects_crossed_exit_book(self):
+        a,sb,fb=self.irys_fixture()
+        sb["bids"][0][0]="0.14"
+        r=irys.evaluate(a,sb,fb,[],sb["update"]+200,
+                        sb["update"]+200,sb["update"]+450)
+        self.assertEqual(r["status"],"CROSSED_EXIT_BOOK")
+
+    def test_irys_contract_identity_and_multiplier_gate(self):
+        a,sb,fb=self.irys_fixture()
+        ct={"name":"IRYS_USDT","type":"direct","status":"trading",
+            "in_delisting":False,"quanto_multiplier":"100"}
+        self.assertIsNone(irys.contract_check(a,ct))
+        ct["quanto_multiplier"]="1"
+        self.assertEqual(irys.contract_check(a,ct),"CONTRACT_IDENTITY_CHANGED_OR_NOT_TRADING")
+        ct["quanto_multiplier"]="100"
+        ct["in_delisting"]=True
+        self.assertEqual(irys.contract_check(a,ct),"CONTRACT_IDENTITY_CHANGED_OR_NOT_TRADING")
 
     def test_no_order_placement_possible(self):
         self.assertFalse(hasattr(f,"place_order"))
