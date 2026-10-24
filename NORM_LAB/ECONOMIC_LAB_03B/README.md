@@ -41,3 +41,19 @@ Code: `prospective_funding.py`, `prior_artifact_lookup.py`; deterministic regres
 - Every run searches for the prior **completed successful** same-workflow artifact using restricted GitHub Actions READ. The official download-artifact action restores frozen state; state and each anchor are hash-checked. Missing prior evidence after successful predecessor is a **fail-closed chain discontinuity**, not a blank reset.
 - No broker/user credentials or trading calls; no virtual fills; virtual RUB cash and equity remain 50,000 ₽ and PnL zero. Observed futures cash flows are *counterfactual*; positive backtested proxy alone cannot authorize paper or real trading.
 - Any actual task state requires independent verification of first GitHub Actions completion and retained `NORM03B_R22_FUNDING_STATE` artifact. This cloud pipeline is configured but the first scheduled run has not yet been observed at this handoff.
+
+## R24 / 2026-10-24 — production-grade prospective evidence fail-closed
+
+**Scope:** research and shadow evidence only, ZERO broker/user orders. Canonical 50,000 RUB virtual capital unchanged; 0 claimed cycles.
+
+This patch fixes two concrete causal-state defects and a collector-latency issue after R22:
+
+1. **Entry quote at decision time:** `prospective_funding.py` checks not only the original L2 receipt age but also final age when a complete funding scan returns. Freeze is prohibited if either pair timestamps are >3 seconds apart, freshest market timestamp is >15 seconds old, or source timestamp is future relative to decision. No retroactive signal creation.
+2. **Lossless state chain:** `prior_artifact_lookup.py` reads the immediate prior **successful** R22 run only. If it has no retained state artifact, the system fails closed instead of silently falling back to an older historical artifact.
+3. **Fresh scan latency:** `funding_gate.py --skip-fixed-irys` omits long historical IRYS revaluation in the R22 prospective workflow only. R21 old research still runs its standalone IRYS study unchanged.
+4. **Secondary scheduled trigger:** default-main `.github/workflows/norm-03b-r22-funding.yml` now subscribes to the completion of the existing isolated `NORM 03B - fully paired arb forward (read only)` workflow in addition to cron UTC :13 and :43. The old workflow source is untouched. Commit to main has `[skip ci]` to avoid launching unrelated Android application builds.
+5. **Verification:** 20/20 isolated deterministic tests PASS; Python compilation and YAML parsing PASS; all five changed source/workflow files verified by original GitHub blob SHA. Offline tests are **not** evidence of exchange execution.
+
+**Still unverified:** the FIRST successful R22 GitHub Actions run and state artifact `NORM03B_R22_FUNDING_STATE`. No continuous causally closed net series may be claimed until a real run has been inspected, followed by successful successor state rehydration. Existence of cron configuration is not proof the schedule has run.
+
+Last cloud evidence is from the old research R23, run [40101071622](https://github.com/actforfoto-rgb/ETRN/actions/runs/40101071622): 129/129 tests PASS, 0 executable closed arb cycles. M2 3 synchronized candidates/0 positive one-payment full close, M7 4,034 triangles/0 post-fee, M4 0, M9 only historical-repeat hypothetical. Independent R24 bundle (including that original 7-JSON GitHub ZIP) on [Google Drive](https://drive.google.com/file/d/1zlP5IOhjRsM9rhbY9qO7SnbjBqVAZn3c/view), 101,616 bytes, SHA256 `4baf344b39789834890364af68bfb4cb05fbc620f37cae1b834cf7b78b166e6e`.
