@@ -299,7 +299,7 @@ def evolve(prior, scan, now_ms, run_id, source=None):
         state=new_state(run_id,now_ms)
     else:
         validated=validate_state(prior)
-        state={k:v for k,v in validated.items() if k!="state_sha256"}
+        state=json.loads(json.dumps({k:v for k,v in validated.items() if k!="state_sha256"}))
         if int(run_id)<=int(state["run_id"]):
             raise ValueError("cannot replay current or older run onto itself")
         state["previous_state_sha"]=prior["state_sha256"]
