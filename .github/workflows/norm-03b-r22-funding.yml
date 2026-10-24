@@ -7,6 +7,10 @@ on:
     paths:
       - '.github/workflows/norm-03b-r22-funding.yml'
   workflow_dispatch:
+  # Secondary trigger if a cron is delayed or dropped; does not change old jobs.
+  workflow_run:
+    workflows: ["NORM 03B - fully paired arb forward (read only)"]
+    types: [completed]
   schedule:
     - cron: '13,43 * * * *'
 
@@ -57,7 +61,7 @@ jobs:
           SCAN_PATH: ${{ runner.temp }}/norm03b_r22_scan.json
         run: |
           set -u
-          if ! python funding_gate.py --out "$SCAN_PATH"; then
+          if ! python funding_gate.py --skip-fixed-irys --out "$SCAN_PATH"; then
             python - <<'PY'
           import os,json
           p=os.environ["SCAN_PATH"]
