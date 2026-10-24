@@ -1,0 +1,96 @@
+name: NORM 03B R22 - precommitted prospective funding (read only)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/norm-03b-r22-funding.yml'
+  workflow_dispatch:
+  schedule:
+    - cron: '13,43 * * * *'
+
+# Only public market data and same-repository prior evidence can be read.
+# No broker token, no trade order, no write access to repo or user accounts.
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: norm03b-r22-funding-forward
+  cancel-in-progress: false
+
+jobs:
+  independent-forward-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    defaults:
+      run:
+        working-directory: NORM_LAB/ECONOMIC_LAB_03B
+    steps:
+      - name: Check out isolated 03B source without persistent credentials
+        uses: actions/checkout@v4
+        with:
+          ref: norm-03b-hedged-shadow-20261022
+          persist-credentials: false
+      - name: Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Mandatory anti-hindsight regression tests (no network)
+        run: python -m unittest discover -s tests -p 'test_prospective_funding.py' -v
+      - name: Locate previous successful precommitted state
+        id: prior
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python prior_artifact_lookup.py --github-output "$GITHUB_OUTPUT"
+      - name: Restore frozen evidence from PREVIOUS run only
+        if: steps.prior.outputs.previous_run_id != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: NORM03B_R22_FUNDING_STATE
+          run-id: ${{ steps.prior.outputs.previous_run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/norm03b_r22_prior
+      - name: Scan new Gate spot/perpetual paired quote hypotheses
+        env:
+          SCAN_PATH: ${{ runner.temp }}/norm03b_r22_scan.json
+        run: |
+          set -u
+          if ! python funding_gate.py --out "$SCAN_PATH"; then
+            python - <<'PY'
+          import os,json
+          p=os.environ["SCAN_PATH"]
+          with open(p,"w",encoding="utf-8") as f:
+              json.dump({"schema":"NORM03B_M2_SCAN_DATA_BLOCKED",
+                         "status":"DATA_BLOCKED","results":[],
+                         "real_orders":0,"paper_fills":0},f)
+          print("R22_MARKET_SCAN_DATA_BLOCKED; frozen old candidates still require resolution")
+          PY
+          fi
+      - name: Commit observations to bounded immutable artifact state
+        env:
+          SCAN_PATH: ${{ runner.temp }}/norm03b_r22_scan.json
+          PRIOR_PATH: ${{ runner.temp }}/norm03b_r22_prior/norm03b_r22_state.json
+          STATE_PATH: ${{ runner.temp }}/norm03b_r22_state.json
+          SUMMARY_PATH: ${{ runner.temp }}/norm03b_r22_summary.json
+        run: |
+          set -eu
+          python prospective_funding.py --scan "$SCAN_PATH" --previous "$PRIOR_PATH" --out "$STATE_PATH" --summary "$SUMMARY_PATH"
+          python - <<'PY'
+          import json,os
+          r=json.load(open(os.environ["SUMMARY_PATH"],encoding="utf-8"))
+          assert r["real_orders"]==0 and r["paper_fills"]==0
+          assert r["virtual_equity_rub"]==50000
+          print(json.dumps(r,ensure_ascii=False,sort_keys=True))
+          PY
+      - name: Preserve all selected signals and negative controls
+        uses: actions/upload-artifact@v4
+        with:
+          name: NORM03B_R22_FUNDING_STATE
+          path: |
+            ${{ runner.temp }}/norm03b_r22_state.json
+            ${{ runner.temp }}/norm03b_r22_summary.json
+            ${{ runner.temp }}/norm03b_r22_scan.json
+          if-no-files-found: error
+          retention-days: 30
