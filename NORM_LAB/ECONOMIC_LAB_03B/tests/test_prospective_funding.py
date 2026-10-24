@@ -107,7 +107,7 @@ class PrecommitTests(unittest.TestCase):
         self.assertEqual(len(second["finished"]),1)
         saved=second["finished"][0]["result"]
         self.assertEqual(saved["status"],"FULL_HISTORICAL_L2_QUOTE_PROXY_NOT_A_FILL")
-        self.assertEqual(saved["paid_funding_rate"],".005")
+        self.assertEqual(D(saved["paid_funding_rate"]),D(".005"))
         self.assertTrue(saved["central_positive_after_stress"])
         self.assertFalse(saved["owner_eligible"])
         self.assertEqual(saved["independently_verified_fills"],0)
