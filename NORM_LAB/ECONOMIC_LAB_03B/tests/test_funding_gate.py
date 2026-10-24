@@ -17,6 +17,40 @@ def contract(rate="0.001",mult="1",typ="direct",interval=28800):
         "funding_next_apply":2000,"in_delisting":False}
 
 class FundingGateTests(unittest.TestCase):
+    def test_ticker_prefers_documented_next_funding_rate(self):
+        fut=[{"contract":"TEST_USDT","funding_rate":"0.00001",
+              "funding_rate_next":"0.002","highest_bid":"1.005","quanto_multiplier":"1"}]
+        spot=[{"currency_pair":"TEST_USDT","lowest_ask":"1"}]
+        result=f.shortlist(fut,spot)
+        self.assertEqual(len(result),1)
+        self.assertEqual(result[0]["funding_rate"],D("0.002"))
+        self.assertEqual(result[0]["ticker_rate_field"],"funding_rate_next")
+
+    def test_instantly_due_funding_is_not_projected_profit(self):
+        ct=contract(rate=".01")
+        ct["funding_next_apply"]=1001  # less than 30s after timestamp
+        out=f.economic(spot_book(),fut_book(),ct,[],1_000_200,1_000_200)
+        self.assertEqual(out["status"],"FUNDING_SCHEDULE_NOT_ACTIONABLE")
+        self.assertFalse("quoted_single_payment_usdt" in out)
+
+    def test_already_settled_funding_never_credited(self):
+        ct=contract(rate=".01")
+        ct["funding_next_apply"]=999
+        out=f.economic(spot_book(),fut_book(),ct,[],1_000_200,1_000_200)
+        self.assertEqual(out["status"],"FUNDING_SCHEDULE_NOT_ACTIONABLE")
+
+    def test_implausibly_distant_next_settlement_rejected(self):
+        ct=contract(rate=".01")
+        ct["funding_next_apply"]=100_000
+        out=f.economic(spot_book(),fut_book(),ct,[],1_000_200,1_000_200)
+        self.assertEqual(out["status"],"FUNDING_SCHEDULE_NOT_ACTIONABLE")
+
+    def test_suspended_contract_never_passes_economic_gate(self):
+        ct=contract(rate=".01")
+        ct["status"]="prelaunch"
+        out=f.economic(spot_book(),fut_book(),ct,[],1_000_200,1_000_200)
+        self.assertEqual(out["status"],"CONTRACT_NOT_TRADING")
+
     def test_no_order_placement_possible(self):
         self.assertFalse(hasattr(f,"place_order"))
         self.assertFalse(hasattr(f,"send_order"))
