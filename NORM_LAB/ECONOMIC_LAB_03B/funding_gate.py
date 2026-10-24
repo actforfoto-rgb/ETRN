@@ -199,6 +199,14 @@ def survey():
         except (ValueError,OSError,TypeError,KeyError,IndexError,InvalidOperation) as err:
             out.append({"pair":a,"status":"DATA_BLOCKED","error_class":type(err).__name__})
     watches=[x for x in out if isinstance(x.get("economic"),dict) and x["economic"].get("status")=="FORWARD_WATCH_NOT_FILL"]
+    # Independently revisit the frozen IRYS quote, even after it falls out
+    # of the rolling top-10 ranking. Research-only: never create a fill.
+    try:
+        from m2_irys_fixed_watch import observe as fixed_irys_observe
+        fixed_irys=fixed_irys_observe()
+    except (ValueError,OSError,TypeError,KeyError,TimeoutError) as exc:
+        fixed_irys={"status":"DATA_BLOCKED","error_class":type(exc).__name__,
+                    "paper_fills":0,"real_orders":0,"virtual_rub_equity":50000}
     return {
         "schema":"NORM03B_M2_GATE_FUNDING_FORWARD_READONLY_V1",
         "source_timestamp_utc_ms":int(time.time()*1000),
@@ -212,6 +220,7 @@ def survey():
             D(x["economic"]["historic_11_vs_today_book_close_net_usdt"])>0
             for x in watches),
         "results":out,"bulk_source_digest_sha256":[fd,sd],
+        "fixed_irys_forward_watch":fixed_irys,
         "model_limitations":["current funding estimate may change before settlement",
           "past 11 funding payments predate the observed quote and are not our executed PnL",
           "no proof of real spot/perp simultaneous fills","ticker match is not proof of identical token",
@@ -228,7 +237,9 @@ def main():
     report=survey()
     args.out.parent.mkdir(parents=True,exist_ok=True)
     args.out.write_text(json.dumps(report,indent=2,sort_keys=True,ensure_ascii=False),encoding="utf-8")
-    print(json.dumps({k:report[k] for k in ["all_perpetuals","all_spots","screened_positive_rate_and_matching_pair","forward_watches","positive_projected_one_payment_after_all_exit_costs","positive_historic_11_refund_of_current_liquidation","paper_fills","real_orders"]}))
+    print(json.dumps({**{k:report[k] for k in ["all_perpetuals","all_spots","screened_positive_rate_and_matching_pair","forward_watches","positive_projected_one_payment_after_all_exit_costs","positive_historic_11_refund_of_current_liquidation","paper_fills","real_orders"]},
+          "fixed_irys_research_status":report.get("fixed_irys_forward_watch",{}).get("calculation",{}).get("status", report.get("fixed_irys_forward_watch",{}).get("status")),
+          "fixed_irys_hypothetical_net_usdt":report.get("fixed_irys_forward_watch",{}).get("calculation",{}).get("closed_what_if_net_usdt_PROXY")}))
     return 0
 
 if __name__=="__main__":
