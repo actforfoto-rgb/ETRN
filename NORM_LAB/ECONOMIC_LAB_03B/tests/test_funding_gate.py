@@ -105,6 +105,26 @@ class FundingGateTests(unittest.TestCase):
                         sb["update"]+200,sb["update"]+450)
         self.assertEqual(r["status"],"CROSSED_EXIT_BOOK")
 
+    def test_irys_settlement_is_independent_of_exit_liquidity(self):
+        a,sb,fb=self.irys_fixture()
+        x=irys.settled_since_signal(a,[
+            {"t":a["initial_next_payment_utc_s"],"r":"0.0015"},
+            {"t":a["initial_next_payment_utc_s"],"r":"0.0015"},
+            {"t":a["initial_next_payment_utc_s"]-20000,"r":"0.1"},
+            {"t":a["initial_next_payment_utc_s"]+90000,"r":"0.1"},
+            {"t":a["initial_next_payment_utc_s"]+100,"r":"0.5"}],
+            a["initial_next_payment_utc_s"]*1000+2000)
+        self.assertEqual(len(x),1)
+        self.assertEqual(x[0]["realized_rate"],"0.0015")
+        self.assertEqual(x[0]["settled_utc_ms"],a["initial_next_payment_utc_s"]*1000)
+
+    def test_irys_settled_rate_before_observation_is_not_credited(self):
+        a,sb,fb=self.irys_fixture()
+        x=irys.settled_since_signal(a,[
+            {"t":a["first_observed_utc_ms"]//1000-1,"r":"0.09"}],
+            a["first_observed_utc_ms"]+60000)
+        self.assertEqual(x,[])
+
     def test_irys_contract_identity_and_multiplier_gate(self):
         a,sb,fb=self.irys_fixture()
         ct={"name":"IRYS_USDT","type":"direct","status":"trading",
