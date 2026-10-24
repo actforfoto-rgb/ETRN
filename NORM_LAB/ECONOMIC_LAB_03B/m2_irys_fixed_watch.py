@@ -198,7 +198,7 @@ def fetch_mark_candles(realized):
         end=min(start+11*3600,stop)
         queries.append(g.ROOT+"/futures/usdt/candlesticks?contract=mark_"+PAIR+
             "&from="+str(start)+"&to="+str(end)+"&interval=1m")
-        start=end+60
+        start=end  # overlap a minute rather than leaving an unobserved gap
     with ThreadPoolExecutor(max_workers=4) as ex:
         tasks=[ex.submit(g.public_json,q) for q in queries]
         replies=[p.result() for p in tasks]
