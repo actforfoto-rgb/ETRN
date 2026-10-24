@@ -7,6 +7,8 @@ import funding_gate as f
 import m2_irys_fixed_watch as irys
 from execution_stress import evaluation as stress_evaluation
 import json
+# R22 mandatory prospective regressions in the existing hourly acceptance job.
+from test_prospective_funding import PrecommitTests, PriorArtifactTests
 
 def spot_book(ts=1_000_000, ask="1.001", bid="1.000", qty="2000"):
     return {"update":ts,"asks":[[ask,qty]],"bids":[[bid,qty]]}
