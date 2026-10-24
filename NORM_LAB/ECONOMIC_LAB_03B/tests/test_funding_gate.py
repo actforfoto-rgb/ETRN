@@ -74,7 +74,7 @@ class FundingGateTests(unittest.TestCase):
     def test_irys_cannot_credit_settlement_after_exit_quote(self):
         a,sb,fb=self.irys_fixture()
         later=sb["update"]//1000+100
-        r=irys.evaluate(a,sb,fb,[{"t":later,"r":"0.5"}],
+        r=irys.evaluate(a,sb,fb,[{"t":later,"r":"0.005"}],
                         sb["update"]+200,sb["update"]+200,sb["update"]+450)
         self.assertEqual(r["post_signal_settled_points"],0)
         self.assertEqual(r["post_exit_history_excluded"],1)
