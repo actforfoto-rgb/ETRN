@@ -105,6 +105,24 @@ def evaluate(anchor, spot_book, future_book, history, spot_receive_ms,
     }
 
 
+def settled_since_signal(anchor, funding_history, asof_ms):
+    """Independent official past settlements, never account receipts."""
+    import funding_gate as g
+    earliest=int(anchor["first_observed_utc_ms"])
+    found={}
+    for row in funding_history:
+        try:
+            stamp=int(row["t"])*1000
+            rate=g.D(row["r"])
+            if (earliest<stamp<=int(asof_ms) and
+                    abs(rate)<=Decimal(".1")):
+                found.setdefault(stamp,rate)
+        except (KeyError,ValueError,TypeError):
+            continue
+    return [{"settled_utc_ms":ms,"realized_rate":str(found[ms])}
+            for ms in sorted(found)]
+
+
 def contract_check(anchor, contract):
     import funding_gate as g
     try:
@@ -135,6 +153,9 @@ def observe():
     quote_time=int(time.time()*1000)
     if not isinstance(d["paid"][0],list) or not isinstance(d["contract"][0],dict):
         return {"status":"BAD_PUBLIC_RESPONSE","real_orders":0,"paper_fills":0}
+    receipts=settled_since_signal(anchor,d["paid"][0],quote_time)
+    first_expected_ms=int(anchor["initial_next_payment_utc_s"])*1000
+    first_expected=[x for x in receipts if x["settled_utc_ms"]==first_expected_ms]
     reason=contract_check(anchor,d["contract"][0])
     if reason:
         result={"status":reason}
@@ -146,6 +167,13 @@ def observe():
             "anchor_source_zip_sha256":anchor["source_zip_sha256"],
             "asof_utc_ms":quote_time,
             "source_sha256":{k:v[2] for k,v in d.items()},
+            "realized_past_settlements_after_signal":receipts,
+            "settlements_after_frozen_signal_count":len(receipts),
+            "original_expected_settlement_utc_ms":first_expected_ms,
+            "original_expected_settlement_observed":len(first_expected)>0,
+            "original_expected_settlement_realized_rate":(
+                first_expected[0]["realized_rate"] if first_expected else None),
+            "actual_owner_funding_received":"0",
             "calculation":result,"paper_fills":0,"real_orders":0,
             "virtual_rub_equity":50000}
 
