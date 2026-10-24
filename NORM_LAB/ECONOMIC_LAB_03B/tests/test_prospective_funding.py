@@ -169,6 +169,25 @@ class PrecommitTests(unittest.TestCase):
         self.assertLess(D(v["funding_using_one_minute_pre_settlement_mark_usdt"]),0)
         self.assertLess(D(v["net_after_5bp_and_14pct_usdt"]),0)
 
+    def test_stale_entry_cannot_be_frozen_after_scanner_latency(self):
+        scan=fresh_scan()
+        # Original quote was good when received, but now it is >15s old.
+        new=p.evolve(None,scan,1000000+16000,100)
+        self.assertEqual(new["pending"],[])
+        self.assertEqual(new["real_orders"],0)
+
+    def test_timestamp_skew_blocks_precommitted_signal(self):
+        scan=fresh_scan()
+        scan["results"][0]["economic"]["clock"]["exchange_ms"]=[996999,1000000]
+        new=p.evolve(None,scan,1000001,100)
+        self.assertEqual(new["pending"],[])
+
+    def test_future_entry_timestamp_is_rejected(self):
+        scan=fresh_scan()
+        scan["results"][0]["economic"]["clock"]["exchange_ms"]=[1005000,1005050]
+        new=p.evolve(None,scan,1000000,100)
+        self.assertEqual(new["pending"],[])
+
     def test_no_trade_path_implemented(self):
         self.assertFalse(hasattr(p,"place_order"))
         self.assertFalse(hasattr(p,"send_order"))
@@ -188,6 +207,17 @@ class PriorArtifactTests(unittest.TestCase):
         x=lookup.choose_previous("x/y",200,runs,by_run)
         self.assertEqual(x["previous_run_id"],150)
         self.assertEqual(x["previous_artifact_id"],900)
+
+    def test_missing_immediate_predecessor_cannot_be_skipped(self):
+        runs=[{"id":170,"status":"completed","conclusion":"success"},
+              {"id":160,"status":"completed","conclusion":"failure"},
+              {"id":150,"status":"completed","conclusion":"success"}]
+        by_run={150:[{"id":1,"name":lookup.ARTIFACT_NAME,
+                      "expired":False,"size_in_bytes":100}]}
+        x=lookup.choose_previous("x/y",200,runs,by_run)
+        self.assertEqual(x["status"],"PREVIOUS_SUCCESS_WITHOUT_VALID_ARTIFACT_FAIL_CLOSED")
+        self.assertIsNone(x["previous_run_id"])
+        self.assertEqual(x["missing_immediate_successful_run"],170)
 
     def test_first_run_and_missing_archive_must_be_distinct(self):
         self.assertEqual(lookup.choose_previous("x/y",100,[],{})["status"],
