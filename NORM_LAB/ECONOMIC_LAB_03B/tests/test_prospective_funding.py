@@ -33,7 +33,7 @@ def fresh_scan(now_ms=1000000, pair="TEST_USDT", funding_ms=4600000, net="0.08")
 
 def later_observation(now_ms, event_s=4600, rate=".005", settled=True):
     sb={"update":now_ms-600,
-        "bids":[["1.020","400"]],"asks":[["1.021","400"]]}
+        "bids":[["1.022","400"]],"asks":[["1.023","400"]]}
     fb={"update":(now_ms-500)/1000,
         "bids":[{"p":"1.018","s":500}],"asks":[{"p":"1.019","s":500}]}
     data={
