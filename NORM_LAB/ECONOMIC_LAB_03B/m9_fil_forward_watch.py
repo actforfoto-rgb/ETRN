@@ -29,14 +29,27 @@ def paid_after_start(inv,lin,start,now):
     return {"pairs":[(t,str(a[t]),str(b[t])) for t in common],
         "unmatched":len(a.keys() ^ b.keys()),"post_anchor_only":True}
 
-def hypothetical_exit(anchor,ib,lb,history):
-    if not (ib["exchange_ms"]>anchor["first_book_exchange_utc_ms"][1]
-            and lb["exchange_ms"]>anchor["first_book_exchange_utc_ms"][0]):
-        return {"state":"NOT_NEWER_THAN_ENTRY_QUOTE"}
-    if abs(ib["exchange_ms"]-lb["exchange_ms"])>1500:
-        return {"state":"DESYNCHRONIZED_MARK"}
+def hypothetical_exit(anchor,ib,lb,history,asof_ms=None):
+    """A research-only exit mark: every funding event must precede BOTH exit books.
+
+    An anchor has no fills, so neither historical cash flows nor the exit mark
+    can be booked to the RUB virtual account.
+    """
     if anchor["source_entry_was_filled"]:
         raise ValueError("anchored source must have zero fills")
+    i_ms=int(ib["exchange_ms"])
+    l_ms=int(lb["exchange_ms"])
+    entry_i_ms,entry_l_ms=(int(v) for v in anchor["first_book_exchange_utc_ms"])
+    if i_ms<=entry_i_ms or l_ms<=entry_l_ms:
+        return {"state":"NOT_NEWER_THAN_ENTRY_QUOTE"}
+    if abs(i_ms-l_ms)>1500:
+        return {"state":"DESYNCHRONIZED_MARK"}
+    if asof_ms is not None:
+        now=int(asof_ms)
+        if any(not -1000<=now-ts<=15000 for ts in (i_ms,l_ms)):
+            return {"state":"STALE_OR_FUTURE_EXIT_BOOK"}
+    if ib["bids"][0][0]>=ib["asks"][0][0] or lb["bids"][0][0]>=lb["asks"][0][0]:
+        return {"state":"CROSSED_EXIT_BOOK"}
     inv_contracts=D(anchor["inverse_contract_count"])
     lin_contracts=D(anchor["linear_contract_count"])
     lin_qty=D(anchor["linear_base_qty"])
@@ -51,7 +64,19 @@ def hypothetical_exit(anchor,ib,lb,history):
     lin_pnl=lin_qty*(le-lp)
     fees=FEE*(face*2+lin_qty*(lp+le))
     nominal=lin_qty*lp
-    future_rates=[(t,face*D(ir)-nominal*D(lr)) for t,ir,lr in history["pairs"]]
+    exit_quote_cutoff_ms=min(i_ms,l_ms)
+    anchor_first_observed_ms=int(anchor.get("first_observed_utc_ms",max(entry_i_ms,entry_l_ms)))
+    future_rates=[]
+    excluded_late=0
+    excluded_before_anchor=0
+    for t,ir,lr in history["pairs"]:
+        funding_ms=int(t)
+        if funding_ms>exit_quote_cutoff_ms:
+            excluded_late+=1
+        elif funding_ms<=anchor_first_observed_ms:
+            excluded_before_anchor+=1
+        else:
+            future_rates.append((funding_ms,face*D(ir)-nominal*D(lr)))
     cumulative=sum((v for _,v in future_rates),Decimal(0))
     return {"state":"RESEARCH_MARK_UNFILLED",
         "new_inverse_exit_ask_usd":str(ie),
@@ -59,6 +84,10 @@ def hypothetical_exit(anchor,ib,lb,history):
         "price_pnl_usdt_proxy":str(inv_usdt_proxy+lin_pnl),
         "full_roundtrip_fee_usdt_proxy":str(fees),
         "post_entry_settled_funding_count":len(future_rates),
+        "exit_quote_cutoff_utc_ms":exit_quote_cutoff_ms,
+        "funding_points_excluded_after_exit":excluded_late,
+        "funding_points_excluded_pre_anchor":excluded_before_anchor,
+        "asof_utc_ms":int(asof_ms) if asof_ms is not None else None,
         "post_entry_funding_usdt_proxy":str(cumulative),
         "net_current_mark_to_exit_usdt_proxy":str(inv_usdt_proxy+lin_pnl-fees+cumulative),
         "actual_trade_filled":False,"usd_usdt_one_to_one_assumption":True,
@@ -79,7 +108,7 @@ def observe():
     lb=parse_book(r["lb"][0],r["lb"][1])
     now=clock_ms()
     paid=paid_after_start(r["ih"][0],r["lh"][0],start,now)
-    result=hypothetical_exit(a,ib,lb,paid)
+    result=hypothetical_exit(a,ib,lb,paid,asof_ms=now)
     return {"schema":"NORM03B_FIL_POST_ANCHOR_WATCH_V1","anchor_run":a["source_run_id"],
         "anchor_ms":start,"now_ms":now,"book_ms":[ib["exchange_ms"],lb["exchange_ms"]],
         "post_anchor_realized":paid,"hypothetical_mark":result,
