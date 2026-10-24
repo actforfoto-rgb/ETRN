@@ -108,6 +108,14 @@ def precommit(scan, now_ms, run_id, existing):
             event_ms = time_of_funding * 1000
             clock = e["clock"]["exchange_ms"]
             first_ms = max(int(x) for x in clock)
+            # economic() validated each book at its original receipt time.
+            # A later, slower scan must NOT reuse an entry quote that has
+            # become stale while other symbols or legacy research were read.
+            spot_ms, future_ms = (int(x) for x in clock)
+            if abs(spot_ms-future_ms) > g.MAX_SKEW_MS:
+                continue
+            if not (0 <= now_ms-first_ms <= g.MAX_BOOK_AGE_MS):
+                continue
             if not (first_ms <= now_ms < event_ms - MIN_SETTLEMENT_LEAD_MS):
                 continue
             if (pair, time_of_funding) in already:
