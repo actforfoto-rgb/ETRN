@@ -267,6 +267,18 @@ def observe():
         mark_model["revalued_closed_net_mark_price_proxy_usdt"]=str(gross-fees+estimated)
         mark_model["revalued_closed_net_lower_minute_range_proxy_usdt"]=str(gross-fees+lower)
         mark_model["revalued_closed_net_upper_minute_range_proxy_usdt"]=str(gross-fees+upper)
+        from execution_stress import evaluation as stress_evaluation
+        spot_entry=g.D(anchor["spot_buy_entry_usdt"])
+        future_entry=g.D(anchor["future_short_entry_usdt"])
+        spot_exit=g.D(result["exit_spot_sale_bid_depth_usdt"])
+        future_exit=g.D(result["exit_future_cover_ask_depth_usdt"])
+        mark_model["execution_stress"]=stress_evaluation(
+            net_usdt=mark_model["revalued_closed_net_mark_price_proxy_usdt"],
+            funding_low_proxy_net_usdt=mark_model["revalued_closed_net_lower_minute_range_proxy_usdt"],
+            leg_turnover_usdt=(spot_entry,future_entry,spot_exit,future_exit),
+            linked_capital_usdt=spot_entry+future_entry,
+            start_utc_ms=int(anchor["first_observed_utc_ms"]),
+            end_utc_ms=int(result["exit_usable_quote_utc_ms"]))
         mark_model["all_legs_actually_filled"]=False
     return {"schema":"NORM03B_M2_IRYS_FIXED_FORWARD_V1",
             "source_run_id":anchor["source_run_id"],
