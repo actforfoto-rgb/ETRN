@@ -36,30 +36,32 @@ def get_json(url, token):
 
 def choose_previous(repo, current_id, workflow_runs, artifact_by_run):
     """Do not allow self-replay, future or failed runs to seed evidence."""
-    candidates=[]
-    older_successes=0
+    # A preceding SUCCESS without a saved state breaks the chain.
+    # Never fall back to an older artifact and silently skip an observation.
+    successes=[]
     for r in workflow_runs:
         try:
             rid=int(r["id"])
-            if rid>=current_id or r.get("status")!="completed" or r.get("conclusion")!="success":
-                continue
-            older_successes+=1
-            valid=[a for a in artifact_by_run.get(rid,[]) if
-                   a.get("name")==ARTIFACT_NAME and not a.get("expired",False)
-                   and int(a.get("size_in_bytes",0))>0]
-            if valid:
-                candidates.append((rid,max(valid,key=lambda a:a.get("created_at",""))))
         except (ValueError,KeyError,TypeError):
             continue
-    if candidates:
-        rid,a=max(candidates,key=lambda z:z[0])
-        return {"status":"PREVIOUS_PROVEN_STATE_FOUND","previous_run_id":rid,
-                "previous_artifact_id":int(a["id"]),
-                "older_successful_runs":older_successes}
-    return {"status":("FIRST_RUN_NO_HISTORY" if older_successes==0
-                       else "PREVIOUS_SUCCESS_WITHOUT_VALID_ARTIFACT_FAIL_CLOSED"),
-            "previous_run_id":None,"previous_artifact_id":None,
-            "older_successful_runs":older_successes}
+        if rid<current_id and r.get("status")=="completed" and r.get("conclusion")=="success":
+            successes.append(rid)
+    if not successes:
+        return {"status":"FIRST_RUN_NO_HISTORY", "previous_run_id":None,
+                "previous_artifact_id":None, "older_successful_runs":0}
+    last=max(successes)
+    valid=[a for a in artifact_by_run.get(last,[]) if
+           a.get("name")==ARTIFACT_NAME and not a.get("expired",False)
+           and int(a.get("size_in_bytes",0))>0]
+    if not valid:
+        return {"status":"PREVIOUS_SUCCESS_WITHOUT_VALID_ARTIFACT_FAIL_CLOSED",
+                "previous_run_id":None,"previous_artifact_id":None,
+                "missing_immediate_successful_run":last,
+                "older_successful_runs":len(successes)}
+    selected=max(valid,key=lambda a:a.get("created_at",""))
+    return {"status":"PREVIOUS_PROVEN_STATE_FOUND", "previous_run_id":last,
+            "previous_artifact_id":int(selected["id"]),
+            "older_successful_runs":len(successes)}
 
 
 def discover(repo, current_id, token):
@@ -77,13 +79,13 @@ def discover(repo, current_id, token):
                r.get("status")=="completed" and
                r.get("conclusion")=="success"]
     artifacts={}
-    for rid in prior_ids[:12]:
+    # Inspect the *immediate* preceding success only. Never silently
+    # skip it to resume from an older but apparently valid artifact.
+    if prior_ids:
+        rid=max(prior_ids)
         url=f"https://api.github.com/repos/{repo}/actions/runs/{rid}/artifacts?per_page=100"
         data=get_json(url,token)
         artifacts[rid]=data.get("artifacts",[])
-        if any(a.get("name")==ARTIFACT_NAME and not a.get("expired",False)
-               for a in artifacts[rid]):
-            break
     return choose_previous(repo,current_id,runs,artifacts)
 
 
