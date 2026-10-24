@@ -5,6 +5,7 @@ from decimal import Decimal as D
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import funding_gate as f
 import m2_irys_fixed_watch as irys
+from execution_stress import evaluation as stress_evaluation
 import json
 
 def spot_book(ts=1_000_000, ask="1.001", bid="1.000", qty="2000"):
@@ -19,14 +20,14 @@ def contract(rate="0.001",mult="1",typ="direct",interval=28800):
         "funding_next_apply":2000,"in_delisting":False}
 
 class FundingGateTests(unittest.TestCase):
-    def test_ticker_prefers_documented_next_funding_rate(self):
-        fut=[{"contract":"TEST_USDT","funding_rate":"0.00001",
-              "funding_rate_next":"0.002","highest_bid":"1.005","quanto_multiplier":"1"}]
+    def test_ticker_uses_official_funding_rate_and_ignores_unknown_future_field(self):
+        fut=[{"contract":"TEST_USDT","funding_rate":"0.002",
+              "funding_rate_next":"0.00001","highest_bid":"1.005","quanto_multiplier":"1"}]
         spot=[{"currency_pair":"TEST_USDT","lowest_ask":"1"}]
         result=f.shortlist(fut,spot)
         self.assertEqual(len(result),1)
         self.assertEqual(result[0]["funding_rate"],D("0.002"))
-        self.assertEqual(result[0]["ticker_rate_field"],"funding_rate_next")
+        self.assertEqual(result[0]["ticker_rate_field"],"funding_rate")
 
     def test_instantly_due_funding_is_not_projected_profit(self):
         ct=contract(rate=".01")
@@ -167,6 +168,46 @@ class FundingGateTests(unittest.TestCase):
         ct["in_delisting"]=True
         self.assertEqual(irys.contract_check(a,ct),"CONTRACT_IDENTITY_CHANGED_OR_NOT_TRADING")
 
+
+    def test_four_leg_irys_stress_replicates_archived_checkpoint(self):
+        x=stress_evaluation(
+            net_usdt="0.11008915800",
+            funding_low_proxy_net_usdt="0.10268628000",
+            leg_turnover_usdt=("91.61634","91.21700","44.31256","44.49200"),
+            linked_capital_usdt="182.83334",
+            start_utc_ms=1792781092455,
+            end_utc_ms=1792844700644)
+        self.assertEqual(x["status"],"FRAGILE_UNDER_5BP_EXTRA_EACH_LEG")
+        self.assertEqual(D(x["turnover_usdt"]),D("271.63790"))
+        self.assertEqual(D(x["assuming_5bp_extra_each_leg_net_usdt"]),D("-0.02572979200"))
+        self.assertAlmostEqual(float(x["zero_opportunity_cost_break_even_extra_bp_each_leg"]),4.05279079,places=6)
+        self.assertLess(D(x["opportunity_cost_scenarios"][1]["grid"][-1]["central_net_after_extra_cost_usdt"]),0)
+        self.assertFalse(x["claim_real_profit"])
+
+    def test_execution_stress_includes_14pct_capital_opportunity_cost(self):
+        x=stress_evaluation(
+            net_usdt="0.11008915800",
+            leg_turnover_usdt=("91.61634","91.21700","44.31256","44.49200"),
+            linked_capital_usdt="182.83334",
+            start_utc_ms=1792781092455,
+            end_utc_ms=1792844700644)
+        self.assertAlmostEqual(float(x["opportunity_cost_scenarios"][1]["opportunity_cost_usdt"]),0.05162854,places=7)
+        self.assertAlmostEqual(float(x["opportunity_cost_scenarios"][2]["opportunity_cost_usdt"]),0.06637955,places=7)
+
+    def test_stress_refuses_future_backward_time_and_incomplete_legs(self):
+        sample={"net_usdt":".1","leg_turnover_usdt":("10","10","10","10"),
+                "linked_capital_usdt":"20","start_utc_ms":2000,"end_utc_ms":3000}
+        self.assertRaises(ValueError,stress_evaluation,**{**sample,"end_utc_ms":1999})
+        self.assertRaises(ValueError,stress_evaluation,**{**sample,"leg_turnover_usdt":("10","10","10")})
+        self.assertRaises(ValueError,stress_evaluation,**{**sample,"net_usdt":"NaN"})
+
+    def test_quote_economic_exposes_stress_but_not_order_permission(self):
+        r=f.economic(spot_book(),fut_book(),contract(rate="0.003"),[],1_000_200,1_000_200)
+        self.assertEqual(r["status"],"FORWARD_WATCH_NOT_FILL")
+        e=r["one_funding_projected_execution_stress"]
+        self.assertEqual(len(e["four_cash_legs_usdt"]),4)
+        self.assertFalse(e["verified_venue_account_eligibility"])
+        self.assertEqual(e["actual_executed_orders"],0)
     def test_no_order_placement_possible(self):
         self.assertFalse(hasattr(f,"place_order"))
         self.assertFalse(hasattr(f,"send_order"))
