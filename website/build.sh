@@ -28,6 +28,8 @@ test -f dist/app.js
 test -f dist/data.js
 test -f dist/styles.css
 test -d dist/assets
-grep -q 'Материалы актуализированы: 03.10.2026' dist/app.js
+grep -q 'Материалы актуализированы: 28.10.2026' dist/app.js
+grep -q 'После подписания ЭЗЗ не появились ЭТрН' dist/data.js
+grep -q 'система автоматически создаст ЭТрН' dist/data.js
 
 echo "ETRN site prepared in dist/"
