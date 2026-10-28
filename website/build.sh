@@ -31,4 +31,8 @@ test -f dist/styles.css
 test -d dist/assets
 grep -q 'Материалы актуализированы: 03.10.2026' dist/app.js
 
+echo "ETRN_DIAG_CONTENT_BEGIN"
+grep -n -E -C 2 'ЭЗЗ|ЭТрН|нет ЭТрН|Нет ЭТрН|подписать|Подписать' dist/data.js dist/app.js || true
+echo "ETRN_DIAG_CONTENT_END"
+
 echo "ETRN site prepared in dist/"
