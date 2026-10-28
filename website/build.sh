@@ -32,7 +32,12 @@ test -d dist/assets
 grep -q 'Материалы актуализированы: 03.10.2026' dist/app.js
 
 echo "ETRN_DIAG_CONTENT_BEGIN"
-grep -n -E -C 2 'ЭЗЗ|ЭТрН|нет ЭТрН|Нет ЭТрН|подписать|Подписать' dist/data.js dist/app.js || true
+echo "--- S1 RANGE 450-650 ---"
+sed -n '450,650p' dist/data.js
+echo "--- ETRN MISSING / VISIBILITY HITS ---"
+grep -n -Ei -C 3 'не появ|нет.{0,30}ЭТрН|ЭТрН.{0,30}нет|не вид|не загруз|не приш' dist/data.js || true
+echo "--- EZZ HITS ---"
+grep -n -F -C 3 'ЭЗЗ' dist/data.js || true
 echo "ETRN_DIAG_CONTENT_END"
 
 echo "ETRN site prepared in dist/"
