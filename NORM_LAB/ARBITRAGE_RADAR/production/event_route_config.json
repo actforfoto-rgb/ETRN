@@ -6,19 +6,19 @@
       "venue_a": "GATE",
       "venue_b": "HTX",
       "entry_z": 2.5,
-      "train_score": 58.47452181218274,
+      "train_score": 58.868268561345744,
       "holdout": {
-        "n": 7,
+        "n": 6,
         "positive_pct": 100.0,
-        "median_net_bps": 7.702222549849559,
-        "mean_net_bps": 8.078239202937542,
-        "aggregate_net_bps": 56.5476744205628,
-        "worst_net_bps": 1.5306137553887886,
+        "median_net_bps": 7.722338263555418,
+        "mean_net_bps": 9.169510110862335,
+        "aggregate_net_bps": 55.01706066517401,
+        "worst_net_bps": 3.758804075252776,
         "best_net_bps": 18.555942681084872
       },
       "stress10_pass": false,
-      "stress10_median_proxy_bps": -2.2977774501504413,
-      "stress10_aggregate_proxy_bps": -13.4523255794372,
+      "stress10_median_proxy_bps": -2.277661736444582,
+      "stress10_aggregate_proxy_bps": -4.982939334825993,
       "status": "VALIDATED_SHADOW"
     },
     "APT|HTX|OKX": {
@@ -46,39 +46,39 @@
       "venue_a": "HTX",
       "venue_b": "MEXC",
       "entry_z": 2.5,
-      "train_score": 45.080772818805386,
+      "train_score": 44.920606014840466,
       "holdout": {
-        "n": 3,
+        "n": 2,
         "positive_pct": 100.0,
-        "median_net_bps": 7.113428943937656,
-        "mean_net_bps": 10.699457136261925,
-        "aggregate_net_bps": 32.09837140878577,
-        "worst_net_bps": 4.231422211567832,
+        "median_net_bps": 13.93347459860897,
+        "mean_net_bps": 13.93347459860897,
+        "aggregate_net_bps": 27.86694919721794,
+        "worst_net_bps": 7.113428943937656,
         "best_net_bps": 20.753520253280286
       },
-      "stress10_pass": false,
-      "stress10_median_proxy_bps": -2.886571056062344,
-      "stress10_aggregate_proxy_bps": 2.0983714087857734,
-      "status": "VALIDATED_SHADOW"
+      "stress10_pass": true,
+      "stress10_median_proxy_bps": 3.9334745986089708,
+      "stress10_aggregate_proxy_bps": 7.8669491972179415,
+      "status": "VALIDATED_STRESS10"
     },
     "APT|BITGET|HTX": {
       "base": "APT",
       "venue_a": "BITGET",
       "venue_b": "HTX",
-      "entry_z": 3.0,
-      "train_score": 49.9219720030032,
+      "entry_z": 2.5,
+      "train_score": 50.08494639003507,
       "holdout": {
         "n": 5,
         "positive_pct": 80.0,
-        "median_net_bps": 6.885218800544411,
-        "mean_net_bps": 6.191011377416206,
-        "aggregate_net_bps": 30.95505688708103,
+        "median_net_bps": 1.72513640177921,
+        "mean_net_bps": 5.264615295680369,
+        "aggregate_net_bps": 26.323076478401845,
         "worst_net_bps": -5.152993913411812,
         "best_net_bps": 15.478970271062511
       },
       "stress10_pass": false,
-      "stress10_median_proxy_bps": -3.1147811994555887,
-      "stress10_aggregate_proxy_bps": -19.04494311291897,
+      "stress10_median_proxy_bps": -8.27486359822079,
+      "stress10_aggregate_proxy_bps": -23.676923521598155,
       "status": "VALIDATED_SHADOW"
     },
     "OP|GATE|OKX": {
@@ -98,11 +98,11 @@
       },
       "holdout": {
         "n": 3,
-        "positive_pct": 100.0,
-        "median_net_bps": 2.8636773101522692,
-        "mean_net_bps": 3.7405515162220517,
-        "aggregate_net_bps": 11.221654548666155,
-        "worst_net_bps": 1.0885129631512918,
+        "positive_pct": 66.66666666666667,
+        "median_net_bps": 1.0885129631512918,
+        "mean_net_bps": 2.463517426084034,
+        "aggregate_net_bps": 7.390552278252102,
+        "worst_net_bps": -0.9674249602617842,
         "best_net_bps": 7.269464275362594
       },
       "stress5_pass": false,
@@ -153,6 +153,26 @@
       "stress10_aggregate_proxy_bps": 370.8494513082853,
       "status": "VALIDATED_STRESS10"
     },
+    "ICP|BITGET|HTX": {
+      "base": "ICP",
+      "venue_a": "BITGET",
+      "venue_b": "HTX",
+      "entry_z": 2.0,
+      "train_score": 55.26405544960452,
+      "holdout": {
+        "n": 8,
+        "positive_pct": 62.5,
+        "median_net_bps": 16.150309830839596,
+        "mean_net_bps": 18.03885331151245,
+        "aggregate_net_bps": 144.3108264920996,
+        "worst_net_bps": -5.378316255289562,
+        "best_net_bps": 47.49467530609169
+      },
+      "stress10_pass": true,
+      "stress10_median_proxy_bps": 6.150309830839596,
+      "stress10_aggregate_proxy_bps": 64.31082649209961,
+      "status": "VALIDATED_STRESS10"
+    },
     "ICP|GATE|HTX": {
       "base": "ICP",
       "venue_a": "GATE",
@@ -171,26 +191,6 @@
       "stress10_pass": true,
       "stress10_median_proxy_bps": 5.401721791796724,
       "stress10_aggregate_proxy_bps": 53.146142825287484,
-      "status": "VALIDATED_STRESS10"
-    },
-    "ICP|BITGET|HTX": {
-      "base": "ICP",
-      "venue_a": "BITGET",
-      "venue_b": "HTX",
-      "entry_z": 2.0,
-      "train_score": 55.26405544960452,
-      "holdout": {
-        "n": 7,
-        "positive_pct": 57.142857142857146,
-        "median_net_bps": 12.766809989938565,
-        "mean_net_bps": 15.896410947174575,
-        "aggregate_net_bps": 111.27487663022202,
-        "worst_net_bps": -5.378316255289562,
-        "best_net_bps": 47.49467530609169
-      },
-      "stress10_pass": true,
-      "stress10_median_proxy_bps": 2.766809989938565,
-      "stress10_aggregate_proxy_bps": 41.274876630222025,
       "status": "VALIDATED_STRESS10"
     },
     "WIF|GATE|HTX": {
@@ -301,11 +301,11 @@
       "venue_b": "MEXC",
       "entry_z": 3.0,
       "holdout": {
-        "n": 2,
+        "n": 3,
         "positive_pct": 100.0,
-        "median_net_bps": 6.9131196349807915,
-        "mean_net_bps": 6.9131196349807915,
-        "aggregate_net_bps": 13.826239269961583,
+        "median_net_bps": 3.45367860811011,
+        "mean_net_bps": 5.759972626023898,
+        "aggregate_net_bps": 17.279917878071693,
         "worst_net_bps": 2.3408660046802297,
         "best_net_bps": 11.485373265281353
       },
