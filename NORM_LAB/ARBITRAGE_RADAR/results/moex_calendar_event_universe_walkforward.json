@@ -1,8 +1,8 @@
 {
-  "utc": "2026-11-02T03:55:24.724794+03:00",
+  "utc": "2026-11-02T05:48:04.477855+03:00",
   "discovery_candidates": 50,
-  "tested_routes": 7,
-  "holdout_pass": 3,
+  "tested_routes": 8,
+  "holdout_pass": 4,
   "routes": [
     {
       "spread": "SILV-12.26-3.27",
@@ -32,6 +32,36 @@
         "best_net_rub": 72.96876000000366
       },
       "cutoff_epoch": 1793296380,
+      "holdout_pass": true
+    },
+    {
+      "spread": "BR-12.26-1.27",
+      "near": "BRZ6",
+      "far": "BRF7",
+      "current_trades": 456.0,
+      "current_volume": 1014.0,
+      "cost_proxy_rub": 178.4516800000087,
+      "selected_entry_z": 3.0,
+      "train_score": -20.268566485270444,
+      "train": {
+        "n": 10,
+        "positive_pct": 30.0,
+        "median_net_rub": -21.36494500000275,
+        "mean_net_rub": -35.059686000005186,
+        "aggregate_net_rub": -350.59686000005183,
+        "worst_net_rub": -259.00898000000416,
+        "best_net_rub": 103.49886999998671
+      },
+      "holdout": {
+        "n": 5,
+        "positive_pct": 60.0,
+        "median_net_rub": 14.885839999987155,
+        "mean_net_rub": 22.941569999988992,
+        "aggregate_net_rub": 114.70784999994497,
+        "worst_net_rub": -57.615730000015574,
+        "best_net_rub": 79.33167999999722
+      },
+      "cutoff_epoch": 1793228400,
       "holdout_pass": true
     },
     {
@@ -215,78 +245,5 @@
       "holdout_pass": false
     }
   ],
-  "errors": [
-    {
-      "spread": "NGM-11.26-12.26",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "VKCO-12.26-3.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "SMLT-12.26-3.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "GMKN-12.26-3.27",
-      "error": "ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
-    },
-    {
-      "spread": "TRNF-12.26-3.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "GAZR-12.26-3.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "YDEX-12.26-3.27",
-      "error": "ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
-    },
-    {
-      "spread": "PLDM-12.26-3.27",
-      "error": "ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
-    },
-    {
-      "spread": "PHOR-12.26-3.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "BR-12.26-1.27",
-      "error": "ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
-    },
-    {
-      "spread": "SILVM-12.26-3.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "NGM-12.26-1.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "OZON-12.26-3.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "LKOH-12.26-3.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "MIX-12.26-3.27",
-      "error": "ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
-    },
-    {
-      "spread": "SBPR-12.26-3.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "GOLD-12.26-3.27",
-      "error": "ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
-    },
-    {
-      "spread": "SFIN-12.26-3.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    }
-  ]
+  "errors": []
 }
