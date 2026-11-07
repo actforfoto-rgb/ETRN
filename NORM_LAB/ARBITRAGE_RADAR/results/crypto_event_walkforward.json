@@ -1,38 +1,10 @@
 [
   {
     "kind": "PERP",
-    "cutoff_ts": 1793509200000,
-    "train_unique_hours": 98,
+    "cutoff_ts": 1793516400000,
+    "train_unique_hours": 99,
     "holdout_unique_hours": 43,
     "selected_routes": [
-      {
-        "kind": "PERP",
-        "base": "APT",
-        "venue_a": "HTX",
-        "venue_b": "OKX",
-        "selected_entry_z": 3.0,
-        "train_score": 25.29022627069142,
-        "train": {
-          "n": 8,
-          "positive_pct": 87.5,
-          "median_net_bps": 10.21879456785604,
-          "mean_net_bps": 16.349771068558862,
-          "aggregate_net_bps": 130.7981685484709,
-          "worst_net_bps": -2.932291723370483,
-          "best_net_bps": 61.75669287052867
-        },
-        "holdout": {
-          "n": 3,
-          "positive_pct": 100.0,
-          "median_net_bps": 30.165316384051422,
-          "mean_net_bps": 21.650880585254907,
-          "aggregate_net_bps": 64.95264175576472,
-          "worst_net_bps": 1.3370359328817258,
-          "best_net_bps": 33.450289438831575
-        },
-        "cutoff_ts": 1793509200000,
-        "holdout_pass": true
-      },
       {
         "kind": "PERP",
         "base": "APT",
@@ -58,7 +30,35 @@
           "worst_net_bps": 28.54980749875382,
           "best_net_bps": 35.002826960273595
         },
-        "cutoff_ts": 1793509200000,
+        "cutoff_ts": 1793516400000,
+        "holdout_pass": true
+      },
+      {
+        "kind": "PERP",
+        "base": "APT",
+        "venue_a": "HTX",
+        "venue_b": "OKX",
+        "selected_entry_z": 3.0,
+        "train_score": 25.29022627069142,
+        "train": {
+          "n": 8,
+          "positive_pct": 87.5,
+          "median_net_bps": 10.21879456785604,
+          "mean_net_bps": 16.349771068558862,
+          "aggregate_net_bps": 130.7981685484709,
+          "worst_net_bps": -2.932291723370483,
+          "best_net_bps": 61.75669287052867
+        },
+        "holdout": {
+          "n": 4,
+          "positive_pct": 75.0,
+          "median_net_bps": 15.751176158466574,
+          "mean_net_bps": 15.853607914445202,
+          "aggregate_net_bps": 63.41443165778081,
+          "worst_net_bps": -1.5382100979839137,
+          "best_net_bps": 33.450289438831575
+        },
+        "cutoff_ts": 1793516400000,
         "holdout_pass": true
       },
       {
@@ -86,7 +86,7 @@
           "worst_net_bps": 6.369250918060427,
           "best_net_bps": 21.959049959050763
         },
-        "cutoff_ts": 1793509200000,
+        "cutoff_ts": 1793516400000,
         "holdout_pass": true
       },
       {
@@ -114,7 +114,7 @@
           "worst_net_bps": 20.066680080695704,
           "best_net_bps": 29.790828823549134
         },
-        "cutoff_ts": 1793509200000,
+        "cutoff_ts": 1793516400000,
         "holdout_pass": true
       },
       {
@@ -142,7 +142,7 @@
           "worst_net_bps": 5.403798199469701,
           "best_net_bps": 5.403798199469701
         },
-        "cutoff_ts": 1793509200000,
+        "cutoff_ts": 1793516400000,
         "holdout_pass": false
       },
       {
@@ -162,7 +162,7 @@
           "best_net_bps": 6.131880413523994
         },
         "holdout": null,
-        "cutoff_ts": 1793509200000,
+        "cutoff_ts": 1793516400000,
         "holdout_pass": false
       },
       {
@@ -182,17 +182,17 @@
           "best_net_bps": 8.308891250442787
         },
         "holdout": null,
-        "cutoff_ts": 1793509200000,
+        "cutoff_ts": 1793516400000,
         "holdout_pass": false
       }
     ],
     "holdout_portfolio_de_duplicated": {
-      "n": 5,
-      "positive_pct": 100.0,
-      "median_net_bps": 6.369250918060427,
-      "mean_net_bps": 11.338659695686264,
-      "aggregate_net_bps": 56.693298478431316,
-      "worst_net_bps": 1.3370359328817258,
+      "n": 6,
+      "positive_pct": 83.33333333333333,
+      "median_net_bps": 5.886524558765064,
+      "mean_net_bps": 9.192514730074567,
+      "aggregate_net_bps": 55.1550883804474,
+      "worst_net_bps": -1.5382100979839137,
       "best_net_bps": 21.959049959050763
     },
     "holdout_portfolio_trades": [
@@ -285,14 +285,32 @@
         "venue_b": "HTX",
         "entry_z_threshold": 2.5,
         "train_score": 36.26558174127937
+      },
+      {
+        "entry_ts": 1793991600000,
+        "entry_z": 3.370224373479672,
+        "dir": "HIGH",
+        "a0": 0.6113,
+        "b0": 0.6128,
+        "expected_net_bps": 0.3638234770667559,
+        "bars": 1,
+        "exit_ts": 1793995200000,
+        "exit_z": 0.1162178731368864,
+        "net_bps": -1.5382100979839137,
+        "reason": "CONVERGENCE",
+        "base": "APT",
+        "venue_a": "HTX",
+        "venue_b": "OKX",
+        "entry_z_threshold": 3.0,
+        "train_score": 25.29022627069142
       }
     ]
   },
   {
     "kind": "SPOT",
-    "cutoff_ts": 1793401200000,
-    "train_unique_hours": 154,
-    "holdout_unique_hours": 66,
+    "cutoff_ts": 1793408400000,
+    "train_unique_hours": 156,
+    "holdout_unique_hours": 67,
     "selected_routes": [
       {
         "kind": "SPOT",
@@ -319,7 +337,7 @@
           "worst_net_bps": 98.69661094575926,
           "best_net_bps": 265.67417612063656
         },
-        "cutoff_ts": 1793401200000,
+        "cutoff_ts": 1793408400000,
         "holdout_pass": true
       },
       {
@@ -347,7 +365,7 @@
           "worst_net_bps": 100.52083548817197,
           "best_net_bps": 244.86871562148286
         },
-        "cutoff_ts": 1793401200000,
+        "cutoff_ts": 1793408400000,
         "holdout_pass": true
       },
       {
@@ -375,7 +393,7 @@
           "worst_net_bps": 88.66045122309868,
           "best_net_bps": 227.36605553598628
         },
-        "cutoff_ts": 1793401200000,
+        "cutoff_ts": 1793408400000,
         "holdout_pass": true
       },
       {
@@ -403,7 +421,7 @@
           "worst_net_bps": 140.05661619486514,
           "best_net_bps": 246.42969353262316
         },
-        "cutoff_ts": 1793401200000,
+        "cutoff_ts": 1793408400000,
         "holdout_pass": true
       },
       {
@@ -417,10 +435,10 @@
           "n": 17,
           "positive_pct": 76.47058823529412,
           "median_net_bps": 23.34511741432449,
-          "mean_net_bps": 51.07642495871711,
-          "aggregate_net_bps": 868.2992242981909,
+          "mean_net_bps": 53.74285228542897,
+          "aggregate_net_bps": 913.6284888522924,
           "worst_net_bps": -71.05655479038913,
-          "best_net_bps": 403.85177866266656
+          "best_net_bps": 449.1810432167681
         },
         "holdout": {
           "n": 8,
@@ -431,7 +449,7 @@
           "worst_net_bps": -20.7411285631171,
           "best_net_bps": 181.50469790014273
         },
-        "cutoff_ts": 1793401200000,
+        "cutoff_ts": 1793408400000,
         "holdout_pass": true
       },
       {
@@ -445,10 +463,10 @@
           "n": 15,
           "positive_pct": 80.0,
           "median_net_bps": 30.37882417483867,
-          "mean_net_bps": 67.26273548169331,
-          "aggregate_net_bps": 1008.9410322253997,
+          "mean_net_bps": 71.51570681280425,
+          "aggregate_net_bps": 1072.7356021920639,
           "worst_net_bps": -7.376195047538786,
-          "best_net_bps": 391.21884376758726
+          "best_net_bps": 455.01341373425146
         },
         "holdout": {
           "n": 4,
@@ -459,7 +477,7 @@
           "worst_net_bps": -6.779436152570327,
           "best_net_bps": 175.78210678210797
         },
-        "cutoff_ts": 1793401200000,
+        "cutoff_ts": 1793408400000,
         "holdout_pass": true
       },
       {
@@ -487,7 +505,7 @@
           "worst_net_bps": 26.767201766427164,
           "best_net_bps": 79.30579181854964
         },
-        "cutoff_ts": 1793401200000,
+        "cutoff_ts": 1793408400000,
         "holdout_pass": true
       },
       {
@@ -515,7 +533,7 @@
           "worst_net_bps": 74.23371726059497,
           "best_net_bps": 83.31174089068634
         },
-        "cutoff_ts": 1793401200000,
+        "cutoff_ts": 1793408400000,
         "holdout_pass": true
       },
       {
@@ -529,10 +547,10 @@
           "n": 14,
           "positive_pct": 85.71428571428571,
           "median_net_bps": 17.397610675400855,
-          "mean_net_bps": 64.27289131339151,
-          "aggregate_net_bps": 899.8204783874811,
+          "mean_net_bps": 68.09609876765157,
+          "aggregate_net_bps": 953.345382747122,
           "worst_net_bps": -40.47456507854269,
-          "best_net_bps": 384.6607535275009
+          "best_net_bps": 438.18565788714176
         },
         "holdout": {
           "n": 4,
@@ -543,35 +561,7 @@
           "worst_net_bps": -21.82422611055229,
           "best_net_bps": 166.65209419594314
         },
-        "cutoff_ts": 1793401200000,
-        "holdout_pass": true
-      },
-      {
-        "kind": "SPOT",
-        "base": "WIF",
-        "venue_a": "HTX",
-        "venue_b": "MEXC",
-        "selected_entry_z": 2.0,
-        "train_score": 52.193805711337696,
-        "train": {
-          "n": 14,
-          "positive_pct": 92.85714285714286,
-          "median_net_bps": 15.022410667974661,
-          "mean_net_bps": 23.3700682151515,
-          "aggregate_net_bps": 327.180955012121,
-          "worst_net_bps": -7.390110167137593,
-          "best_net_bps": 117.90580229372566
-        },
-        "holdout": {
-          "n": 5,
-          "positive_pct": 80.0,
-          "median_net_bps": 20.636861704872942,
-          "mean_net_bps": 22.37051039766885,
-          "aggregate_net_bps": 111.85255198834425,
-          "worst_net_bps": -3.3991817650486666,
-          "best_net_bps": 59.929160888198496
-        },
-        "cutoff_ts": 1793401200000,
+        "cutoff_ts": 1793408400000,
         "holdout_pass": true
       },
       {
@@ -599,7 +589,7 @@
           "worst_net_bps": 40.62884927066351,
           "best_net_bps": 67.96694214876104
         },
-        "cutoff_ts": 1793401200000,
+        "cutoff_ts": 1793408400000,
         "holdout_pass": true
       },
       {
@@ -627,7 +617,35 @@
           "worst_net_bps": 2.3002571254720294,
           "best_net_bps": 26.026817476967807
         },
-        "cutoff_ts": 1793401200000,
+        "cutoff_ts": 1793408400000,
+        "holdout_pass": true
+      },
+      {
+        "kind": "SPOT",
+        "base": "WIF",
+        "venue_a": "HTX",
+        "venue_b": "MEXC",
+        "selected_entry_z": 2.0,
+        "train_score": 55.32909308430632,
+        "train": {
+          "n": 15,
+          "positive_pct": 93.33333333333333,
+          "median_net_bps": 15.306332576877026,
+          "mean_net_bps": 23.187854447799598,
+          "aggregate_net_bps": 347.81781671699395,
+          "worst_net_bps": -7.390110167137593,
+          "best_net_bps": 117.90580229372566
+        },
+        "holdout": {
+          "n": 4,
+          "positive_pct": 75.0,
+          "median_net_bps": 17.342855580160737,
+          "mean_net_bps": 22.803922570867826,
+          "aggregate_net_bps": 91.2156902834713,
+          "worst_net_bps": -3.3991817650486666,
+          "best_net_bps": 59.929160888198496
+        },
+        "cutoff_ts": 1793408400000,
         "holdout_pass": true
       },
       {
@@ -635,27 +653,27 @@
         "base": "WIF",
         "venue_a": "HTX",
         "venue_b": "OKX",
-        "selected_entry_z": 2.0,
-        "train_score": 36.69467851067904,
+        "selected_entry_z": 2.5,
+        "train_score": 36.05999419930064,
         "train": {
-          "n": 11,
-          "positive_pct": 81.81818181818181,
+          "n": 9,
+          "positive_pct": 88.88888888888889,
           "median_net_bps": 13.52249782473774,
-          "mean_net_bps": 21.546647421243346,
-          "aggregate_net_bps": 237.0131216336768,
+          "mean_net_bps": 12.070752210486205,
+          "aggregate_net_bps": 108.63676989437585,
           "worst_net_bps": -13.487825162890651,
-          "best_net_bps": 129.2242219620448
+          "best_net_bps": 32.68216249870332
         },
         "holdout": {
-          "n": 5,
-          "positive_pct": 80.0,
-          "median_net_bps": 11.183958065819567,
-          "mean_net_bps": 14.577415927187701,
-          "aggregate_net_bps": 72.8870796359385,
-          "worst_net_bps": -5.993469739740739,
+          "n": 3,
+          "positive_pct": 100.0,
+          "median_net_bps": 22.118079419625687,
+          "mean_net_bps": 25.934517661428718,
+          "aggregate_net_bps": 77.80355298428616,
+          "worst_net_bps": 11.183958065819567,
           "best_net_bps": 44.5015154988409
         },
-        "cutoff_ts": 1793401200000,
+        "cutoff_ts": 1793408400000,
         "holdout_pass": true
       },
       {
@@ -683,7 +701,7 @@
           "worst_net_bps": 4.134424313267331,
           "best_net_bps": 44.13541813037597
         },
-        "cutoff_ts": 1793401200000,
+        "cutoff_ts": 1793408400000,
         "holdout_pass": true
       },
       {
@@ -711,7 +729,7 @@
           "worst_net_bps": 4.962168771904182,
           "best_net_bps": 5.029706579186481
         },
-        "cutoff_ts": 1793401200000,
+        "cutoff_ts": 1793408400000,
         "holdout_pass": true
       },
       {
@@ -731,15 +749,15 @@
           "best_net_bps": 15.097609359963549
         },
         "holdout": {
-          "n": 2,
-          "positive_pct": 100.0,
-          "median_net_bps": 3.674782639094186,
-          "mean_net_bps": 3.674782639094186,
-          "aggregate_net_bps": 7.349565278188372,
-          "worst_net_bps": 3.45367860811011,
+          "n": 3,
+          "positive_pct": 66.66666666666667,
+          "median_net_bps": 3.45367860811011,
+          "mean_net_bps": 0.3900705415121095,
+          "aggregate_net_bps": 1.1702116245363285,
+          "worst_net_bps": -6.1793536536520435,
           "best_net_bps": 3.895886670078262
         },
-        "cutoff_ts": 1793401200000,
+        "cutoff_ts": 1793408400000,
         "holdout_pass": true
       },
       {
@@ -767,7 +785,7 @@
           "worst_net_bps": 70.1769543587721,
           "best_net_bps": 70.1769543587721
         },
-        "cutoff_ts": 1793401200000,
+        "cutoff_ts": 1793408400000,
         "holdout_pass": false
       },
       {
@@ -795,7 +813,7 @@
           "worst_net_bps": 33.703894397829,
           "best_net_bps": 33.703894397829
         },
-        "cutoff_ts": 1793401200000,
+        "cutoff_ts": 1793408400000,
         "holdout_pass": false
       },
       {
@@ -823,7 +841,7 @@
           "worst_net_bps": -11.702984342109652,
           "best_net_bps": -7.770712779690612
         },
-        "cutoff_ts": 1793401200000,
+        "cutoff_ts": 1793408400000,
         "holdout_pass": false
       },
       {
@@ -843,7 +861,7 @@
           "best_net_bps": 17.406923973490237
         },
         "holdout": null,
-        "cutoff_ts": 1793401200000,
+        "cutoff_ts": 1793408400000,
         "holdout_pass": false
       },
       {
@@ -863,38 +881,20 @@
           "best_net_bps": 22.515823493995327
         },
         "holdout": null,
-        "cutoff_ts": 1793401200000,
+        "cutoff_ts": 1793408400000,
         "holdout_pass": false
       }
     ],
     "holdout_portfolio_de_duplicated": {
-      "n": 34,
-      "positive_pct": 79.41176470588235,
-      "median_net_bps": 20.176062719352505,
-      "mean_net_bps": 37.9321108702747,
-      "aggregate_net_bps": 1289.6917695893396,
+      "n": 33,
+      "positive_pct": 75.75757575757575,
+      "median_net_bps": 19.715263733832067,
+      "mean_net_bps": 38.23631993452793,
+      "aggregate_net_bps": 1261.7985578394216,
       "worst_net_bps": -11.702984342109652,
       "best_net_bps": 265.67417612063656
     },
     "holdout_portfolio_trades": [
-      {
-        "entry_ts": 1793401200000,
-        "entry_z": -2.5392279501944928,
-        "dir": "LOW",
-        "a0": 0.1795,
-        "b0": 0.1781,
-        "expected_net_bps": 28.20338237792697,
-        "bars": 5,
-        "exit_ts": 1793422800000,
-        "exit_z": -0.004314379239720578,
-        "net_bps": 20.636861704872942,
-        "reason": "CONVERGENCE",
-        "base": "WIF",
-        "venue_a": "HTX",
-        "venue_b": "MEXC",
-        "entry_z_threshold": 2.0,
-        "train_score": 52.193805711337696
-      },
       {
         "entry_ts": 1793408400000,
         "entry_z": -4.865289848151144,
@@ -1199,7 +1199,7 @@
         "venue_a": "HTX",
         "venue_b": "MEXC",
         "entry_z_threshold": 2.0,
-        "train_score": 52.193805711337696
+        "train_score": 55.32909308430632
       },
       {
         "entry_ts": 1793764800000,
@@ -1235,7 +1235,7 @@
         "venue_a": "HTX",
         "venue_b": "MEXC",
         "entry_z_threshold": 2.0,
-        "train_score": 52.193805711337696
+        "train_score": 55.32909308430632
       },
       {
         "entry_ts": 1793772000000,
@@ -1271,25 +1271,7 @@
         "venue_a": "HTX",
         "venue_b": "MEXC",
         "entry_z_threshold": 2.0,
-        "train_score": 52.193805711337696
-      },
-      {
-        "entry_ts": 1793804400000,
-        "entry_z": -2.43050482610126,
-        "dir": "LOW",
-        "a0": 0.1799,
-        "b0": 0.1787,
-        "expected_net_bps": 15.141953495530757,
-        "bars": 1,
-        "exit_ts": 1793808000000,
-        "exit_z": -0.2713348451121569,
-        "net_bps": 1.076996391393081,
-        "reason": "CONVERGENCE",
-        "base": "WIF",
-        "venue_a": "HTX",
-        "venue_b": "OKX",
-        "entry_z_threshold": 2.0,
-        "train_score": 36.69467851067904
+        "train_score": 55.32909308430632
       },
       {
         "entry_ts": 1793811600000,
@@ -1415,7 +1397,7 @@
         "venue_a": "HTX",
         "venue_b": "MEXC",
         "entry_z_threshold": 2.0,
-        "train_score": 52.193805711337696
+        "train_score": 55.32909308430632
       },
       {
         "entry_ts": 1793894400000,
@@ -1488,6 +1470,24 @@
         "venue_b": "HTX",
         "entry_z_threshold": 2.0,
         "train_score": 73.60629436718703
+      },
+      {
+        "entry_ts": 1793977200000,
+        "entry_z": 3.177136646711177,
+        "dir": "HIGH",
+        "a0": 0.1661,
+        "b0": 0.1667,
+        "expected_net_bps": 0.37354235271802594,
+        "bars": 5,
+        "exit_ts": 1793995200000,
+        "exit_z": 0.26048557358664304,
+        "net_bps": -6.1793536536520435,
+        "reason": "CONVERGENCE",
+        "base": "WIF",
+        "venue_a": "BITGET",
+        "venue_b": "MEXC",
+        "entry_z_threshold": 3.0,
+        "train_score": 10.33960641091773
       }
     ]
   }
