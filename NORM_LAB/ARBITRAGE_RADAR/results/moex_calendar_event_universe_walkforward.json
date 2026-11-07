@@ -1,7 +1,7 @@
 {
-  "utc": "2026-11-07T22:39:35.655562+03:00",
+  "utc": "2026-11-07T23:20:56.888291+03:00",
   "discovery_candidates": 50,
-  "tested_routes": 10,
+  "tested_routes": 12,
   "holdout_pass": 6,
   "routes": [
     {
@@ -275,6 +275,36 @@
       "holdout_pass": false
     },
     {
+      "spread": "COCOA-11.26-2.27",
+      "near": "CCX6",
+      "far": "CCG7",
+      "current_trades": 8920.0,
+      "current_volume": 116382.0,
+      "cost_proxy_rub": 11.319999999999887,
+      "selected_entry_z": 2.0,
+      "train_score": -0.8799999999999244,
+      "train": {
+        "n": 9,
+        "positive_pct": 22.22222222222222,
+        "median_net_rub": -1.3199999999998866,
+        "mean_net_rub": -2.2088888888888514,
+        "aggregate_net_rub": -19.87999999999966,
+        "worst_net_rub": -11.319999999999887,
+        "best_net_rub": 2.6800000000004545
+      },
+      "holdout": {
+        "n": 4,
+        "positive_pct": 0.0,
+        "median_net_rub": -4.319999999999716,
+        "mean_net_rub": -5.819999999999773,
+        "aggregate_net_rub": -23.27999999999909,
+        "worst_net_rub": -12.320000000000114,
+        "best_net_rub": -2.3199999999995455
+      },
+      "cutoff_epoch": 1793816100,
+      "holdout_pass": false
+    },
+    {
       "spread": "NG-12.26-1.27",
       "near": "NGZ6",
       "far": "NGF7",
@@ -303,16 +333,37 @@
       },
       "cutoff_epoch": 1793827740,
       "holdout_pass": false
-    }
-  ],
-  "errors": [
-    {
-      "spread": "COCOA-11.26-2.27",
-      "error": "ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
     },
     {
       "spread": "NG-11.26-12.26",
-      "error": "ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+      "near": "NGX6",
+      "far": "NGZ6",
+      "current_trades": 11773.0,
+      "current_volume": 99496.0,
+      "cost_proxy_rub": 48.73543999999639,
+      "selected_entry_z": 3.0,
+      "train_score": -15.65923105794072,
+      "train": {
+        "n": 29,
+        "positive_pct": 37.93103448275862,
+        "median_net_rub": -7.666140000000908,
+        "mean_net_rub": -10.781742068961933,
+        "aggregate_net_rub": -312.67051999989604,
+        "worst_net_rub": -81.59087999999278,
+        "best_net_rub": 49.8308800000037
+      },
+      "holdout": {
+        "n": 13,
+        "positive_pct": 30.76923076923077,
+        "median_net_rub": -7.666139999997263,
+        "mean_net_rub": -13.352658461534816,
+        "aggregate_net_rub": -173.5845599999526,
+        "worst_net_rub": -122.6601799999992,
+        "best_net_rub": 49.8308800000037
+      },
+      "cutoff_epoch": 1793890800,
+      "holdout_pass": false
     }
-  ]
+  ],
+  "errors": []
 }
