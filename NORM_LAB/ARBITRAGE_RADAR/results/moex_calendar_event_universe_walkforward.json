@@ -1,9 +1,69 @@
 {
-  "utc": "2026-11-14T03:01:09.115570+03:00",
+  "utc": "2026-11-14T09:46:22.610388+03:00",
   "discovery_candidates": 50,
-  "tested_routes": 4,
-  "holdout_pass": 4,
+  "tested_routes": 10,
+  "holdout_pass": 7,
   "routes": [
+    {
+      "spread": "MIX-12.26-3.27",
+      "near": "MXZ6",
+      "far": "MXH7",
+      "current_trades": 898.0,
+      "current_volume": 2646.0,
+      "cost_proxy_rub": 169.32,
+      "selected_entry_z": 2.0,
+      "train_score": 308.62698361090526,
+      "train": {
+        "n": 47,
+        "positive_pct": 80.85106382978724,
+        "median_net_rub": 55.68000000000001,
+        "mean_net_rub": 56.211914893617035,
+        "aggregate_net_rub": 2641.9600000000005,
+        "worst_net_rub": -369.32,
+        "best_net_rub": 505.68
+      },
+      "holdout": {
+        "n": 21,
+        "positive_pct": 95.23809523809524,
+        "median_net_rub": 55.68000000000001,
+        "mean_net_rub": 61.63238095238096,
+        "aggregate_net_rub": 1294.2800000000002,
+        "worst_net_rub": -19.319999999999993,
+        "best_net_rub": 205.68
+      },
+      "cutoff_epoch": 1794487740,
+      "holdout_pass": true
+    },
+    {
+      "spread": "SILV-12.26-3.27",
+      "near": "SVZ6",
+      "far": "SVH7",
+      "current_trades": 4541.0,
+      "current_volume": 19510.0,
+      "cost_proxy_rub": 57.73211999999929,
+      "selected_entry_z": 3.0,
+      "train_score": 83.038437127261,
+      "train": {
+        "n": 24,
+        "positive_pct": 100.0,
+        "median_net_rub": 16.95014999999764,
+        "mean_net_rub": 18.333155000001053,
+        "aggregate_net_rub": 439.99572000002524,
+        "worst_net_rub": 0.35409000000094437,
+        "best_net_rub": 58.44030000000118
+      },
+      "holdout": {
+        "n": 11,
+        "positive_pct": 90.9090909090909,
+        "median_net_rub": 16.95015000000354,
+        "mean_net_rub": 18.458882727274357,
+        "aggregate_net_rub": 203.04771000001793,
+        "worst_net_rub": -7.943939999997404,
+        "best_net_rub": 41.844239999998585
+      },
+      "cutoff_epoch": 1794508200,
+      "holdout_pass": true
+    },
     {
       "spread": "SPYF-12.26-3.27",
       "near": "SFZ6",
@@ -65,6 +125,36 @@
       "holdout_pass": true
     },
     {
+      "spread": "BRM-12.26-1.27",
+      "near": "BMZ6",
+      "far": "BMF7",
+      "current_trades": 2084.0,
+      "current_volume": 10592.0,
+      "cost_proxy_rub": 8.569399999998915,
+      "selected_entry_z": 2.5,
+      "train_score": 18.617401625457063,
+      "train": {
+        "n": 67,
+        "positive_pct": 74.6268656716418,
+        "median_net_rub": 3.0477999999999525,
+        "mean_net_rub": 2.7134029850756574,
+        "aggregate_net_rub": 181.79800000006904,
+        "worst_net_rub": -9.399200000000517,
+        "best_net_rub": 14.665
+      },
+      "holdout": {
+        "n": 29,
+        "positive_pct": 72.41379310344827,
+        "median_net_rub": 1.3882000000002819,
+        "mean_net_rub": 1.5312689655184917,
+        "aggregate_net_rub": 44.406800000036256,
+        "worst_net_rub": -6.909799999999245,
+        "best_net_rub": 22.963000000001884
+      },
+      "cutoff_epoch": 1794428580,
+      "holdout_pass": true
+    },
+    {
       "spread": "GL-12.26-3.27",
       "near": "GLZ6",
       "far": "GLH7",
@@ -123,96 +213,97 @@
       },
       "cutoff_epoch": 1794521520,
       "holdout_pass": true
-    }
-  ],
-  "errors": [
+    },
     {
       "spread": "COCOA-11.26-2.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "BTC-11.26-12.26",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "NGM-11.26-12.26",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "NG-11.26-12.26",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
+      "near": "CCX6",
+      "far": "CCG7",
+      "current_trades": 7568.0,
+      "current_volume": 157142.0,
+      "cost_proxy_rub": 8.300000000000342,
+      "selected_entry_z": 3.0,
+      "train_score": -0.4500000000003421,
+      "train": {
+        "n": 16,
+        "positive_pct": 37.5,
+        "median_net_rub": -0.3000000000002281,
+        "mean_net_rub": 0.8874999999996511,
+        "aggregate_net_rub": 14.199999999994418,
+        "worst_net_rub": -3.3000000000003418,
+        "best_net_rub": 5.699999999999431
+      },
+      "holdout": {
+        "n": 8,
+        "positive_pct": 37.5,
+        "median_net_rub": -0.8000000000003418,
+        "mean_net_rub": -1.0500000000003986,
+        "aggregate_net_rub": -8.400000000003189,
+        "worst_net_rub": -4.300000000000569,
+        "best_net_rub": 0.6999999999999993
+      },
+      "cutoff_epoch": 1794434940,
+      "holdout_pass": false
     },
     {
       "spread": "COFFEE-11.26-2.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
+      "near": "KCX6",
+      "far": "KCG7",
+      "current_trades": 2628.0,
+      "current_volume": 62848.0,
+      "cost_proxy_rub": 6.539200000000003,
+      "selected_entry_z": 2.5,
+      "train_score": -1.4328244833201105,
+      "train": {
+        "n": 26,
+        "positive_pct": 38.46153846153846,
+        "median_net_rub": -0.7306000000002744,
+        "mean_net_rub": -1.5923153846153515,
+        "aggregate_net_rub": -41.40019999999914,
+        "worst_net_rub": -12.347799999999731,
+        "best_net_rub": 4.248199999999914
+      },
+      "holdout": {
+        "n": 12,
+        "positive_pct": 41.666666666666664,
+        "median_net_rub": -1.5603999999999987,
+        "mean_net_rub": -2.5976500000000073,
+        "aggregate_net_rub": -31.171800000000086,
+        "worst_net_rub": -14.007399999999917,
+        "best_net_rub": 2.5886000000000973
+      },
+      "cutoff_epoch": 1794499740,
+      "holdout_pass": false
     },
     {
-      "spread": "VKCO-12.26-3.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "BR-12.26-1.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "VTBR-12.26-3.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "NGM-12.26-1.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "SILV-12.26-3.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "OZON-12.26-3.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "NASD-12.26-3.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "GAZR-12.26-3.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "BRM-12.26-1.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "ED-12.26-3.27",
-      "error": "ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
-    },
-    {
-      "spread": "WUSH-12.26-3.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "GOLD-12.26-3.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "MGNT-12.26-3.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "GOLDM-12.26-3.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "BR-1.27-2.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "MIX-12.26-3.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
-    },
-    {
-      "spread": "COPPER-12.26-3.27",
-      "error": "ReadTimeout: HTTPSConnectionPool(host='iss.moex.com', port=443): Read timed out. (read timeout=30)"
+      "spread": "NG-11.26-12.26",
+      "near": "NGX6",
+      "far": "NGZ6",
+      "current_trades": 11678.0,
+      "current_volume": 91628.0,
+      "cost_proxy_rub": 116.87636000000009,
+      "selected_entry_z": 2.0,
+      "train_score": -0.0,
+      "train": {
+        "n": 9,
+        "positive_pct": 0.0,
+        "median_net_rub": -133.47241999999827,
+        "mean_net_rub": -120.56437333333344,
+        "aggregate_net_rub": -1085.0793600000009,
+        "worst_net_rub": -241.34680999999745,
+        "best_net_rub": -17.299999999999997
+      },
+      "holdout": {
+        "n": 4,
+        "positive_pct": 25.0,
+        "median_net_rub": -79.53522500000051,
+        "mean_net_rub": -65.01367250000027,
+        "aggregate_net_rub": -260.0546900000011,
+        "worst_net_rub": -108.578330000001,
+        "best_net_rub": 7.594090000000946
+      },
+      "cutoff_epoch": 1794503160,
+      "holdout_pass": false
     }
-  ]
+  ],
+  "errors": []
 }
