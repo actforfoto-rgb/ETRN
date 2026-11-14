@@ -11,8 +11,48 @@
   },
   {
     "family": "IMOEX",
-    "status": "REJECT_TRAIN",
-    "reason": "No 2025 threshold passed conservative train criteria"
+    "status": "HOLDOUT_FAIL",
+    "chosen_threshold": 1.0,
+    "selection_rule": "lowest 2025 threshold with >=2 cycles, stress median/aggregate >0 and stress positive >=66%",
+    "train": {
+      "family": "IMOEX",
+      "ratio_threshold": 1.0,
+      "split": "TRAIN_2025",
+      "n_cycles": 3,
+      "positive_cycles_pct": 66.66666666666667,
+      "median_return_on_im_pct": 2.714909107966765,
+      "mean_return_on_im_pct": 3.263619914808633,
+      "aggregate_net_rub": 514.6565424657474,
+      "worst_return_on_im_pct": -0.621795715415636,
+      "best_return_on_im_pct": 7.697746351874771,
+      "stress_positive_cycles_pct": 66.66666666666667,
+      "stress_median_return_on_im_pct": 0.369274153722258,
+      "stress_aggregate_net_rub": 124.52771369862518,
+      "cycles": [
+        "IMOEX-2025-03",
+        "IMOEX-2025-09",
+        "IMOEX-2025-12"
+      ]
+    },
+    "holdout": {
+      "family": "IMOEX",
+      "ratio_threshold": 1.0,
+      "split": "HOLDOUT_2026",
+      "n_cycles": 2,
+      "positive_cycles_pct": 0.0,
+      "median_return_on_im_pct": -6.757183376354618,
+      "mean_return_on_im_pct": -6.757183376354618,
+      "aggregate_net_rub": -710.382688356161,
+      "worst_return_on_im_pct": -7.863386296679005,
+      "best_return_on_im_pct": -5.650980456030231,
+      "stress_positive_cycles_pct": 0.0,
+      "stress_median_return_on_im_pct": -8.701962166215575,
+      "stress_aggregate_net_rub": -914.8372825342433,
+      "cycles": [
+        "IMOEX-2026-03",
+        "IMOEX-2026-09"
+      ]
+    }
   },
   {
     "family": "USD",
